@@ -19,7 +19,7 @@ const baseRedisOptions = {
     const delay = Math.min(times * 50, 2000);
     return delay;
   },
-  maxRetriesPerRequest: 3,
+  maxRetriesPerRequest: null, // Keep retrying in background safely, avoiding MaxRetriesPerRequestError
   enableReadyCheck: true,
   lazyConnect: false,
 };

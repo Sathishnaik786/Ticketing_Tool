@@ -18,8 +18,11 @@ router.get('/', async (req, res) => {
     services: {}
   };
 
-  // Check Redis connection
+  // Check Redis connection safely without hanging when maxRetriesPerRequest is null
   try {
+    if (redis.status !== 'ready') {
+      throw new Error(`Redis connection is not ready (current status: ${redis.status})`);
+    }
     await redis.ping();
     health.services.redis = {
       status: 'healthy',
