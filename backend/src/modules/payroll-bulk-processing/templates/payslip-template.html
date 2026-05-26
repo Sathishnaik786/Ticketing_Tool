@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        :root {
+            --primary-color: {{primaryColor}};
+            --secondary-color: {{secondaryColor}};
+            --accent-color: {{accentColor}};
+            --font-family: '{{fontFamily}}', 'Helvetica Neue', 'Arial', sans-serif;
+        }
+
+        body { 
+            font-family: var(--font-family); 
+            color: #334155; 
+            margin: 0; 
+            padding: 40px; 
+            position: relative; 
+            min-height: 100%;
+        }
+
+        /* Institutional Watermark */
+        {{#if watermarkText}}
+        body::before {
+            content: '{{watermarkText}}';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-35deg);
+            font-size: 80px;
+            font-weight: 900;
+            color: rgba(148, 163, 184, 0.06);
+            z-index: -1;
+            pointer-events: none;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+        {{/if}}
+
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            border-bottom: 3px solid var(--primary-color); 
+            padding-bottom: 25px; 
+            margin-bottom: 30px; 
+        }
+
+        .company-header-block {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .company-logo {
+            max-height: 55px;
+            max-width: 150px;
+            object-fit: contain;
+        }
+
+        .company-info h1 { 
+            margin: 0; 
+            font-size: 22px; 
+            font-weight: 900;
+            color: var(--primary-color); 
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+        }
+
+        .company-info p { 
+            margin: 4px 0; 
+            font-size: 11px; 
+            color: var(--secondary-color); 
+            font-weight: 500;
+        }
+
+        .payslip-title { 
+            text-align: right; 
+        }
+
+        .payslip-title h2 { 
+            margin: 0; 
+            font-size: 18px; 
+            font-weight: 900;
+            color: var(--primary-color); 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em;
+        }
+
+        .payslip-title p { 
+            margin: 4px 0; 
+            font-size: 13px; 
+            font-weight: 800; 
+            color: #64748b;
+        }
+
+        .info-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 30px; 
+            margin-bottom: 30px; 
+        }
+
+        .info-section h3 { 
+            font-size: 10px; 
+            font-weight: 900;
+            text-transform: uppercase; 
+            color: var(--secondary-color); 
+            margin-bottom: 12px; 
+            border-bottom: 1.5px solid #e2e8f0; 
+            padding-bottom: 6px; 
+            letter-spacing: 0.1em;
+        }
+
+        .info-item { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 6px; 
+            font-size: 11px; 
+            line-height: 1.5;
+        }
+
+        .info-label { 
+            font-weight: 700; 
+            color: #475569; 
+        }
+        
+        .info-val {
+            color: #0f172a;
+            font-weight: 500;
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 30px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        th { 
+            background-color: #f8fafc; 
+            text-align: left; 
+            padding: 12px; 
+            font-size: 10px; 
+            font-weight: 900;
+            text-transform: uppercase; 
+            color: var(--secondary-color); 
+            border-bottom: 2px solid #e2e8f0; 
+            letter-spacing: 0.05em;
+        }
+
+        td { 
+            padding: 12px; 
+            font-size: 11px; 
+            border-bottom: 1px solid #f1f5f9; 
+            font-weight: 500;
+        }
+
+        .amount { 
+            text-align: right; 
+            font-family: 'Courier New', Courier, monospace; 
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .summary-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1.2fr; 
+            gap: 40px; 
+            margin-top: 20px;
+        }
+
+        .notes-box {
+            font-size: 10px;
+            line-height: 1.6;
+            color: #64748b;
+            padding: 15px;
+            background-color: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .summary-box { 
+            background-color: #f8fafc; 
+            padding: 20px; 
+            border-radius: 16px; 
+            border: 1px solid #f1f5f9;
+        }
+
+        .total-row { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 10px; 
+            font-size: 12px; 
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .net-pay { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-top: 15px; 
+            padding-top: 15px; 
+            border-top: 2px dashed #cbd5e1; 
+            font-size: 18px; 
+            font-weight: 900; 
+            color: var(--primary-color); 
+        }
+
+        .footer { 
+            margin-top: 60px; 
+            border-top: 1.5px solid #e2e8f0; 
+            padding-top: 25px; 
+            text-align: center; 
+        }
+
+        .footer p { 
+            font-size: 9px; 
+            color: #94a3b8; 
+            margin: 4px 0;
+            font-weight: 600;
+        }
+
+        .verification { 
+            font-size: 8px; 
+            color: #cbd5e1; 
+            margin-top: 12px; 
+            word-break: break-all; 
+            font-family: monospace;
+        }
+
+        /* Digital Signature Box */
+        .signature-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .signature-box {
+            text-align: center;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 8px;
+            width: 180px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .signature-badge {
+            font-size: 8px;
+            color: #10b981;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-header-block">
+            {{#if logoUrl}}
+                <img src="{{logoUrl}}" class="company-logo" alt="Logo" />
+            {{/if}}
+            <div class="company-info">
+                <h1>{{organizationName}}</h1>
+                <p>{{companyAddress}}</p>
+            </div>
+        </div>
+        <div class="payslip-title">
+            <h2>Salary Statement</h2>
+            <p>{{payrollMonth}} / {{payrollYear}}</p>
+            <p style="font-size: 9px; color: #94a3b8; font-family: monospace;">Ref: {{payslipNumber}}</p>
+        </div>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-section">
+            <h3>Employee Details</h3>
+            <div class="info-item"><span class="info-label">Name:</span> <span class="info-val">{{employeeName}}</span></div>
+            <div class="info-item"><span class="info-label">ID:</span> <span class="info-val">{{employeeCode}}</span></div>
+            <div class="info-item"><span class="info-label">Designation:</span> <span class="info-val">{{designation}}</span></div>
+            <div class="info-item"><span class="info-label">Department:</span> <span class="info-val">{{department}}</span></div>
+        </div>
+        <div class="info-section">
+            <h3>Payment & Statutory Details</h3>
+            {{#if bankSectionEnabled}}
+                <div class="info-item"><span class="info-label">Bank:</span> <span class="info-val">{{bankName}}</span></div>
+                <div class="info-item"><span class="info-label">Account:</span> <span class="info-val">{{bankAccount}}</span></div>
+            {{/if}}
+            {{#if statutorySectionEnabled}}
+                <div class="info-item"><span class="info-label">PAN:</span> <span class="info-val">{{pan}}</span></div>
+                <div class="info-item"><span class="info-label">UAN:</span> <span class="info-val">{{uan}}</span></div>
+            {{/if}}
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Earnings</th>
+                <th class="amount">Amount (INR)</th>
+                <th>Deductions</th>
+                <th class="amount">Amount (INR)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Basic Salary</td>
+                <td class="amount">{{basic}}</td>
+                <td>Provident Fund (PF)</td>
+                <td class="amount">{{pf}}</td>
+            </tr>
+            <tr>
+                <td>HRA</td>
+                <td class="amount">{{hra}}</td>
+                <td>ESI</td>
+                <td class="amount">{{esi}}</td>
+            </tr>
+            <tr>
+                <td>Special Allowance</td>
+                <td class="amount">{{specialAllowance}}</td>
+                <td>Professional Tax (PT)</td>
+                <td class="amount">{{professionalTax}}</td>
+            </tr>
+            <tr>
+                <td>Bonus</td>
+                <td class="amount">{{bonus}}</td>
+                <td>Income Tax (TDS)</td>
+                <td class="amount">{{incomeTax}}</td>
+            </tr>
+            <tr>
+                <td>Incentives</td>
+                <td class="amount">{{incentives}}</td>
+                <td>Other Deductions</td>
+                <td class="amount">{{otherDeductions}}</td>
+            </tr>
+            <tr>
+                <td>Overtime</td>
+                <td class="amount">{{overtime}}</td>
+                <td></td>
+                <td class="amount"></td>
+            </tr>
+            <tr>
+                <td>Other Additions</td>
+                <td class="amount">{{otherAdditions}}</td>
+                <td></td>
+                <td class="amount"></td>
+            </tr>
+            <tr>
+                <td>Variable Pay</td>
+                <td class="amount">{{variablePay}}</td>
+                <td></td>
+                <td class="amount"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="margin-bottom: 20px; font-size: 11px; font-weight: 800; color: var(--primary-color); text-transform: uppercase; letter-spacing: 0.02em;">
+        Net Salary (in words): {{netSalaryInWords}}
+    </div>
+
+    <div class="summary-grid">
+        <div class="notes-box">
+            <strong>Notes / Instructions:</strong>
+            <p style="margin: 6px 0 0 0;">All salary disbursements are subject to statutory compliance and tax audits. Please report any discrepancies in this statement to the HR payroll desk within 5 business days of receipt.</p>
+        </div>
+        <div class="summary-box">
+            <div class="total-row"><span>Gross Earnings</span> <span class="amount">₹ {{grossSalary}}</span></div>
+            <div class="total-row"><span>Total Deductions</span> <span class="amount">₹ {{totalDeductions}}</span></div>
+            <div class="net-pay"><span>Net Payout</span> <span class="amount">₹ {{netSalary}}</span></div>
+        </div>
+    </div>
+
+    {{#if signatureEnabled}}
+    <div class="signature-container">
+        <div class="signature-box">
+            <div class="signature-badge">✓ Digitally Signed</div>
+            Authorized HR Signatory
+        </div>
+    </div>
+    {{/if}}
+
+    <div class="footer">
+        <p>{{footerText}}</p>
+        <p>Generated via Institutional Governance System on {{generatedAt}}</p>
+        <div class="verification">
+            Verification Token: {{verificationToken}} | Secure Document Hash: {{pdfHash}}
+        </div>
+    </div>
+</body>
+</html>

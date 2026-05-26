@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, ShieldCheck, Mail, CheckCircle2 } from 'lucide-react';
 import { authApi } from '@/services/api';
+import { cn } from '@/lib/utils';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -18,62 +19,46 @@ export default function ForgotPassword() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Validate email format
   const validateEmailFormat = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
   };
 
-  // Check if email exists in the system
   const checkEmailExists = async (email: string) => {
     if (!validateEmailFormat(email)) {
-      setEmailError('Please enter a valid email address');
+      setEmailError('Invalid identity format');
       setIsEmailValid(false);
       return;
     }
 
     setIsCheckingEmail(true);
     setEmailError('');
-    
     try {
-      // Call the API to check if the email exists
       const response = await authApi.checkEmailExists(email);
-      
       if (response.success && response.data.exists) {
         setIsEmailValid(true);
         setEmailError('');
       } else {
         setIsEmailValid(false);
-        setEmailError('No account found with this email address');
+        setEmailError('Identity not found in nexus');
       }
     } catch (error: any) {
-      setEmailError('Error checking email. Please try again.');
+      setEmailError('Nexus connection error');
       setIsEmailValid(false);
     } finally {
       setIsCheckingEmail(false);
     }
   };
 
-  // Handle email input change with debouncing
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setEmail(value);
-    
-    // Clear previous error
-    if (emailError) {
-      setEmailError('');
-    }
-    
-    // Clear previous timeout
-    if ((handleEmailChange as any).timeoutId) {
-      clearTimeout((handleEmailChange as any).timeoutId);
-    }
-    
-    // Check email validity after user stops typing for 500ms
+    if (emailError) setEmailError('');
+    if ((handleEmailChange as any).timeoutId) clearTimeout((handleEmailChange as any).timeoutId);
     if (value) {
       (handleEmailChange as any).timeoutId = setTimeout(() => {
         checkEmailExists(value);
-      }, 500);
+      }, 600);
     } else {
       setIsEmailValid(false);
     }
@@ -81,47 +66,20 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email) {
-      toast({
-        title: 'Validation Error',
-        description: 'Please enter your email address.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!validateEmailFormat(email)) {
-      toast({
-        title: 'Validation Error',
-        description: 'Please enter a valid email address.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!isEmailValid) {
-      toast({
-        title: 'Account Not Found',
-        description: 'No account found with this email address.',
-        variant: 'destructive',
-      });
-      return;
-    }
+    if (!email || !isEmailValid) return;
 
     setIsLoading(true);
-    
     try {
       await authApi.forgotPassword(email);
       setIsSubmitted(true);
       toast({
-        title: 'Email Sent',
-        description: 'If an account exists with this email, a password reset link has been sent.',
+        title: 'Protocol Initiated',
+        description: 'Recovery instructions dispatched to your secure identity.',
       });
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to send password reset email. Please try again.',
+        title: 'Nexus Error',
+        description: error.message || 'Failed to dispatch recovery link.',
         variant: 'destructive',
       });
     } finally {
@@ -130,109 +88,142 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
-      <div className="w-full max-w-md">
-        <div className="flex justify-center mb-6">
-          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-            <img 
-                        src="/logo.png"
-                        alt="YVI Employee MS Logo" 
-                        className="h-7 w-7 object-contain text-primary-foreground"
-                        loading="eager"
-                        referrerPolicy="no-referrer"
-                      />
-          </div>
-        </div>
-        
-        <Card className="shadow-card">
-          <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">
-              {isSubmitted ? 'Check Your Email' : 'Forgot Password?'}
-            </CardTitle>
-            <CardDescription>
-              {isSubmitted 
-                ? 'If an account exists with this email, a password reset link has been sent.' 
-                : 'Enter your email address and we will send you a link to reset your password.'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isSubmitted ? (
-              <div className="space-y-4 text-center">
-                <p className="text-sm text-muted-foreground">
-                  If you don't see the email, please check your spam folder.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                  <Button onClick={() => setIsSubmitted(false)} variant="outline">
-                    Resend Email
-                  </Button>
-                  <Button onClick={() => navigate('/login')}>
-                    Back to Login
-                  </Button>
-                </div>
+    <div className="min-h-screen flex bg-slate-950 text-white font-sans overflow-hidden relative selection:bg-teal-500 selection:text-slate-950">
+      {/* Background Glows */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(20,184,166,0.15),transparent_70%)] pointer-events-none" />
+      
+      <div className="flex-1 flex flex-col items-center justify-center p-8 relative z-10">
+        <motion.div 
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           className="w-full max-w-lg space-y-12"
+        >
+          <div className="flex justify-center mb-16">
+            <Link to="/" className="flex items-center gap-4 group">
+              <img src="/logo.png" alt="Logo" className="w-12 h-12 object-contain rounded-xl brightness-110" />
+              <div className="flex flex-col -space-y-1 text-left">
+                <span className="font-display font-black text-2xl tracking-tighter text-white uppercase">YVI <span className="text-teal-400">EMS</span></span>
+                <span className="text-[9px] font-sans font-black uppercase tracking-[0.4em] text-teal-500/60 ml-0.5">Enterprise OS</span>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <div className="relative">
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="admin@company.com"
-                      value={email}
-                      onChange={handleEmailChange}
-                      disabled={isLoading}
-                      autoComplete="email"
-                    />
-                    {isCheckingEmail && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                      </div>
-                    )}
-                    {emailError && !isCheckingEmail && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-destructive">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    )}
-                    {isEmailValid && !isCheckingEmail && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  {emailError && (
-                    <p className="text-sm text-destructive">{emailError}</p>
-                  )}
-                </div>
-                
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    'Send Reset Link'
-                  )}
-                </Button>
-                
-                <div className="text-center pt-4">
-                  <Link 
-                    to="/login" 
-                    className="inline-flex items-center text-sm text-primary hover:underline"
-                  >
-                    <ArrowLeft className="mr-1 h-4 w-4" />
-                    Back to Login
-                  </Link>
-                </div>
-              </form>
-            )}
-          </CardContent>
-        </Card>
+            </Link>
+          </div>
+
+          <div className="space-y-4 text-center">
+             <div className="inline-flex items-center gap-3 px-5 py-2 rounded-2xl bg-teal-500/10 text-teal-400 text-[10px] font-black uppercase tracking-[0.4em] border border-teal-500/20 mb-4">
+                <ShieldCheck size={14} />
+                Security Protocol 842
+             </div>
+             <h2 className="text-5xl font-display font-black uppercase tracking-tighter text-white">
+               {isSubmitted ? 'Protocol Dispatched' : 'Identity Recovery'}
+             </h2>
+             <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em] leading-relaxed max-w-md mx-auto">
+               {isSubmitted 
+                 ? 'A secure recovery link has been synchronized with your corporate identity.' 
+                 : 'Initiate a secure session restoration by verifying your institutional identity.'}
+             </p>
+          </div>
+
+          <div className="bg-white/[0.02] border border-white/5 rounded-[3rem] p-12 backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
+             <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+             
+             <AnimatePresence mode="wait">
+               {isSubmitted ? (
+                 <motion.div 
+                    key="success"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="space-y-10 text-center relative z-10"
+                 >
+                    <div className="w-24 h-24 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-400 mx-auto shadow-[0_0_50px_rgba(20,184,166,0.1)]">
+                       <CheckCircle2 size={48} />
+                    </div>
+                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+                      Check your institutional inbox for the <br /> 
+                      <span className="text-white">Nexus Synchronization Key</span>.
+                    </p>
+                    <div className="flex flex-col gap-4">
+                       <Button onClick={() => navigate('/login')} className="h-16 rounded-2xl bg-white text-slate-950 hover:bg-teal-400 font-black uppercase tracking-widest text-[10px] shadow-2xl">
+                          Return to Terminal
+                       </Button>
+                       <button onClick={() => setIsSubmitted(false)} className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 hover:text-white transition-colors">
+                          Resend Dispatch
+                       </button>
+                    </div>
+                 </motion.div>
+               ) : (
+                 <motion.form 
+                    key="form"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    onSubmit={handleSubmit} 
+                    className="space-y-10 relative z-10"
+                 >
+                    <div className="space-y-4">
+                       <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-2">Identity Portal</Label>
+                       <div className="relative group">
+                          <Input
+                             id="email"
+                             type="email"
+                             placeholder="ENTER CORPORATE ID"
+                             value={email}
+                             onChange={handleEmailChange}
+                             disabled={isLoading}
+                             className={cn(
+                               "h-16 bg-white/[0.03] border-white/10 rounded-2xl px-6 font-display font-black tracking-widest text-white focus:bg-white/[0.06] focus:border-teal-500/50 transition-all placeholder:text-slate-700",
+                               emailError && "border-rose-500/50 focus:border-rose-500/50",
+                               isEmailValid && "border-teal-500/50 focus:border-teal-500/50"
+                             )}
+                          />
+                          <div className="absolute right-6 top-1/2 -translate-y-1/2">
+                             {isCheckingEmail ? (
+                                <Loader2 size={16} className="animate-spin text-teal-500" />
+                             ) : isEmailValid ? (
+                                <CheckCircle2 size={16} className="text-teal-500" />
+                             ) : emailError ? (
+                                <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                             ) : null}
+                          </div>
+                       </div>
+                       {emailError && (
+                         <p className="text-[9px] font-black uppercase tracking-widest text-rose-500 ml-2">{emailError}</p>
+                       )}
+                    </div>
+
+                    <Button 
+                       type="submit" 
+                       disabled={isLoading || !isEmailValid}
+                       className="w-full h-20 rounded-2xl bg-teal-500 text-slate-950 hover:bg-teal-400 font-black uppercase tracking-[0.25em] text-xs shadow-2xl disabled:opacity-30 group transition-all duration-500"
+                    >
+                       <span className="relative z-10 flex items-center justify-center gap-3">
+                          {isLoading ? (
+                             <><Loader2 size={18} className="animate-spin" /> DISPATCHING...</>
+                          ) : (
+                             <>RESTORE ACCESS <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" /></>
+                          )}
+                       </span>
+                    </Button>
+
+                    <div className="text-center">
+                       <Link to="/login" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-colors">
+                          <ArrowLeft size={14} /> Back to Terminal Access
+                       </Link>
+                    </div>
+                 </motion.form>
+               )}
+             </AnimatePresence>
+          </div>
+
+          <div className="flex flex-col items-center gap-6 opacity-40">
+             <div className="flex items-center gap-8 grayscale">
+                <span className="text-[9px] font-black uppercase tracking-widest">SOC2 Type II</span>
+                <span className="text-[9px] font-black uppercase tracking-widest">ISO 27001</span>
+                <span className="text-[9px] font-black uppercase tracking-widest">v2.5.0-PF</span>
+             </div>
+             <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">
+                © 2026 YVI Enterprise Management Systems. Institutional Grade.
+             </p>
+          </div>
+        </motion.div>
       </div>
     </div>
   );

@@ -7,38 +7,51 @@ import { useQueryClient } from '@tanstack/react-query';
 import { chatService } from '@/services/chatService';
 import { notificationService } from '@/services/notificationService';
 
+import { useAuth } from '@/contexts/AuthContext';
+
 export const useQueryInvalidation = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   useEffect(() => {
+    if (!user) return;
+
     const chatSocket = chatService.getSocket();
     const notificationSocket = notificationService.getSocket();
-    const socket = chatSocket || notificationSocket;
+    
+    // We want to listen to both if they exist
+    const sockets = [chatSocket, notificationSocket].filter(Boolean);
 
-    if (!socket) return;
+    if (sockets.length === 0) {
+      console.log('🔌 No sockets found for invalidation hook');
+      return;
+    }
 
-    // Listen for data invalidation events from backend
+    console.log(`🔌 Registering invalidation listeners on ${sockets.length} sockets`);
+
     const handleDataInvalidation = (payload: { type: string; action?: string }) => {
       console.log('🔄 Invalidating cache for:', payload.type);
-      
-      // Invalidate queries based on entity type
       queryClient.invalidateQueries({ queryKey: [payload.type] });
       
-      // Also invalidate list queries
-      if (payload.type === 'employee') {
-        queryClient.invalidateQueries({ queryKey: ['employees'] });
-      } else if (payload.type === 'project') {
-        queryClient.invalidateQueries({ queryKey: ['projects'] });
-      } else if (payload.type === 'department') {
-        queryClient.invalidateQueries({ queryKey: ['departments'] });
-      } else if (payload.type === 'attendance') {
-        queryClient.invalidateQueries({ queryKey: ['attendance'] });
-      } else if (payload.type === 'leave') {
-        queryClient.invalidateQueries({ queryKey: ['leaves'] });
+      // Handle list queries too
+      const listMappings: Record<string, string> = {
+        'employee': 'employees',
+        'project': 'projects',
+        'department': 'departments',
+        'attendance': 'attendance',
+        'leave': 'leaves'
+      };
+      
+      if (listMappings[payload.type]) {
+        queryClient.invalidateQueries({ queryKey: [listMappings[payload.type]] });
       }
     };
 
-    // Listen for specific update events
+    const handleNotificationNew = () => {
+      console.log('🔔 New notification received, invalidating...');
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    };
+
     const handleEmployeeUpdate = () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       queryClient.invalidateQueries({ queryKey: ['employee'] });
@@ -54,34 +67,26 @@ export const useQueryInvalidation = () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     };
 
-    const handleLeaveUpdate = () => {
-      queryClient.invalidateQueries({ queryKey: ['leaves'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-    };
+    sockets.forEach(socket => {
+      if (!socket) return;
+      socket.on('data:invalidated', handleDataInvalidation);
+      socket.on('notification:new', handleNotificationNew);
+      socket.on('employee:updated', handleEmployeeUpdate);
+      socket.on('project:updated', handleProjectUpdate);
+      socket.on('attendance:updated', handleAttendanceUpdate);
+    });
 
-    const handleDashboardStats = () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['stats'] });
-    };
-
-    // Register event listeners
-    socket.on('data:invalidated', handleDataInvalidation);
-    socket.on('employee:updated', handleEmployeeUpdate);
-    socket.on('project:updated', handleProjectUpdate);
-    socket.on('attendance:updated', handleAttendanceUpdate);
-    socket.on('leave:updated', handleLeaveUpdate);
-    socket.on('dashboard:stats', handleDashboardStats);
-
-    // Cleanup
     return () => {
-      socket.off('data:invalidated', handleDataInvalidation);
-      socket.off('employee:updated', handleEmployeeUpdate);
-      socket.off('project:updated', handleProjectUpdate);
-      socket.off('attendance:updated', handleAttendanceUpdate);
-      socket.off('leave:updated', handleLeaveUpdate);
-      socket.off('dashboard:stats', handleDashboardStats);
+      sockets.forEach(socket => {
+        if (!socket) return;
+        socket.off('data:invalidated', handleDataInvalidation);
+        socket.off('notification:new', handleNotificationNew);
+        socket.off('employee:updated', handleEmployeeUpdate);
+        socket.off('project:updated', handleProjectUpdate);
+        socket.off('attendance:updated', handleAttendanceUpdate);
+      });
     };
-  }, [queryClient]);
+  }, [queryClient, user]);
 };
 
 

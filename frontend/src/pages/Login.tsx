@@ -1,12 +1,25 @@
 import { useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { 
+  Loader2, 
+  Eye, 
+  EyeOff, 
+  ArrowRight, 
+  ShieldCheck, 
+  Lock, 
+  Globe, 
+  Cpu, 
+  Zap,
+  Activity,
+  ChevronRight
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -23,7 +36,6 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!email || !password) {
       toast({
         title: 'Validation Error',
@@ -34,7 +46,6 @@ export default function Login() {
     }
 
     setIsLoading(true);
-
     try {
       await login(email, password);
       navigate('/app/dashboard');
@@ -50,138 +61,168 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex bg-muted/30">
-      {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-sidebar flex-col justify-between p-12">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-white/10 rounded-2xl backdrop-blur-md border border-white/10">
-            <img
-              src="/logo.png"
-              alt="YVI Logo"
-              className="w-12 h-12 object-contain"
-            />
+    <div className="min-h-screen flex bg-slate-950 text-white font-sans overflow-hidden relative">
+      {/* Cinematic Background */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(20,184,166,0.15),transparent_70%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(59,130,246,0.1),transparent_70%)] pointer-events-none" />
+      
+      {/* Left side - Institutional Storytelling */}
+      <div className="hidden lg:flex lg:w-3/5 flex-col justify-between p-20 relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 1 }}
+          className="flex items-center gap-4 group"
+        >
+          <img src="/logo.png" alt="Logo" className="w-12 h-12 object-contain rounded-xl brightness-110" />
+          <div className="flex flex-col -space-y-1">
+            <span className="font-display font-black text-2xl tracking-tighter text-white uppercase">YVI <span className="text-teal-400">EMS</span></span>
+            <span className="text-[9px] font-sans font-black uppercase tracking-[0.4em] text-teal-500/60 ml-0.5">Enterprise OS</span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-2xl font-black text-white tracking-tighter font-heading">YVI PEOPLE</span>
-            <span className="text-[10px] font-black text-primary/80 tracking-[0.3em] uppercase">Enterprise Hub</span>
-          </div>
+        </motion.div>
+
+        <div className="space-y-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.2 }}
+            className="space-y-6"
+          >
+            <div className="inline-flex items-center gap-3 px-5 py-2 rounded-2xl bg-teal-500/10 text-teal-400 text-[10px] font-black uppercase tracking-[0.4em] border border-teal-500/20">
+               <ShieldCheck size={14} />
+               Institutional Access Required
+            </div>
+            <h1 className="text-[clamp(3rem,6vw,5.5rem)] font-display font-black leading-[0.85] tracking-tighter uppercase text-white">
+              Authorize <br />
+              <span className="text-gradient-teal">Nexus Hub.</span>
+            </h1>
+            <p className="text-2xl text-slate-400 max-w-xl font-bold leading-relaxed tracking-tight">
+              Establish secure terminal access to the unified workforce intelligence operating system.
+            </p>
+          </motion.div>
+
+          <motion.div 
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+             transition={{ duration: 1, delay: 0.5 }}
+             className="grid grid-cols-3 gap-16 pt-12 border-t border-white/5"
+          >
+            {[
+              { label: 'Workforce', val: '50K+', color: 'text-white' },
+              { label: 'Accuracy', val: '99.9%', color: 'text-teal-400' },
+              { label: 'Security', val: 'SOC2', color: 'text-white' }
+            ].map((stat, i) => (
+              <div key={i} className="space-y-2">
+                <p className="text-4xl font-display font-black text-white tracking-tighter">{stat.val}</p>
+                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">{stat.label}</p>
+              </div>
+            ))}
+          </motion.div>
         </div>
 
-        <div className="space-y-8">
-          <h1 className="text-5xl lg:text-6xl font-black text-white leading-[1.1] tracking-tight font-heading">
-            Modernize your <br />
-            <span className="text-primary">Human Capital</span>
-          </h1>
-          <p className="text-xl text-slate-400 max-w-md font-medium leading-relaxed">
-            The intelligent operating system for forward-thinking enterprises to manage, grow, and empower their workforce.
-          </p>
-          <div className="grid grid-cols-3 gap-8 pt-8 border-t border-white/5">
-            <div className="space-y-1">
-              <p className="text-3xl font-black text-white font-heading">500+</p>
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Enterprises</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-3xl font-black text-white font-heading">50K+</p>
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Talents</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-3xl font-black text-primary font-heading">99.9%</p>
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Uptime</p>
-            </div>
-          </div>
+        <div className="flex items-center gap-10 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">
+           <span>v2.5.0-PF</span>
+           <div className="h-1 w-1 bg-teal-500 rounded-full animate-pulse" />
+           <span>Institutional Ledger Verified</span>
         </div>
-
-        <p className="text-sm text-sidebar-muted">
-          © 2024 Employee Management System. All rights reserved.
-        </p>
       </div>
 
-      {/* Right side - Login form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <Card className="w-full max-w-md shadow-card">
-          <CardHeader className="space-y-1 text-center">
-            <div className="flex justify-center lg:hidden mb-4">
-              <img
-                src="/logo.png"
-                alt="YVI Employee MS Logo"
-                className="w-12 h-12 object-contain"
-                loading="eager"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-            <CardTitle className="text-3xl font-black tracking-tight font-heading">Login</CardTitle>
-            <CardDescription className="text-sm font-medium">
-              Enter your corporate credentials to continue
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="admin@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                  autoComplete="email"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+      {/* Right side - Login Form */}
+      <div className="flex-1 flex items-center justify-center p-8 lg:p-20 relative z-10 bg-slate-950/40 backdrop-blur-3xl border-l border-white/5">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.3 }}
+          className="w-full max-w-lg space-y-12"
+        >
+          <div className="space-y-4">
+             <h2 className="text-4xl font-display font-black uppercase tracking-tighter text-white">Authentication</h2>
+             <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em] leading-relaxed">
+               Please enter your corporate credentials to establish a secure session with the enterprise node.
+             </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Identity Portal</Label>
+                <div className="relative group">
+                   <Input
+                    id="email"
+                    type="email"
+                    placeholder="ENTER CORPORATE ID"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     disabled={isLoading}
-                    autoComplete="current-password"
+                    className="h-16 bg-white/[0.03] border-white/10 rounded-2xl px-6 font-display font-black tracking-widest text-white focus:bg-white/[0.06] focus:border-teal-500/50 transition-all placeholder:text-slate-700"
                   />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  'Sign in'
-                )}
-              </Button>
-
-              <div className="text-center pt-4">
-                <a
-                  href="/forgot-password"
-                  className="text-sm text-primary hover:underline"
-                >
-                  Forgot Password?
-                </a>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                   <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Access Key</Label>
+                   <Link to="/forgot-password" size="sm" className="text-[10px] font-black uppercase tracking-widest text-teal-500 hover:text-teal-400 transition-colors">
+                     Reset Key
+                   </Link>
+                </div>
+                <div className="relative group">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                    className="h-16 bg-white/[0.03] border-white/10 rounded-2xl px-6 font-display font-black tracking-[0.5em] text-white focus:bg-white/[0.06] focus:border-teal-500/50 transition-all placeholder:text-slate-800"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-600 hover:text-white transition-colors"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
-            </form>
+            </div>
 
-            {/* <div className="mt-6 p-4 rounded-lg bg-muted/50">
-              <p className="text-xs text-muted-foreground mb-2">Demo credentials:</p>
-              <div className="space-y-1 text-xs">
-                <p><span className="font-medium">Admin:</span> admin@company.com</p>
-                <p><span className="font-medium">HR:</span> hr@company.com</p>
-                <p><span className="font-medium">Manager:</span> manager@company.com</p>
-                <p className="text-muted-foreground">Use any password</p>
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full h-20 rounded-2xl bg-teal-500 text-slate-950 hover:bg-teal-400 font-black uppercase tracking-[0.25em] text-xs shadow-[0_20px_50px_rgba(20,184,166,0.2)] group transition-all duration-500 overflow-hidden relative"
+            >
+              <div className="relative z-10 flex items-center justify-center gap-3">
+                 {isLoading ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Authorizing Session...
+                    </>
+                 ) : (
+                    <>
+                      Establish Access <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" />
+                    </>
+                 )}
               </div>
-            </div> */}
-          </CardContent>
-        </Card>
+              <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            </Button>
+          </form>
+
+          <div className="pt-8 border-t border-white/5 space-y-6">
+             <div className="flex items-center gap-4 p-5 rounded-2xl bg-white/[0.02] border border-white/5">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+                   <Lock size={18} />
+                </div>
+                <div>
+                   <p className="text-[10px] font-black uppercase tracking-[0.1em] text-white">Quantum Encryption Active</p>
+                   <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Your connection is institutionally secured.</p>
+                </div>
+             </div>
+             <p className="text-center text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+               © 2026 YVI Enterprise Management Systems. All rights reserved.
+             </p>
+          </div>
+        </motion.div>
       </div>
     </div>
   );

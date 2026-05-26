@@ -1,9 +1,13 @@
 /**
- * Shared Framer Motion animation variants
- * Reusable animation presets for consistent UX across the app
+ * Shared Framer Motion animation variants - Standardized for Phase-5
+ * FAST: 0.15s | NORMAL: 0.25s | SLOW: 0.4s
+ * Easing: [0.2, 0, 0, 1] (Productive) | [0.4, 0, 0.2, 1] (Expressive)
  */
 
 import { Variants } from 'framer-motion';
+
+const EASE_PRODUCTIVE = [0.2, 0, 0, 1];
+const EASE_EXPRESSIVE = [0.4, 0, 0.2, 1];
 
 /**
  * Page transition animations
@@ -17,8 +21,8 @@ export const pageVariants: Variants = {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.2,
-      ease: [0.25, 0.1, 0.25, 1],
+      duration: 0.25,
+      ease: EASE_PRODUCTIVE,
     },
   },
   exit: {
@@ -37,25 +41,25 @@ export const pageVariants: Variants = {
 export const modalVariants: Variants = {
   initial: {
     opacity: 0,
-    scale: 0.95,
-    y: 20,
+    scale: 0.98,
+    y: 10,
   },
   animate: {
     opacity: 1,
     scale: 1,
     y: 0,
     transition: {
-      duration: 0.2,
-      ease: [0.25, 0.1, 0.25, 1],
+      duration: 0.25,
+      ease: EASE_EXPRESSIVE,
     },
   },
   exit: {
     opacity: 0,
-    scale: 0.95,
-    y: 20,
+    scale: 0.98,
+    y: 10,
     transition: {
       duration: 0.15,
-      ease: [0.4, 0, 1, 1],
+      ease: EASE_PRODUCTIVE,
     },
   },
 };
@@ -70,7 +74,7 @@ export const backdropVariants: Variants = {
   animate: {
     opacity: 1,
     transition: {
-      duration: 0.2,
+      duration: 0.25,
     },
   },
   exit: {
@@ -82,23 +86,23 @@ export const backdropVariants: Variants = {
 };
 
 /**
- * Sidebar animations
+ * Sidebar animations (Mobile Drawer)
  */
 export const sidebarVariants: Variants = {
   open: {
     x: 0,
     transition: {
       type: 'spring',
-      stiffness: 300,
-      damping: 30,
+      stiffness: 350,
+      damping: 35,
     },
   },
   closed: {
     x: '-100%',
     transition: {
       type: 'spring',
-      stiffness: 300,
-      damping: 30,
+      stiffness: 350,
+      damping: 35,
     },
   },
 };
@@ -108,19 +112,19 @@ export const sidebarVariants: Variants = {
  */
 export const sidebarCollapseVariants: Variants = {
   expanded: {
-    width: '16rem', // 256px
+    width: '280px',
     transition: {
       type: 'spring',
-      stiffness: 300,
-      damping: 30,
+      stiffness: 350,
+      damping: 35,
     },
   },
   collapsed: {
-    width: '4.375rem', // 70px
+    width: '88px',
     transition: {
       type: 'spring',
-      stiffness: 300,
-      damping: 30,
+      stiffness: 350,
+      damping: 35,
     },
   },
 };
@@ -131,8 +135,8 @@ export const sidebarCollapseVariants: Variants = {
 export const dropdownVariants: Variants = {
   initial: {
     opacity: 0,
-    scale: 0.95,
-    y: -10,
+    scale: 0.98,
+    y: -8,
   },
   animate: {
     opacity: 1,
@@ -140,16 +144,16 @@ export const dropdownVariants: Variants = {
     y: 0,
     transition: {
       duration: 0.15,
-      ease: [0.25, 0.1, 0.25, 1],
+      ease: EASE_PRODUCTIVE,
     },
   },
   exit: {
     opacity: 0,
-    scale: 0.95,
-    y: -10,
+    scale: 0.98,
+    y: -8,
     transition: {
-      duration: 0.1,
-      ease: [0.4, 0, 1, 1],
+      duration: 0.12,
+      ease: EASE_PRODUCTIVE,
     },
   },
 };
@@ -169,8 +173,8 @@ export const toastVariants: Variants = {
     scale: 1,
     transition: {
       type: 'spring',
-      stiffness: 300,
-      damping: 25,
+      stiffness: 400,
+      damping: 30,
     },
   },
   exit: {
@@ -179,7 +183,7 @@ export const toastVariants: Variants = {
     x: '100%',
     transition: {
       duration: 0.15,
-      ease: [0.4, 0, 1, 1],
+      ease: EASE_PRODUCTIVE,
     },
   },
 };
@@ -191,13 +195,15 @@ export const cardHoverVariants: Variants = {
   rest: {
     scale: 1,
     y: 0,
+    boxShadow: "0 0 0 0 rgba(0,0,0,0)",
   },
   hover: {
-    scale: 1.02,
+    scale: 1.01,
     y: -4,
+    boxShadow: "0 20px 40px -15px rgba(0,0,0,0.1)",
     transition: {
-      duration: 0.2,
-      ease: [0.25, 0.1, 0.25, 1],
+      duration: 0.25,
+      ease: EASE_EXPRESSIVE,
     },
   },
 };
@@ -212,8 +218,8 @@ export const fadeInVariants: Variants = {
   animate: {
     opacity: 1,
     transition: {
-      duration: 0.3,
-      ease: [0.25, 0.1, 0.25, 1],
+      duration: 0.25,
+      ease: EASE_PRODUCTIVE,
     },
   },
 };
@@ -224,14 +230,14 @@ export const fadeInVariants: Variants = {
 export const slideUpVariants: Variants = {
   initial: {
     opacity: 0,
-    y: 20,
+    y: 12,
   },
   animate: {
     opacity: 1,
     y: 0,
     transition: {
       duration: 0.3,
-      ease: [0.25, 0.1, 0.25, 1],
+      ease: EASE_EXPRESSIVE,
     },
   },
 };
@@ -242,14 +248,14 @@ export const slideUpVariants: Variants = {
 export const slideInLeftVariants: Variants = {
   initial: {
     opacity: 0,
-    x: -20,
+    x: -12,
   },
   animate: {
     opacity: 1,
     x: 0,
     transition: {
       duration: 0.3,
-      ease: [0.25, 0.1, 0.25, 1],
+      ease: EASE_EXPRESSIVE,
     },
   },
 };
@@ -260,7 +266,7 @@ export const slideInLeftVariants: Variants = {
 export const staggerContainer: Variants = {
   animate: {
     transition: {
-      staggerChildren: 0.05,
+      staggerChildren: 0.04,
     },
   },
 };
@@ -271,18 +277,14 @@ export const staggerContainer: Variants = {
 export const scaleInVariants: Variants = {
   initial: {
     opacity: 0,
-    scale: 0.9,
+    scale: 0.98,
   },
   animate: {
     opacity: 1,
     scale: 1,
     transition: {
       duration: 0.2,
-      ease: [0.25, 0.1, 0.25, 1],
+      ease: EASE_PRODUCTIVE,
     },
   },
 };
-
-
-
-

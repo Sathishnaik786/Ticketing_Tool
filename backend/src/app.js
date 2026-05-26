@@ -44,7 +44,8 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  preflightContinue: false
 };
 
 // Rate limiting
@@ -139,6 +140,36 @@ app.use('/calendar-events', generalLimiter, require('./routes/calendar.routes'))
 // Phase-0: Employee Updates Module (Feature Flag: OFF by default in UI, but API is live)
 app.use('/api/updates', generalLimiter, require('./modules/updates/updates.routes'));
 app.use('/updates', generalLimiter, require('./modules/updates/updates.routes'));
+
+// Payroll Module
+console.log('📦 Mounting Payroll Module...');
+const payrollRoutes = require('./modules/payroll/routes/payroll.routes');
+console.log('📦 Payroll Module keys:', Object.keys(payrollRoutes));
+console.log('📦 Payroll Module .default type:', typeof payrollRoutes.default);
+
+app.use('/api/payroll', generalLimiter, (req, res, next) => {
+  console.log(`📦 Payroll Request: ${req.method} ${req.url}`);
+  next();
+}, payrollRoutes.default || payrollRoutes);
+
+app.use('/payroll', generalLimiter, payrollRoutes.default || payrollRoutes);
+
+// Phase-1: Payroll Bulk Processing Module
+try {
+  console.log('📦 Mounting Payroll Bulk Module...');
+  const payrollBulkRoutes = require('./modules/payroll-bulk-processing/routes/bulk-upload.routes');
+  app.use('/api/payroll-bulk', generalLimiter, payrollBulkRoutes.default || payrollBulkRoutes);
+  app.use('/payroll-bulk', generalLimiter, payrollBulkRoutes.default || payrollBulkRoutes);
+
+  // Employee Self-Service Payslip Access
+  const employeePayslipRoutes = require('./modules/payroll-bulk-processing/routes/employee-payslip.routes');
+  app.use('/api/my-payslips', generalLimiter, employeePayslipRoutes.default || employeePayslipRoutes);
+} catch (error) {
+  console.error('❌ Failed to mount Payroll Bulk Module. Missing dependencies?', error.message);
+}
+
+
+
 
 
 // Health check routes

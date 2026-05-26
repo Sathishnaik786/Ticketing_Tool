@@ -9,6 +9,11 @@ import { OnlineStatusProvider } from '@/contexts/OnlineStatusContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AppLoader } from '@/components/common/AppLoader';
+import { AppBootstrap } from '@/components/common/AppBootstrap';
+import { RouteErrorBoundary } from '@/components/common/RouteErrorBoundary';
+import { CommandProvider } from '@/contexts/CommandContext';
+import { CommandPalette } from '@/components/common/CommandPalette';
+import { QuickActionLauncher } from '@/components/common/QuickActionLauncher';
 
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -25,7 +30,10 @@ import CalendarPage from "./pages/Calendar";
 import MeetupsPage from "./pages/Meetups";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
+import Landing from "./pages/Landing";
 import { updatesRoutes } from './modules/updates/updates.routes';
+import { payrollRoutes } from './modules/payroll/payroll.routes';
+import { bulkProcessingRoutes } from './modules/payroll-bulk-processing/bulk-processing.routes';
 
 
 import AdminUsers from './pages/AdminUsers';
@@ -55,13 +63,14 @@ const queryClient = new QueryClient({
 });
 
 const router = createBrowserRouter([
-  { path: "/", element: <Login /> }, // Login page as primary
+  { path: "/", element: <Landing /> }, // New Enterprise Landing Page
   { path: "/login", element: <Login /> },
   { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/reset-password", element: <ResetPassword /> },
   {
     path: "/app", // Protected routes under /app path
     element: <ProtectedRoute allowedRoles={['ADMIN', 'HR', 'MANAGER', 'EMPLOYEE']}>/* AppLayout is handled by ProtectedRoute */</ProtectedRoute>,
+    errorElement: <RouteErrorBoundary />,
     children: [
       { index: true, element: <Navigate to="/app/dashboard" replace /> },
       { path: "dashboard", element: <Dashboard /> },
@@ -86,6 +95,12 @@ const router = createBrowserRouter([
       // Phase-1: Employee Updates
       ...updatesRoutes,
 
+      // Phase-1: Payroll Module
+      ...payrollRoutes,
+
+      // Phase-1: Payroll Bulk Processing
+      ...bulkProcessingRoutes,
+
       { path: "*", element: <NotFound /> },
 
     ],
@@ -97,17 +112,14 @@ const router = createBrowserRouter([
 });
 
 const AppContent = () => {
-  const { isLoading } = useAuth();
-
   return (
-    <>
-      <AppLoader isLoading={isLoading} />
+    <AppBootstrap>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <RouterProvider router={router} />
       </TooltipProvider>
-    </>
+    </AppBootstrap>
   );
 };
 
@@ -116,7 +128,9 @@ const App = () => (
     <AuthProvider>
       <SidebarProvider>
         <OnlineStatusProvider>
-          <AppContent />
+          <CommandProvider>
+            <AppContent />
+          </CommandProvider>
         </OnlineStatusProvider>
       </SidebarProvider>
     </AuthProvider>

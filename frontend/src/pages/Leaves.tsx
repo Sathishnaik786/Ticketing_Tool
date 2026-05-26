@@ -3,15 +3,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { EnterpriseEmptyState } from '@/components/common/EnterpriseEmptyState';
 import { leavesApi } from '@/services/api';
 import { LeaveRequest, LeaveFormData } from '@/types';
-import { Plus, Check, X, Calendar, ClipboardList, AlertCircle, Clock, ChevronRight } from 'lucide-react';
+import { Plus, Check, X, Calendar, ClipboardList, AlertCircle, Clock, ChevronRight, History } from 'lucide-react';
 import { LeaveForm } from '@/components/forms/LeaveForm';
 import { CrudModal } from '@/components/modals/CrudModal';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { staggerContainer, slideUpVariants, scaleInVariants } from '@/animations/motionVariants';
+import { staggerContainer, slideUpVariants } from '@/animations/motionVariants';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
@@ -127,8 +136,8 @@ export default function Leaves() {
       <motion.div variants={slideUpVariants}>
         <PageHeader
           title="Time-Off Requests"
-          description="Manage absence requests and track leave balances."
-          className="bg-header-gradient p-8 rounded-3xl border border-border/30 shadow-premium"
+          description="Manage absence requests and track leave balances organization-wide."
+          className="enterprise-panel"
         >
           <Button variant="premium" onClick={handleApplyLeave}>
             <Plus className="mr-2 h-4 w-4" />
@@ -156,147 +165,176 @@ export default function Leaves() {
         variants={slideUpVariants}
         className="grid gap-6 md:grid-cols-3"
       >
-        <Card className="border-amber-500/10 bg-gradient-to-br from-amber-500/5 to-transparent relative overflow-hidden group">
-          <CardContent className="pt-6 relative z-10">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">Pending Review</p>
-                <div className="text-3xl font-black mt-2 text-amber-600">{stats.pending}</div>
-              </div>
-              <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-600 group-hover:scale-110 transition-transform">
-                <Clock size={24} />
-              </div>
+        <Card className="enterprise-card group">
+          <CardContent className="p-6 flex justify-between items-start">
+            <div>
+              <p className="enterprise-subheading text-amber-600 dark:text-amber-500">Pending Review</p>
+              <div className="text-3xl font-black mt-2">{stats.pending}</div>
+            </div>
+            <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-600 shadow-soft group-hover:scale-110 transition-transform">
+              <Clock size={24} />
             </div>
           </CardContent>
-          <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-500/5 rounded-full blur-2xl" />
         </Card>
 
-        <Card className="border-emerald-500/10 bg-gradient-to-br from-emerald-500/5 to-transparent relative overflow-hidden group">
-          <CardContent className="pt-6 relative z-10">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">Approved Requests</p>
-                <div className="text-3xl font-black mt-2 text-emerald-600">{stats.approved}</div>
-              </div>
-              <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 group-hover:scale-110 transition-transform">
-                <Check size={24} />
-              </div>
+        <Card className="enterprise-card group">
+          <CardContent className="p-6 flex justify-between items-start">
+            <div>
+              <p className="enterprise-subheading text-emerald-600 dark:text-emerald-500">Approved Requests</p>
+              <div className="text-3xl font-black mt-2">{stats.approved}</div>
+            </div>
+            <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 shadow-soft group-hover:scale-110 transition-transform">
+              <Check size={24} />
             </div>
           </CardContent>
-          <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-emerald-500/5 rounded-full blur-2xl" />
         </Card>
 
-        <Card className="border-rose-500/10 bg-gradient-to-br from-rose-500/5 to-transparent relative overflow-hidden group">
-          <CardContent className="pt-6 relative z-10">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">Declined</p>
-                <div className="text-3xl font-black mt-2 text-rose-600">{stats.rejected}</div>
-              </div>
-              <div className="p-3 rounded-2xl bg-rose-500/10 text-rose-600 group-hover:scale-110 transition-transform">
-                <X size={24} />
-              </div>
+        <Card className="enterprise-card group">
+          <CardContent className="p-6 flex justify-between items-start">
+            <div>
+              <p className="enterprise-subheading text-rose-600 dark:text-rose-500">Declined Requests</p>
+              <div className="text-3xl font-black mt-2">{stats.rejected}</div>
+            </div>
+            <div className="p-3 rounded-2xl bg-rose-500/10 text-rose-600 shadow-soft group-hover:scale-110 transition-transform">
+              <X size={24} />
             </div>
           </CardContent>
-          <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-rose-500/5 rounded-full blur-2xl" />
         </Card>
       </motion.div>
 
       <motion.div variants={slideUpVariants}>
-        <Card className="border-border/30 shadow-premium overflow-hidden bg-white/40 backdrop-blur-md rounded-3xl">
-          <CardHeader className="px-8 py-6 border-b border-border/20 bg-muted/10">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-black uppercase tracking-widest flex items-center gap-2">
-                <ClipboardList size={20} className="text-primary" />
-                Request History
-              </CardTitle>
-              <Badge variant="outline" className="bg-background/50">{leaves.length} Total</Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-border/20">
-              <AnimatePresence mode="popLayout">
-                {loading ? (
-                  <div className="p-12 text-center">
-                    <div className="animate-spin h-8 w-8 border-3 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-                    <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Synchronizing...</p>
+        <div className="enterprise-toolbar px-8 py-5">
+          <div className="flex items-center justify-between w-full">
+            <h2 className="text-sm font-black uppercase tracking-[0.2em] flex items-center gap-2 text-slate-900 dark:text-white">
+              <ClipboardList size={18} className="text-primary" />
+              Request History
+            </h2>
+            <Badge variant="outline" className="bg-background/50 border-white/10 font-black text-[10px] py-1 px-3 uppercase tracking-widest">{leaves.length} Total Records</Badge>
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div variants={slideUpVariants}>
+        {loading ? (
+          <div className="rounded-[2rem] border border-white/5 overflow-hidden">
+            <div className="p-8 space-y-6 animate-pulse">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-muted/60" />
+                    <div className="space-y-2">
+                      <div className="h-4 w-40 bg-muted/60 rounded" />
+                      <div className="h-3 w-64 bg-muted/40 rounded" />
+                    </div>
                   </div>
-                ) : leaves.length > 0 ? (
-                  leaves.map((leave, idx) => (
-                    <motion.div
-                      key={leave.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.04 }}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 hover:bg-muted/30 transition-all group"
-                    >
+                  <div className="h-10 w-24 bg-muted/30 rounded-xl" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : leaves.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[400px]">Request Scope & Metadata</TableHead>
+                <TableHead>Timeline Dynamics</TableHead>
+                <TableHead>Operational Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <AnimatePresence mode="popLayout">
+                {leaves.map((leave, idx) => (
+                  <motion.tr
+                    key={leave.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ delay: idx * 0.04 }}
+                    component={TableRow}
+                    className="group"
+                  >
+                    <TableCell>
                       <div className="flex items-start gap-4">
-                        <div className="h-12 w-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-inner">
+                        <div className="h-12 w-12 rounded-2xl bg-primary/5 border border-white/10 flex items-center justify-center text-primary group-hover:scale-105 transition-all duration-300">
                           <Calendar size={20} />
                         </div>
-                        <div className="space-y-1">
-                          <p className="font-black text-foreground group-hover:text-primary transition-colors">
+                        <div className="space-y-1.5">
+                          <p className="font-black text-slate-900 dark:text-white group-hover:text-primary transition-colors leading-tight">
                             {leave.employee?.firstName} {leave.employee?.lastName}
                           </p>
-                          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-tighter">
-                            <Badge variant="secondary" className="bg-muted/50 rounded-lg">{leave.leaveType?.name}</Badge>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <Clock size={12} />
-                              {leave.startDate} to {leave.endDate}
-                            </span>
-                            <span className="text-primary/70">({leave.totalDays} Days)</span>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant="secondary" className="bg-slate-100 dark:bg-white/5 rounded-lg border-white/5 text-[9px] font-black uppercase tracking-widest">{leave.leaveType?.name}</Badge>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-2 bg-muted/30 p-2 rounded-lg border border-border/10">
-                            <AlertCircle size={10} className="inline mr-1 opacity-50" />
-                            {leave.reason}
+                          <p className="text-xs text-slate-500 font-medium italic line-clamp-1 max-w-[300px]">
+                            "{leave.reason}"
                           </p>
                         </div>
                       </div>
+                    </TableCell>
 
-                      <div className="flex items-center gap-4 mt-4 sm:mt-0 w-full sm:w-auto justify-between sm:justify-end">
-                        <StatusBadge status={leave.status} />
+                    <TableCell>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
+                          <Clock size={12} className="text-primary/60" />
+                          {leave.startDate} — {leave.endDate}
+                        </div>
+                        <p className="text-[10px] font-black text-primary/70 uppercase tracking-widest">
+                          Coverage: {leave.totalDays} Work Days
+                        </p>
+                      </div>
+                    </TableCell>
 
+                    <TableCell>
+                      <StatusBadge status={leave.status} />
+                    </TableCell>
+
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
                         {leave.status === 'PENDING' && (user.role === 'ADMIN' || user.role === 'MANAGER' || user.role === 'HR') && (
-                          <div className="flex gap-2">
+                          <>
                             <Button
                               size="icon"
-                              variant="outlinePremium"
-                              className="h-10 w-10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/10 shadow-sm"
+                              variant="ghost"
+                              className="h-9 w-9 text-emerald-600 hover:bg-emerald-500/10 rounded-xl active:scale-90 transition-all"
                               onClick={() => handleApproveLeave(leave.id)}
                             >
                               <Check className="h-4 w-4" />
                             </Button>
                             <Button
                               size="icon"
-                              variant="outline"
-                              className="h-10 w-10 text-rose-600 border-rose-500/20 hover:bg-rose-500/10 shadow-sm"
+                              variant="ghost"
+                              className="h-9 w-9 text-rose-600 hover:bg-rose-500/10 rounded-xl active:scale-90 transition-all"
                               onClick={() => handleRejectLeave(leave.id)}
                             >
                               <X className="h-4 w-4" />
                             </Button>
-                          </div>
+                          </>
                         )}
-
-                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary group/btn h-10 w-10">
-                          <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-muted group/btn transition-all">
+                          <ChevronRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
                         </Button>
                       </div>
-                    </motion.div>
-                  ))
-                ) : (
-                  <div className="p-20 text-center">
-                    <div className="w-20 h-20 bg-muted/40 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-muted-foreground/30 shadow-inner">
-                      <ClipboardList size={40} />
-                    </div>
-                    <p className="text-xl font-black text-foreground uppercase tracking-widest">No Active Requests</p>
-                    <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">There are currently no leave requests in the queue. Everything is handled.</p>
-                  </div>
-                )}
+                    </TableCell>
+                  </motion.tr>
+                ))}
               </AnimatePresence>
-            </div>
-          </CardContent>
-        </Card>
+            </TableBody>
+          </Table>
+        ) : (
+          <Card className="enterprise-card border-dashed border-2 border-white/5 bg-white/5">
+            <EnterpriseEmptyState
+              title="No Active Requests"
+              description="There are currently no leave requests in the queue. Everything is handled and synced."
+              icon={ClipboardList}
+              action={{
+                label: "Refresh Queue",
+                onClick: fetchLeaves,
+                icon: History
+              }}
+            />
+          </Card>
+        )}
       </motion.div>
     </motion.div>
   );

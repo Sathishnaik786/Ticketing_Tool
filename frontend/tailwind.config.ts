@@ -17,7 +17,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Inter", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
-        heading: ["Inter", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        display: ["'Space Grotesk'", "system-ui", "sans-serif"],
+        heading: ["'Space Grotesk'", "system-ui", "sans-serif"],
         mono: ["'JetBrains Mono'", "monospace"],
       },
       colors: {
@@ -86,20 +87,29 @@ export default {
         },
       },
       borderRadius: {
+        card: "var(--radius-card)",
+        button: "var(--radius-button)",
+        modal: "var(--radius-modal)",
+        input: "var(--radius-input)",
+        badge: "var(--radius-badge)",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-        xl: "var(--token-radius-xl)",
-        "2xl": "var(--token-radius-2xl)",
       },
       boxShadow: {
+        soft: "var(--shadow-soft)",
+        medium: "var(--shadow-medium)",
         premium: "var(--shadow-premium)",
-        xs: "var(--token-shadow-xs)",
-        sm: "var(--token-shadow-sm)",
-        md: "var(--token-shadow-md)",
-        lg: "var(--token-shadow-lg)",
-        xl: "var(--token-shadow-xl)",
-        "2xl": "var(--token-shadow-2xl)",
+        hover: "var(--shadow-hover)",
+        glow: "var(--shadow-glow)",
+      },
+      transitionDuration: {
+        fast: "150ms",
+        normal: "250ms",
+        slow: "400ms",
+      },
+      transitionTimingFunction: {
+        enterprise: "cubic-bezier(0.4, 0, 0.2, 1)",
       },
       keyframes: {
         "accordion-down": {

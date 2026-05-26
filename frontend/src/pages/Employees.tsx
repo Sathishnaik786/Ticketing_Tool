@@ -16,6 +16,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { EnterpriseEmptyState } from '@/components/common/EnterpriseEmptyState';
 import { employeesApi } from '@/services/api';
 import { Employee, EmployeeFormData, PaginationMeta } from '@/types';
 import {
@@ -33,7 +50,11 @@ import {
   Briefcase,
   Download,
   MoreVertical,
-  UserCircle
+  UserCircle,
+  ChevronLeft,
+  ChevronRight,
+  ShieldAlert,
+  ClipboardList
 } from 'lucide-react';
 import { EmployeeForm } from '@/components/forms/EmployeeForm';
 import { CrudModal } from '@/components/modals/CrudModal';
@@ -267,7 +288,7 @@ const Employees = () => {
         <PageHeader
           title="Team Directory"
           description="Manage and monitor your organization's talent pool."
-          className="bg-header-gradient p-8 rounded-3xl border border-border/30 shadow-premium"
+          className="enterprise-panel mb-0"
         >
           <div className="flex items-center gap-3">
             <Button variant="outlinePremium" size="sm" className="hidden sm:flex">
@@ -282,298 +303,311 @@ const Employees = () => {
         </PageHeader>
       </motion.div>
 
-      {/* Quick Stats */}
+      {/* Quick Stats Grid */}
       <motion.div
         variants={slideUpVariants}
         className="grid grid-cols-1 sm:grid-cols-3 gap-6"
       >
-        <Card className="bg-gradient-to-br from-indigo-500/5 to-transparent border-indigo-500/10 overflow-hidden relative group">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4 relative z-10">
-              <div className="p-3.5 rounded-2xl bg-indigo-500/10 text-indigo-600 shadow-lg shadow-indigo-500/5 group-hover:scale-110 transition-transform">
-                <Users size={24} />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Total Personnel</p>
-                <h3 className="text-2xl font-black mt-0.5">{loading ? '...' : stats.total}</h3>
-              </div>
+        <Card className="enterprise-card group overflow-hidden relative">
+          <CardContent className="p-6 flex items-center gap-4 relative z-10">
+            <div className="p-4 rounded-2xl bg-primary/10 text-primary shadow-soft group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+              <Users size={24} />
+            </div>
+            <div>
+              <p className="enterprise-subheading">Total Personnel</p>
+              <h3 className="text-3xl font-black mt-1">{loading ? '...' : stats.total}</h3>
             </div>
           </CardContent>
-          <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-colors" />
+          <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
         </Card>
-        <Card className="bg-gradient-to-br from-emerald-500/5 to-transparent border-emerald-500/10 overflow-hidden relative group">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4 relative z-10">
-              <div className="p-3.5 rounded-2xl bg-emerald-500/10 text-emerald-600 shadow-lg shadow-emerald-500/5 group-hover:scale-110 transition-transform">
-                <StatusBadge status="ACTIVE" showIcon={false} />
-              </div>
-              <div className="ml-[-10px]">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Active Now</p>
-                <h3 className="text-2xl font-black mt-0.5">{loading ? '...' : stats.active}</h3>
-              </div>
+        <Card className="enterprise-card group overflow-hidden relative">
+          <CardContent className="p-6 flex items-center gap-4 relative z-10">
+            <div className="p-4 rounded-2xl bg-emerald-500/10 text-emerald-600 shadow-soft group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+              <Users size={24} />
+            </div>
+            <div>
+              <p className="enterprise-subheading">Active Now</p>
+              <h3 className="text-3xl font-black mt-1">{loading ? '...' : stats.active}</h3>
             </div>
           </CardContent>
           <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-500/10 transition-colors" />
         </Card>
-        <Card className="bg-gradient-to-br from-amber-500/5 to-transparent border-amber-500/10 overflow-hidden relative group">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4 relative z-10">
-              <div className="p-3.5 rounded-2xl bg-amber-500/10 text-amber-600 shadow-lg shadow-amber-500/5 group-hover:scale-110 transition-transform">
-                <StatusBadge status="ON_LEAVE" showIcon={false} />
-              </div>
-              <div className="ml-[-10px]">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">On Leave</p>
-                <h3 className="text-2xl font-black mt-0.5">{loading ? '...' : stats.onLeave}</h3>
-              </div>
+        <Card className="enterprise-card group overflow-hidden relative">
+          <CardContent className="p-6 flex items-center gap-4 relative z-10">
+            <div className="p-4 rounded-2xl bg-amber-500/10 text-amber-600 shadow-soft group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+              <Users size={24} />
+            </div>
+            <div>
+              <p className="enterprise-subheading">On Leave</p>
+              <h3 className="text-3xl font-black mt-1">{loading ? '...' : stats.onLeave}</h3>
             </div>
           </CardContent>
           <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-amber-500/5 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-colors" />
         </Card>
       </motion.div>
 
-      {/* Filters & Search */}
+      {/* Advanced Filter Bar */}
       <motion.div variants={slideUpVariants}>
-        <Card className="border-border/40 shadow-premium bg-card/60 backdrop-blur-md rounded-2xl">
-          <CardContent className="p-5">
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="relative flex-1 group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <Input
-                  placeholder="Search by name, email, or position..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-11 h-12 bg-background/50 border-border/40 focus:border-primary/50 transition-all rounded-xl"
-                />
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Select value={roleFilter} onValueChange={setRoleFilter}>
-                  <SelectTrigger className="w-[160px] h-12 bg-background/50 rounded-xl border-border/40 font-medium">
-                    <Filter className="mr-2 h-4 w-4 opacity-50" />
-                    <SelectValue placeholder="All Roles" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="all">All Roles</SelectItem>
-                    <SelectItem value="ADMIN">Admin</SelectItem>
-                    <SelectItem value="MANAGER">Manager</SelectItem>
-                    <SelectItem value="HR">HR</SelectItem>
-                    <SelectItem value="EMPLOYEE">Employee</SelectItem>
-                  </SelectContent>
-                </Select>
-                <div className="flex items-center gap-2 p-1 bg-muted/30 rounded-xl border border-border/40">
-                  <Button
-                    variant={sortOrder === 'asc' ? 'secondary' : 'ghost'}
-                    size="sm"
-                    className="h-9 px-3 rounded-lg text-xs font-bold"
-                    onClick={() => setSortOrder('asc')}
-                  >
-                    ASC
-                  </Button>
-                  <Button
-                    variant={sortOrder === 'desc' ? 'secondary' : 'ghost'}
-                    size="sm"
-                    className="h-9 px-3 rounded-lg text-xs font-bold"
-                    onClick={() => setSortOrder('desc')}
-                  >
-                    DESC
-                  </Button>
-                </div>
+        <div className="enterprise-toolbar py-5 px-6">
+          <div className="flex flex-col lg:flex-row gap-4 w-full">
+            <div className="relative flex-1 group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Input
+                placeholder="Search by name, email, or position..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-11 h-12 bg-background/50 border-white/10 focus:border-primary/50 transition-all rounded-xl"
+              />
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="w-[180px] h-12 bg-background/50 rounded-xl border-white/10 font-bold text-xs uppercase tracking-widest">
+                  <Filter className="mr-2 h-4 w-4 opacity-50" />
+                  <SelectValue placeholder="All Roles" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value="ADMIN">Admin</SelectItem>
+                  <SelectItem value="MANAGER">Manager</SelectItem>
+                  <SelectItem value="HR">HR</SelectItem>
+                  <SelectItem value="EMPLOYEE">Employee</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <div className="flex items-center gap-1 p-1 bg-muted/30 rounded-xl border border-white/10">
+                <Button
+                  variant={sortOrder === 'asc' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  className={cn("h-10 px-4 rounded-lg text-[10px] font-black tracking-widest uppercase transition-all", sortOrder === 'asc' && "bg-white shadow-soft dark:bg-slate-800")}
+                  onClick={() => setSortOrder('asc')}
+                >
+                  ASC
+                </Button>
+                <Button
+                  variant={sortOrder === 'desc' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  className={cn("h-10 px-4 rounded-lg text-[10px] font-black tracking-widest uppercase transition-all", sortOrder === 'desc' && "bg-white shadow-soft dark:bg-slate-800")}
+                  onClick={() => setSortOrder('desc')}
+                >
+                  DESC
+                </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </motion.div>
 
-      {/* Employees Table */}
-      <motion.div variants={slideUpVariants}>
-        <Card className="border-border/30 shadow-premium overflow-hidden bg-card/40 backdrop-blur-sm rounded-3xl">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-border/30 bg-muted/20">
-                  <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('first_name')}>
-                    Employee {sortBy === 'first_name' && (sortOrder === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('position')}>
-                    Role & Title {sortBy === 'position' && (sortOrder === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('department')}>
-                    Division {sortBy === 'department' && (sortOrder === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-muted-foreground">Status</th>
-                  <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-muted-foreground text-right pr-10">Acions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/20">
+      {/* Enterprise Data Grid */}
+      <motion.div variants={slideUpVariants} className="relative">
+        {loading ? (
+          <div className="rounded-[2rem] border border-white/5 overflow-hidden">
+            <DataTableSkeleton />
+          </div>
+        ) : filteredEmployees.length > 0 ? (
+          <div className="space-y-6">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-[300px]" onClick={() => handleSort('first_name')}>
+                    <div className="flex items-center gap-2 cursor-pointer group">
+                      Employee
+                      <span className={cn("transition-all opacity-0 group-hover:opacity-100", sortBy === 'first_name' && "opacity-100")}>
+                        {sortBy === 'first_name' && (sortOrder === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}
+                      </span>
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort('position')}>
+                    <div className="flex items-center gap-2 cursor-pointer group">
+                      Role & Title
+                      <span className={cn("transition-all opacity-0 group-hover:opacity-100", sortBy === 'position' && "opacity-100")}>
+                        {sortBy === 'position' && (sortOrder === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}
+                      </span>
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort('department')}>
+                    <div className="flex items-center gap-2 cursor-pointer group">
+                      Division
+                      <span className={cn("transition-all opacity-0 group-hover:opacity-100", sortBy === 'department' && "opacity-100")}>
+                        {sortBy === 'department' && (sortOrder === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}
+                      </span>
+                    </div>
+                  </TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 <AnimatePresence mode="popLayout">
-                  {loading ? (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-24 text-center">
-                        <div className="flex flex-col items-center gap-3">
-                          <div className="animate-spin h-10 w-10 border-[3px] border-primary border-t-transparent rounded-full" />
-                          <p className="text-sm font-bold text-muted-foreground tracking-widest uppercase">Synchronizing Talent Pool...</p>
+                  {paginatedEmployees.map((employee, idx) => (
+                    <motion.tr
+                      key={employee.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ delay: idx * 0.04 }}
+                      component={TableRow}
+                      className="group"
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-4">
+                          <div className="relative h-12 w-12 rounded-2xl overflow-hidden bg-muted/80 border border-white/10 group-hover:scale-105 transition-transform shadow-sm">
+                            {employee.profile_image ? (
+                              <img src={employee.profile_image} alt="" className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-transparent text-primary text-base font-black">
+                                {employee.firstName[0]}{employee.lastName[0]}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-black text-slate-900 dark:text-white group-hover:text-primary transition-colors">
+                              {employee.firstName} {employee.lastName}
+                            </p>
+                            <p className="text-[11px] text-slate-500 font-bold flex items-center gap-1.5 mt-0.5">
+                              <Mail size={10} />
+                              {employee.email}
+                            </p>
+                          </div>
                         </div>
-                      </td>
-                    </tr>
-                  ) : paginatedEmployees.length > 0 ? (
-                    paginatedEmployees.map((employee, idx) => (
-                      <motion.tr
-                        key={employee.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ delay: idx * 0.04 }}
-                        className="group hover:bg-muted/40 transition-all duration-300"
-                      >
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-4">
-                            <div className="relative h-14 w-14 rounded-2xl overflow-hidden bg-muted/80 border border-border/50 group-hover:scale-105 transition-transform shadow-sm group-hover:shadow-lg group-hover:shadow-primary/5">
-                              {employee.profile_image ? (
-                                <img
-                                  src={employee.profile_image}
-                                  alt=""
-                                  className="h-full w-full object-cover transition-transform group-hover:scale-110"
-                                />
-                              ) : (
-                                <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-transparent text-primary text-xl font-black">
-                                  {employee.firstName[0]}{employee.lastName[0]}
-                                </div>
-                              )}
-                              <div className="absolute inset-0 ring-1 ring-inset ring-black/5 rounded-2xl" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
-                                {employee.firstName} {employee.lastName}
-                              </p>
-                              <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1 font-medium italic">
-                                <Mail size={12} className="opacity-60" />
-                                {employee.email}
-                              </p>
-                            </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <Briefcase size={12} className="text-primary/60" />
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{employee.position || 'Strategic Partner'}</span>
                           </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                              <Briefcase size={13} className="text-primary/60" />
-                              <span className="text-sm font-bold text-foreground">{employee.position || 'Strategic Partner'}</span>
-                            </div>
-                            <Badge variant="outline" className="text-[10px] h-5 font-black uppercase tracking-widest bg-background/80 border-primary/10 text-primary/70">
-                              {employee.role}
-                            </Badge>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-muted/40 text-[11px] font-black tracking-wider text-muted-foreground border border-border/30 group-hover:bg-primary/5 group-hover:text-primary transition-colors uppercase">
-                            {employee.department?.name || 'Central Div'}
-                          </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <StatusBadge status={employee.status} />
-                        </td>
-                        <td className="px-6 py-5 text-right pr-8">
-                          <div className="flex items-center justify-end gap-2">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-10 w-10 rounded-xl hover:bg-primary/10 hover:text-primary active:scale-95 transition-all shadow-sm hover:shadow-md"
-                                    onClick={() => openChatWithUser(employee)}
-                                  >
-                                    <MessageCircle size={18} />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent className="rounded-lg font-bold">Initiate Chat</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-muted active:scale-95 transition-all">
-                                  <MoreVertical size={18} />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-52 rounded-2xl shadow-2xl glass-panel-dark p-2">
-                                <DropdownMenuItem className="rounded-xl flex items-center gap-3 p-3 font-bold" onClick={() => handleEditEmployee(employee)}>
-                                  <Edit size={16} className="text-primary" /> Edit Credentials
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="rounded-xl flex items-center gap-3 p-3 font-bold">
-                                  <UserCircle size={16} className="text-indigo-500" /> Member Insights
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator className="my-2 bg-white/10" />
-                                <DropdownMenuItem
-                                  className="rounded-xl text-rose-500 flex items-center gap-3 p-3 font-bold focus:bg-rose-500/10 focus:text-rose-600"
-                                  onClick={() => handleDeleteEmployee(employee.id)}
+                          <Badge variant="outline" className="text-[9px] h-4 font-black uppercase tracking-[0.15em] bg-primary/5 border-primary/10 text-primary/70">
+                            {employee.role}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-[10px] font-black tracking-widest text-slate-500 uppercase border border-white/5 group-hover:border-primary/20 transition-all">
+                          {employee.department?.name || 'Central Div'}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={employee.status} />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-9 w-9 rounded-xl hover:bg-primary/10 hover:text-primary transition-all"
+                                  onClick={() => openChatWithUser(employee)}
                                 >
-                                  <Trash2 size={16} /> Decommission
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </td>
-                      </motion.tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-28 text-center">
-                        <div className="flex flex-col items-center gap-5">
-                          <div className="w-20 h-20 rounded-[2rem] bg-muted/40 flex items-center justify-center text-muted-foreground/30 shadow-inner group">
-                            <Search size={40} className="group-hover:scale-110 transition-transform" />
-                          </div>
-                          <div className="space-y-2">
-                            <p className="text-xl font-black text-foreground uppercase tracking-widest">No Intelligence Found</p>
-                            <p className="text-sm text-muted-foreground font-medium">We couldn't find any team members matching those parameters.</p>
-                          </div>
-                          <Button
-                            variant="outlinePremium"
-                            onClick={() => { setSearch(''); setRoleFilter('all'); setDepartmentFilter('all'); }}
-                            className="mt-2"
-                          >
-                            Reset Directories
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </AnimatePresence>
-              </tbody>
-            </table>
-          </div>
+                                  <MessageCircle size={16} />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent className="font-bold">Initiate Chat</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
 
-          {/* Pagination Footer */}
-          <div className="px-8 py-5 bg-muted/10 border-t border-border/30 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                Resource Coverage: <span className="text-primary">{filteredEmployees.length}</span> / {employees.length}
-              </p>
-              <div className="h-4 w-[1px] bg-border/40" />
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                Page: <span className="text-primary">{currentPage}</span> of {totalPages || 1}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border-border/40 disabled:opacity-30"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1 || loading}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border-border/40 disabled:opacity-30"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages || totalPages === 0 || loading}
-              >
-                Next
-              </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-muted transition-all">
+                                <MoreVertical size={16} />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56 rounded-2xl shadow-2xl p-2 border-white/10 glass-panel-dark">
+                              <DropdownMenuItem className="rounded-xl flex items-center gap-3 p-3 font-bold" onClick={() => handleEditEmployee(employee)}>
+                                <Edit size={16} className="text-primary" /> Edit Credentials
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="rounded-xl flex items-center gap-3 p-3 font-bold">
+                                <UserCircle size={16} className="text-indigo-500" /> Member Insights
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator className="my-2 bg-white/5" />
+                              <DropdownMenuItem
+                                className="rounded-xl text-rose-500 flex items-center gap-3 p-3 font-bold focus:bg-rose-500/10 focus:text-rose-600"
+                                onClick={() => handleDeleteEmployee(employee.id)}
+                              >
+                                <Trash2 size={16} /> Decommission
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </TableCell>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              </TableBody>
+            </Table>
+
+            {/* Pagination Workspace Footer */}
+            <div className="enterprise-toolbar py-4 px-6">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 w-full">
+                <div className="flex items-center gap-4 text-slate-500">
+                  <div className="flex items-center gap-2">
+                    <Users size={14} className="text-primary/60" />
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">
+                      Coverage: <span className="text-primary">{filteredEmployees.length}</span> / {employees.length}
+                    </p>
+                  </div>
+                  <div className="h-4 w-[1px] bg-white/10" />
+                  <div className="flex items-center gap-2">
+                    <ClipboardList size={14} className="text-primary/60" />
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">
+                      Workspace: <span className="text-primary">{currentPage}</span> / {totalPages || 1}
+                    </p>
+                  </div>
+                </div>
+                
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className={cn(currentPage === 1 && "pointer-events-none opacity-50")}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
+                      const pageNum = i + 1;
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationLink
+                            isActive={currentPage === pageNum}
+                            onClick={() => handlePageChange(pageNum)}
+                          >
+                            {pageNum}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })}
+                    
+                    {totalPages > 5 && <PaginationItem><PaginationEllipsis /></PaginationItem>}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                        className={cn((currentPage === totalPages || totalPages === 0) && "pointer-events-none opacity-50")}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
             </div>
           </div>
-        </Card>
+        ) : (
+          <Card className="enterprise-card border-dashed border-2 border-white/5 bg-white/5">
+            <EnterpriseEmptyState
+              title="No Intelligence Found"
+              description="Your search parameters did not return any personnel records. Try adjusting your filters or search keywords."
+              icon={ShieldAlert}
+              action={{
+                label: "Reset Directories",
+                onClick: () => { setSearch(''); setRoleFilter('all'); setDepartmentFilter('all'); },
+                icon: Filter
+              }}
+            />
+          </Card>
+        )}
       </motion.div>
 
       {/* Modals */}

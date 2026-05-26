@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Users, Building2, Briefcase, ClipboardList } from 'lucide-react';
+import { Search, Users, Building2, Briefcase, ClipboardList, X, Command } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface SearchResult {
   id: string;
@@ -28,7 +29,7 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const isMobileView = useIsMobile();
 
-  // Mock search function - in a real implementation, this would call the API
+  // Mock search function
   const search = async (searchQuery: string) => {
     if (!searchQuery.trim()) {
       setResults([]);
@@ -36,13 +37,9 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
     }
 
     setIsLoading(true);
-
-    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 300));
 
-    // Mock results based on user role
     const mockResults: SearchResult[] = [];
-
     if (user?.role === 'ADMIN' || user?.role === 'HR') {
       mockResults.push(
         { id: '1', type: 'employee', title: 'John Doe', subtitle: 'Software Engineer', href: '/app/employees/1' },
@@ -60,13 +57,6 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
       );
     }
 
-    if (user?.role === 'EMPLOYEE') {
-      mockResults.push(
-        { id: '8', type: 'task', title: 'Complete documentation', href: '/app/projects/1/tasks/2' },
-        { id: '9', type: 'project', title: 'Client Project', href: '/app/my-projects/1' }
-      );
-    }
-
     const filteredResults = mockResults.filter(result =>
       result.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -75,126 +65,153 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
     setIsLoading(false);
   };
 
-  // Debounced search
   useEffect(() => {
     const handler = setTimeout(() => {
       search(query);
     }, 300);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    return () => clearTimeout(handler);
   }, [query, user?.role]);
 
-  // Handle clicks outside to close search
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       if (e.key === '/' && !(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
         e.preventDefault();
-        if (inputRef.current) {
-          inputRef.current.focus();
-          setIsOpen(true);
-        }
+        setIsOpen(true);
       }
       if (e.key === 'Escape' && isOpen) {
         setIsOpen(false);
       }
     };
-
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
   const renderIcon = (type: string) => {
     switch (type) {
-      case 'employee':
-        return <Users className="h-4 w-4 text-muted-foreground" />;
-      case 'department':
-        return <Building2 className="h-4 w-4 text-muted-foreground" />;
-      case 'project':
-        return <Briefcase className="h-4 w-4 text-muted-foreground" />;
-      case 'task':
-        return <ClipboardList className="h-4 w-4 text-muted-foreground" />;
-      default:
-        return <Search className="h-4 w-4 text-muted-foreground" />;
+      case 'employee': return <Users className="h-4 w-4" />;
+      case 'department': return <Building2 className="h-4 w-4" />;
+      case 'project': return <Briefcase className="h-4 w-4" />;
+      case 'task': return <ClipboardList className="h-4 w-4" />;
+      default: return <Search className="h-4 w-4" />;
     }
   };
 
+  // Mobile Version - Full Screen Overlay
   if (isMobileView || isMobile) {
     return (
-      <div className="relative" ref={searchRef}>
+      <>
         <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="p-2 rounded-md hover:bg-accent transition-colors"
+          onClick={() => setIsOpen(true)}
+          className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-primary transition-all active:scale-95"
           aria-label="Toggle search"
         >
           <Search className="h-5 w-5" />
         </button>
 
-        {isOpen && (
-          <div className="absolute top-full right-0 mt-2 w-80 bg-card border rounded-lg shadow-lg z-50 p-2">
-            <div className="flex items-center gap-2 mb-2">
-              <Search className="h-4 w-4 text-muted-foreground ml-1" />
-              <Input
-                ref={inputRef}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Click '/' or Ctrl + / for search"
-                className="border-0 focus-visible:ring-0"
-                autoFocus
-              />
-            </div>
-
-            {results.length > 0 && (
-              <div className="max-h-60 overflow-y-auto">
-                {results.map((result) => (
-                  <a
-                    key={result.id}
-                    href={result.href}
-                    className="flex items-center gap-3 p-2 rounded-md hover:bg-accent transition-colors"
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+              animate={{ opacity: 1, backdropFilter: 'blur(12px)' }}
+              exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+              className="fixed inset-0 z-[100] bg-slate-950/80 p-4 md:p-6 flex flex-col"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                transition={{ duration: 0.3, ease: [0.2, 0, 0, 1] }}
+                className="w-full max-w-2xl mx-auto flex flex-col bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl overflow-hidden h-[80vh]"
+              >
+                <div className="p-4 border-b border-white/10 flex items-center gap-3">
+                  <Search className="h-5 w-5 text-primary ml-2" />
+                  <Input
+                    ref={inputRef}
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search personnel, units, projects..."
+                    className="flex-1 h-12 border-0 focus-visible:ring-0 bg-transparent text-lg font-bold"
+                    autoFocus
+                  />
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setIsOpen(false)}
+                    className="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10"
                   >
-                    {renderIcon(result.type)}
-                    <div>
-                      <div className="font-medium">{result.title}</div>
-                      {result.subtitle && (
-                        <div className="text-xs text-muted-foreground">{result.subtitle}</div>
-                      )}
-                    </div>
-                  </a>
-                ))}
-              </div>
-            )}
+                    <X size={20} />
+                  </Button>
+                </div>
 
-            {isLoading && (
-              <div className="p-4 text-center text-sm text-muted-foreground">Searching...</div>
-            )}
+                <ScrollArea className="flex-1 p-4">
+                  <div className="space-y-1">
+                    {results.map((result, idx) => (
+                      <motion.a
+                        key={result.id}
+                        href={result.href}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="flex items-center gap-4 p-4 rounded-2xl hover:bg-primary/5 transition-all group"
+                      >
+                        <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-primary/10 transition-all">
+                          {renderIcon(result.type)}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">{result.title}</div>
+                          {result.subtitle && <div className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">{result.subtitle}</div>}
+                        </div>
+                        <Command size={14} className="opacity-0 group-hover:opacity-30 transition-opacity" />
+                      </motion.a>
+                    ))}
 
-            {!isLoading && results.length === 0 && query && (
-              <div className="p-4 text-center text-sm text-muted-foreground">No results found</div>
-            )}
-          </div>
-        )}
-      </div>
+                    {!isLoading && results.length === 0 && query && (
+                      <div className="py-20 text-center space-y-4">
+                        <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mx-auto text-slate-300">
+                          <Search size={32} />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="font-bold text-slate-900 dark:text-white">No results found for "{query}"</p>
+                          <p className="text-xs text-slate-500">Try a different search term or unit.</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {isLoading && (
+                      <div className="py-20 text-center">
+                        <div className="animate-spin h-8 w-8 border-3 border-primary border-t-transparent rounded-full mx-auto" />
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+                
+                <div className="p-4 bg-slate-50 dark:bg-slate-950/50 border-t border-white/10 text-center">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Enterprise Intelligent Search v2.0</p>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </>
     );
   }
 
+  // Desktop Version
   return (
     <div className="relative group/search" ref={searchRef}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within/search:text-primary" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within/search:text-primary group-focus-within/search:scale-110 transition-all" />
         <Input
           ref={inputRef}
           value={query}
@@ -203,12 +220,15 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
             if (e.target.value) setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}
-          placeholder="Click '/' or Ctrl + / for search"
-          className="pl-10 w-80 max-w-xs transition-all duration-300 focus:w-96 focus:max-w-md bg-muted/40 border-border/50 hover:bg-muted/60"
+          placeholder="Search employees, units, projects..."
+          className={cn(
+            "pl-11 h-11 transition-all duration-300 border-slate-200 dark:border-white/10 rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-sm",
+            "focus:w-[480px] focus:shadow-2xl focus:border-primary/30"
+          )}
         />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1 pointer-events-none">
-          <kbd className="h-5 px-1.5 rounded border border-border/60 bg-background/50 text-[10px] font-medium text-muted-foreground shadow-sm">
-            /
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1.5 pointer-events-none opacity-40 group-focus-within/search:opacity-100 transition-opacity">
+          <kbd className="h-5 px-1.5 rounded border border-white/20 bg-white/5 text-[10px] font-black text-white shadow-sm flex items-center gap-1">
+            <Command size={8} /> /
           </kbd>
         </div>
       </div>
@@ -220,56 +240,48 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.98 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute top-full left-0 w-full glass-panel rounded-xl shadow-2xl z-50 mt-3 max-h-[480px] overflow-hidden flex flex-col"
+            className="absolute top-full left-0 w-full glass-panel rounded-2xl shadow-2xl z-50 mt-3 max-h-[480px] overflow-hidden flex flex-col border-white/10"
           >
-            <div className="p-4 border-b border-border/30 bg-muted/20">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Search Results</span>
+            <div className="p-4 border-b border-white/5 bg-slate-50 dark:bg-slate-900/50">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Enterprise Command Center</span>
             </div>
-            <ScrollArea className="flex-1 overflow-y-auto max-h-[400px]">
+            <ScrollArea className="flex-1">
               <div className="p-2 space-y-1">
-                {results.length > 0 ? (
-                  results.map((result, idx) => (
-                    <motion.a
-                      key={result.id}
-                      href={result.href}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="flex items-center gap-4 p-3 rounded-lg hover:bg-primary/5 transition-all group/result"
-                    >
-                      <div className="h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center group-hover/result:bg-primary/10 transition-colors">
-                        {renderIcon(result.type)}
-                      </div>
-                      <div className="flex-1 overflow-hidden">
-                        <div className="font-semibold text-sm group-hover/result:text-primary transition-colors truncate">{result.title}</div>
-                        {result.subtitle && (
-                          <div className="text-xs text-muted-foreground truncate">{result.subtitle}</div>
-                        )}
-                      </div>
-                      <div className="opacity-0 group-hover/result:opacity-100 transition-opacity pr-2">
-                        <div className="px-2 py-1 rounded bg-primary/10 text-[10px] font-bold text-primary uppercase">View</div>
-                      </div>
-                    </motion.a>
-                  ))
-                ) : isLoading ? (
-                  <div className="p-8 text-center">
-                    <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
-                    <p className="text-xs text-muted-foreground">Searching for your request...</p>
-                  </div>
-                ) : query ? (
-                  <div className="p-12 text-center">
-                    <div className="text-muted-foreground/30 mb-3 flex justify-center">
-                      <Search size={48} />
+                {results.map((result, idx) => (
+                  <motion.a
+                    key={result.id}
+                    href={result.href}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="flex items-center gap-4 p-3 rounded-xl hover:bg-primary/5 transition-all group/result"
+                  >
+                    <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover/result:text-primary group-hover/result:bg-primary/10 transition-all">
+                      {renderIcon(result.type)}
                     </div>
-                    <p className="font-medium text-sm">No results for "{query}"</p>
-                    <p className="text-xs text-muted-foreground mt-1">Try a different search term</p>
+                    <div className="flex-1 overflow-hidden">
+                      <div className="font-bold text-sm text-slate-900 dark:text-white group-hover/result:text-primary transition-colors truncate">{result.title}</div>
+                      {result.subtitle && <div className="text-[10px] font-black text-slate-500 uppercase tracking-tight truncate">{result.subtitle}</div>}
+                    </div>
+                    <div className="opacity-0 group-hover/result:opacity-100 transition-opacity pr-2">
+                      <div className="px-2 py-1 rounded bg-primary/10 text-[9px] font-black text-primary uppercase tracking-widest">Execute</div>
+                    </div>
+                  </motion.a>
+                ))}
+                
+                {isLoading && (
+                  <div className="p-12 text-center">
+                    <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto" />
                   </div>
-                ) : null}
+                )}
+
+                {!isLoading && results.length === 0 && query && (
+                  <div className="p-12 text-center text-slate-500 font-medium text-sm">
+                    No results found in enterprise registry.
+                  </div>
+                )}
               </div>
             </ScrollArea>
-            <div className="p-3 bg-muted/30 border-t border-border/30 text-[10px] text-muted-foreground text-center">
-              Press <kbd className="font-sans px-1 rounded border border-border/50 bg-background">ESC</kbd> to close
-            </div>
           </motion.div>
         )}
       </AnimatePresence>

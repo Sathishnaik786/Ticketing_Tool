@@ -40,23 +40,24 @@ export function AnalyticsStatCard({
       className="h-full"
     >
       <Card className={cn(
-        'h-full border border-border/50 shadow-premium transition-all duration-300 hover:shadow-lg hover:border-primary/20 bg-card/80 backdrop-blur-sm overflow-hidden group',
+        'enterprise-card h-full relative overflow-hidden group',
         status && statusColors[status],
         className
       )}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-          <CardTitle className="text-xs font-bold tracking-wider uppercase text-muted-foreground/80 group-hover:text-primary transition-colors">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
+          <CardTitle className="enterprise-subheading group-hover:text-primary transition-colors">
             {title}
           </CardTitle>
-          <div className="p-2 rounded-lg bg-muted/50 group-hover:bg-primary/10 transition-colors">
-            <Icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+          <div className="h-10 w-10 rounded-xl bg-muted/50 group-hover:bg-primary/10 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm">
+            <Icon className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
           </div>
         </CardHeader>
-        <CardContent className="relative z-10">
-          <div className="text-3xl font-bold tracking-tight text-gradient-primary">{value}</div>
+        <CardContent className="relative z-10 space-y-3">
+          <div className="text-4xl font-black tracking-tight text-foreground">{value}</div>
           {change && (
             <div className={cn(
-              'inline-flex items-center mt-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight bg-muted/50 transition-colors group-hover:bg-background',
+              'inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all group-hover:shadow-soft group-hover:bg-background',
+              changeColors[changeType] === 'text-muted-foreground' ? 'bg-muted/30' : 'bg-background/50 ring-1 ring-inset ring-current/10',
               changeColors[changeType]
             )}>
               {change}
@@ -64,8 +65,11 @@ export function AnalyticsStatCard({
           )}
         </CardContent>
 
+        {/* Executive Shine Effect */}
+        <div className="absolute top-0 left-[-100%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/[0.05] to-transparent skew-x-[-25deg] group-hover:left-[150%] transition-all duration-1000" />
+        
         {/* Decorative corner glow */}
-        <div className="absolute -bottom-6 -right-6 w-16 h-16 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-all duration-500" />
+        <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-700" />
       </Card>
     </motion.div>
   );

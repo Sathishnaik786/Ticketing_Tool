@@ -46,9 +46,12 @@ export async function apiCall(
   body?: any,
   token?: string
 ) {
-  const headers: any = {
-    'Content-Type': 'application/json',
-  };
+  const isFormData = body instanceof FormData;
+  
+  const headers: any = {};
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   // Always get the token dynamically from localStorage
   const dynamicToken = localStorage.getItem('token') || token;
@@ -60,7 +63,7 @@ export async function apiCall(
   const res = await fetch(`${API_BASE_URL}${url}`, {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
+    body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
   });
 
   console.log(`API [${method}] ${url} - Status: ${res.status}`);

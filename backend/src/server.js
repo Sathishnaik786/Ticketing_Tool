@@ -1,5 +1,14 @@
 require('dotenv').config();
 require('module-alias/register');
+require('ts-node').register({
+  transpileOnly: true,
+  compilerOptions: {
+    module: "commonjs",
+    allowJs: true,
+    esModuleInterop: true,
+    ignoreDeprecations: "6.0"
+  }
+});
 const app = require('./app');
 const config = require('@config');
 const http = require('http');
@@ -36,8 +45,13 @@ const corsOrigins = config.NODE_ENV === 'production'
 
 const io = new Server(server, {
   cors: {
-    origin: corsOrigins,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const isAllowed = corsOrigins.indexOf(origin) !== -1;
+      callback(null, isAllowed);
+    },
     credentials: true,
+    methods: ['GET', 'POST']
   },
   transports: ['websocket', 'polling'],
 });
@@ -93,7 +107,7 @@ if (enableSocketRedis) {
 const SocketHandlers = require('./socketHandlers');
 SocketHandlers.initialize(io);
 
-server.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, () => {
   console.log(`Server is actually listening on port ${PORT}`);
   console.log(`Environment: ${config.NODE_ENV}`);
   console.log(
@@ -105,7 +119,18 @@ server.listen(PORT, '0.0.0.0', () => {
     socketRedisAdapter: redisAdapterEnabled ? 'enabled' : 'disabled',
     redisMode,
   });
+
+  // Phase 3: Auto Create Bucket Safely on Backend Startup
+  try {
+    const { PayslipStorageService } = require('./modules/payroll-bulk-processing/services/payslip-storage.service');
+    PayslipStorageService.ensureBucketExists().catch(err => {
+      console.error('[STORAGE_INIT_ERROR] Failed to run startup storage initialization:', err);
+    });
+  } catch (err) {
+    console.error('[STORAGE_INIT_ERROR] Could not load PayslipStorageService for startup bucket verification:', err);
+  }
 });
+
 
 server.on('error', (error) => {
     if (error.code === 'EADDRINUSE') {
@@ -123,3 +148,6 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
+
+// Trigger Nodemon compiler synchronization reboot - Identity fallbacks loaded
+

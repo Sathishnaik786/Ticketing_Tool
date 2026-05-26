@@ -3,7 +3,6 @@ import { User as SupabaseUser } from '@supabase/supabase-js';
 import { useQueryClient } from '@tanstack/react-query';
 import { authApi } from '@/services/api';
 import { Role } from '@/types';
-import { useQueryInvalidation } from '@/hooks/useQueryInvalidation';
 
 interface AuthUser {
   id: string;
@@ -36,8 +35,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const profileRequestPromiseRef = useRef<Promise<any> | null>(null);
   const queryClient = useQueryClient();
 
-  // Enable real-time query invalidation
-  useQueryInvalidation();
 
   // Check if user is already logged in on initial load
   useEffect(() => {

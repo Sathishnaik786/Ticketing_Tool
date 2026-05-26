@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import {
     ClipboardList,
     LayoutTemplate,
@@ -64,9 +65,9 @@ export const UpdatesQuickAccess: React.FC = () => {
     if (features.length === 0) return null;
 
     return (
-        <Card className="border-none shadow-xl bg-card/40 backdrop-blur-xl transition-all duration-500 hover:shadow-2xl">
+        <Card className="enterprise-card border-none">
             <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-black tracking-tight uppercase flex items-center gap-2">
+                <CardTitle className="enterprise-subheading flex items-center gap-2">
                     <ClipboardList className="h-5 w-5 text-primary" />
                     Quick Reporting
                 </CardTitle>
@@ -77,15 +78,22 @@ export const UpdatesQuickAccess: React.FC = () => {
                         <Button
                             key={feature.id}
                             variant="outline"
-                            className="h-auto py-6 flex-col gap-3 rounded-2xl border-primary/5 hover:border-primary/20 hover:bg-primary/5 transition-all group"
+                            className="h-auto py-8 flex-col gap-4 rounded-[2rem] border-white/5 bg-slate-50/50 dark:bg-white/[0.02] hover:border-primary/30 hover:bg-white dark:hover:bg-white/[0.05] transition-all duration-500 group shadow-sm hover:shadow-xl hover:-translate-y-2 relative overflow-hidden"
                             onClick={() => navigate(feature.href)}
                         >
-                            <div className={`p-2 rounded-xl bg-background shadow-sm transition-transform group-hover:scale-110`}>
-                                <feature.icon className={`h-5 w-5 ${feature.color}`} />
+                            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            
+                            <div className={cn(
+                                "h-14 w-14 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center shadow-premium transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 ring-1 ring-black/5 dark:ring-white/5",
+                                feature.color.replace('text-', 'bg-').replace('-500', '-500/10')
+                            )}>
+                                <feature.icon className={cn("h-6 w-6", feature.color)} />
                             </div>
-                            <div className="text-center">
-                                <span className="block text-xs font-black uppercase tracking-widest text-slate-900/80 dark:text-white/80 group-hover:text-primary transition-colors">{feature.title}</span>
-                                <ArrowRight className="h-3 w-3 mx-auto mt-2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-primary" />
+                            <div className="text-center relative z-10">
+                                <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 group-hover:text-primary transition-colors">{feature.title}</span>
+                                <div className="flex justify-center mt-3">
+                                    <div className="h-1 w-1 rounded-full bg-primary/20 group-hover:w-4 group-hover:bg-primary transition-all duration-500" />
+                                </div>
                             </div>
                         </Button>
                     ))}

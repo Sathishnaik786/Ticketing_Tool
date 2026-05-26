@@ -2,12 +2,16 @@ const { supabase, supabaseAdmin } = require('@lib/supabase');
 
 const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
+  
+  console.log(`🛡️  [${new Date().toISOString()}] Auth Middleware: ${req.method} ${req.originalUrl || req.url}`);
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.log('❌ No Bearer token found in headers');
     return res.status(401).json({ message: 'Authentication required' });
   }
 
   const token = authHeader.split(' ')[1];
+  console.log(`🔑 Token extracted (length: ${token.length})`);
 
   try {
     const { data, error } = await supabase.auth.getUser(token);
@@ -45,6 +49,7 @@ const authMiddleware = async (req, res, next) => {
       lastName: employee.last_name,
     };
 
+    console.log(`✅ User authenticated: ${req.user.email} (Role: ${req.user.role})`);
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);

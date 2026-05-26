@@ -19,8 +19,8 @@ import {
 import { reportsApi, analyticsApi } from '@/services/api';
 import { DashboardStats, AdminOverviewData, ManagerTeamProgressData, HRWorkforceData, EmployeeSelfData } from '@/types';
 import AnalyticsOverview from '@/components/dashboard/AnalyticsOverview';
-import { StatCard } from '@/components/dashboard/StatCard';
 import { UpdatesQuickAccess } from '@/components/dashboard/UpdatesQuickAccess';
+import { EnterpriseHeader, EnterpriseStatCard } from '@/components/payroll/EnterpriseComponents';
 
 
 
@@ -82,33 +82,43 @@ export default function Dashboard() {
 
   if (authLoading || loading) {
     return (
-      <div className="p-6 space-y-8 animate-fade-in">
-        <div className="flex justify-between items-center bg-card/30 p-6 rounded-2xl border border-border/40 backdrop-blur-sm shadow-sm">
-          <div className="space-y-2">
-            <Skeleton className="h-9 w-64 rounded-lg bg-muted/40" />
-            <Skeleton className="h-4 w-96 rounded-md bg-muted/30" />
+      <div className="p-6 lg:p-8 space-y-8 animate-fade-in">
+        <div className="bg-card/40 backdrop-blur-xl p-8 rounded-[2rem] border border-border/30 shadow-premium flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="space-y-3">
+            <Skeleton className="h-10 w-48 rounded-xl bg-muted/40" />
+            <Skeleton className="h-5 w-80 rounded-lg bg-muted/20" />
           </div>
-          <Skeleton className="h-10 w-32 rounded-xl bg-muted/40" />
+          <div className="flex gap-3">
+            <Skeleton className="h-10 w-32 rounded-xl bg-muted/30" />
+            <Skeleton className="h-10 w-40 rounded-xl bg-muted/40" />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-2xl border border-border/40 bg-card/30 p-6 space-y-4 shadow-sm">
-              <div className="flex justify-between items-center">
-                <Skeleton className="h-4 w-24 rounded bg-muted/40" />
-                <Skeleton className="h-10 w-10 rounded-xl bg-muted/30" />
+            <div key={i} className="rounded-[2rem] border border-border/30 bg-card/40 p-8 space-y-6 shadow-premium relative overflow-hidden">
+              <div className="flex justify-between items-start">
+                <div className="space-y-3">
+                  <Skeleton className="h-4 w-24 rounded bg-muted/30" />
+                  <Skeleton className="h-10 w-16 rounded-lg bg-muted/40" />
+                </div>
+                <Skeleton className="h-14 w-14 rounded-2xl bg-muted/30" />
               </div>
-              <div className="space-y-2">
-                <Skeleton className="h-8 w-16 rounded-lg bg-muted/40" />
-                <Skeleton className="h-4 w-20 rounded bg-muted/30" />
-              </div>
+              <Skeleton className="h-6 w-32 rounded-full bg-muted/20" />
+              <div className="absolute bottom-0 left-0 w-full h-[3px] bg-muted/10" />
             </div>
           ))}
         </div>
 
-        <div className="rounded-2xl border border-border/40 bg-card/30 p-6 shadow-sm">
-          <Skeleton className="h-6 w-48 mb-4 rounded bg-muted/40" />
-          <Skeleton className="h-80 w-full rounded-xl bg-muted/30" />
+        <div className="rounded-[2rem] border border-border/30 bg-card/40 p-8 shadow-premium min-h-[400px]">
+          <div className="flex justify-between items-center mb-8">
+            <Skeleton className="h-7 w-56 rounded bg-muted/30" />
+            <div className="flex gap-2">
+              <Skeleton className="h-9 w-24 rounded-lg bg-muted/20" />
+              <Skeleton className="h-9 w-24 rounded-lg bg-muted/20" />
+            </div>
+          </div>
+          <Skeleton className="h-[300px] w-full rounded-2xl bg-muted/20" />
         </div>
       </div>
     );
@@ -132,78 +142,94 @@ export default function Dashboard() {
       initial="initial"
       animate="animate"
       variants={staggerContainer}
-      className="p-6 lg:p-8 space-y-8 bg-background/30 rounded-3xl backdrop-blur-[2px]"
+      className="enterprise-section"
     >
-      <motion.div variants={slideUpVariants}>
-        <PageHeader
-          title="Overview"
-          description={`Welcome back, ${user.firstName || user.email}! Here's what's happening today.`}
-          className="bg-header-gradient p-8 rounded-3xl border border-border/30 shadow-premium mb-0"
-        >
-          <div className="flex items-center gap-3">
-            <Button variant="outlinePremium" size="sm" className="hidden sm:flex">
-              <Calendar className="mr-2 h-4 w-4" />
-              Schedule
-            </Button>
-            <Button variant="premium" size="sm">
-              <TrendingUp className="mr-2 h-4 w-4" />
-              Generate Report
-            </Button>
-          </div>
-        </PageHeader>
+      <motion.div variants={slideUpVariants} className="space-y-6">
+        <EnterpriseHeader
+          title="Executive Hub"
+          description={`Intelligent workspace for ${user.firstName || 'User'}. Tracking operations and personnel health.`}
+          badge="Real-time Synchronization"
+          actions={(
+            <div className="flex items-center gap-3">
+              <Button variant="outlinePremium" size="sm" className="hidden sm:flex">
+                <Calendar className="mr-2 h-4 w-4" />
+                Planning
+              </Button>
+              <Button variant="premium" size="sm">
+                <TrendingUp className="mr-2 h-4 w-4" />
+                Intelligence Report
+              </Button>
+            </div>
+          )}
+        />
       </motion.div>
 
       {/* Employee Updates: High Visibility Access */}
       <motion.div variants={slideUpVariants} className="z-10 relative">
+        <div className="flex items-center justify-between mb-6 px-2">
+          <h2 className="enterprise-subheading">Action Center</h2>
+          <div className="h-px flex-1 bg-gradient-to-r from-border/50 to-transparent ml-6" />
+        </div>
         <UpdatesQuickAccess />
       </motion.div>
 
       {/* Stats Grid */}
       <motion.div
         variants={slideUpVariants}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        className="space-y-6"
       >
-
-        <StatCard
-          title="Total Employees"
-          value={stats?.totalEmployees?.toLocaleString() || '0'}
-          icon={Users}
-          change="+2.4% vs last month"
-          changeType="positive"
-        />
-        <StatCard
-          title="Pending Leaves"
-          value={stats?.pendingLeaves?.toLocaleString() || '0'}
-          icon={FileText}
-          change="+12% vs last month"
-          changeType="negative"
-        />
-        <StatCard
-          title="Present Today"
-          value={stats?.presentToday?.toLocaleString() || '0'}
-          icon={UserCheck}
-          change="+1.5% vs average"
-          changeType="positive"
-        />
-        <StatCard
-          title="Attendance Rate"
-          value={`${stats?.attendanceRate?.toFixed(1) || '0'}%`}
-          icon={TrendingUp}
-          change="+0.8% vs last week"
-          changeType="neutral"
-        />
+        <div className="flex items-center justify-between px-2">
+          <h2 className="enterprise-subheading">Real-time Metrics</h2>
+          <div className="h-px flex-1 bg-gradient-to-r from-border/50 to-transparent ml-6" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <EnterpriseStatCard
+            title="Total Workforce"
+            value={stats?.totalEmployees?.toLocaleString() || '0'}
+            icon={Users}
+            trend="+2.4% Momentum"
+            trendType="success"
+            color="primary"
+          />
+          <EnterpriseStatCard
+            title="Pending Actions"
+            value={stats?.pendingLeaves?.toLocaleString() || '0'}
+            icon={FileText}
+            trend="Needs Attention"
+            trendType="warning"
+            color="warning"
+          />
+          <EnterpriseStatCard
+            title="Active Presence"
+            value={stats?.presentToday?.toLocaleString() || '0'}
+            icon={UserCheck}
+            trend="Stability Normal"
+            trendType="neutral"
+            color="success"
+          />
+          <EnterpriseStatCard
+            title="Operational Rate"
+            value={`${stats?.attendanceRate?.toFixed(1) || '0'}%`}
+            icon={TrendingUp}
+            trend="Peak Efficiency"
+            trendType="success"
+            color="payroll"
+          />
+        </div>
       </motion.div>
 
       {/* Analytics Overview */}
-
-      <motion.div variants={slideUpVariants}>
+      <motion.div variants={slideUpVariants} className="space-y-6">
+        <div className="flex items-center justify-between px-2">
+          <h2 className="enterprise-subheading">Workforce Intelligence</h2>
+          <div className="h-px flex-1 bg-gradient-to-r from-border/50 to-transparent ml-6" />
+        </div>
         <AnalyticsOverview
           role={user?.role || ''}
           analyticsData={analyticsData}
           loading={analyticsLoading}
         />
       </motion.div>
-
     </motion.div>
   );
 }

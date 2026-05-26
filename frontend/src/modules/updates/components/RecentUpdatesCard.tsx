@@ -5,9 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowRight, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getVisibleDailyUpdates } from '../daily/dailyUpdates.api';
-import { getVisibleWeeklyUpdates } from '../weekly/weeklyUpdates.api';
-import { getVisibleMonthlyUpdates } from '../monthly/monthlyUpdates.api';
+import { useRecentUpdates } from '../hooks/useUpdates';
 
 interface RecentUpdate {
     id: string;
@@ -20,66 +18,17 @@ interface RecentUpdate {
 }
 
 export const RecentUpdatesCard: React.FC = () => {
-    const [updates, setUpdates] = useState<RecentUpdate[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [unreadCount, setUnreadCount] = useState(0);
     const navigate = useNavigate();
+    const { data: allUpdates, isLoading: loading } = useRecentUpdates(6);
+    const [updates, setUpdates] = useState<RecentUpdate[]>([]);
+    const [unreadCount, setUnreadCount] = useState(0);
 
     useEffect(() => {
-        const fetchRecent = async () => {
-            setLoading(true);
-            try {
-                const [dailyRes, weeklyRes, monthlyRes] = await Promise.all([
-                    getVisibleDailyUpdates({ limit: 5 }),
-                    getVisibleWeeklyUpdates({ limit: 5 }),
-                    getVisibleMonthlyUpdates({ limit: 5 })
-                ]);
-
-                const combined: RecentUpdate[] = [
-                    ...(dailyRes.data || []).map((u: any) => ({
-                        id: u.id,
-                        userId: u.user_id,
-                        userName: u.user_profile?.name || 'Someone',
-                        userAvatar: u.user_profile?.profile_image,
-                        type: 'DAILY' as const,
-                        timestamp: u.created_at,
-                        isRead: !!sessionStorage.getItem(`read_update_${u.id}`)
-                    })),
-                    ...(weeklyRes.data || []).map((u: any) => ({
-                        id: u.id,
-                        userId: u.user_id,
-                        userName: u.user_profile?.name || 'Someone',
-                        userAvatar: u.user_profile?.profile_image,
-                        type: 'WEEKLY' as const,
-                        timestamp: u.created_at,
-                        isRead: !!sessionStorage.getItem(`read_update_${u.id}`)
-                    })),
-                    ...(monthlyRes.data || []).map((u: any) => ({
-                        id: u.id,
-                        userId: u.user_id,
-                        userName: u.user_profile?.name || 'Someone',
-                        userAvatar: u.user_profile?.profile_image,
-                        type: 'MONTHLY' as const,
-                        timestamp: u.created_at,
-                        isRead: !!sessionStorage.getItem(`read_update_${u.id}`)
-                    }))
-                ];
-
-                const sorted = combined.sort((a, b) =>
-                    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-                ).slice(0, 6);
-
-                setUpdates(sorted);
-                setUnreadCount(sorted.filter(u => !u.isRead).length);
-            } catch (error) {
-                console.error('Error fetching recent updates:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchRecent();
-    }, []);
+        if (allUpdates) {
+            setUpdates(allUpdates);
+            setUnreadCount(allUpdates.filter(u => !u.isRead).length);
+        }
+    }, [allUpdates]);
 
     const handleUpdateClick = (update: RecentUpdate) => {
         sessionStorage.setItem(`read_update_${update.id}`, 'true');
@@ -102,8 +51,8 @@ export const RecentUpdatesCard: React.FC = () => {
                         )}
                     </div>
                     <div>
-                        <CardTitle className="text-sm font-black uppercase tracking-widest">Recent Activity</CardTitle>
-                        <p className="text-[9px] text-muted-foreground/60 font-medium uppercase tracking-[0.2em]">Latest across the team</p>
+                        <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white">Recent Activity</CardTitle>
+                        <p className="text-[9px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-[0.2em]">Latest across the team</p>
                     </div>
                 </div>
             </CardHeader>
@@ -127,8 +76,8 @@ export const RecentUpdatesCard: React.FC = () => {
 
                             <div className="flex-1 min-w-0">
                                 <p className="text-xs font-bold truncate">
-                                    <span className="text-primary/70">{update.userName}</span>
-                                    <span className="text-muted-foreground/60 font-medium"> shared a </span>
+                                    <span className="text-primary">{update.userName}</span>
+                                    <span className="text-slate-500 dark:text-slate-400 font-bold"> shared a </span>
                                     <span className={cn(
                                         "font-black uppercase tracking-tighter text-[10px]",
                                         update.type === 'DAILY' ? "text-blue-500" : update.type === 'WEEKLY' ? "text-purple-500" : "text-amber-500"
@@ -136,7 +85,7 @@ export const RecentUpdatesCard: React.FC = () => {
                                         {update.type} Standup
                                     </span>
                                 </p>
-                                <p className="text-[10px] text-muted-foreground/40 font-bold uppercase tracking-widest mt-0.5">
+                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest mt-0.5">
                                     {formatDistanceToNow(new Date(update.timestamp), { addSuffix: true })}
                                 </p>
                             </div>
