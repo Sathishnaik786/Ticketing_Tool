@@ -42,9 +42,8 @@ export default function TestimonialCard({ index, setIndex }: TestimonialCardProp
   };
 
   return (
-    <div className="w-full max-w-[480px] mt-auto relative z-25">
-      {/* Testimonial Glass Card Box (Light White Glassmorphism matching the right side card style) */}
-      <div className="bg-white/[0.16] border border-white/20 backdrop-blur-2xl p-6 sm:p-8 rounded-[2rem] text-white shadow-2xl transition-all duration-500 relative overflow-hidden group/card hover:border-white/30">
+    // Card is positioned absolutely by parent (bottom-6 left-6 right-6) — fills full width
+    <div className="bg-white/[0.18] border border-white/25 backdrop-blur-2xl p-5 xl:p-6 rounded-[1.5rem] text-white shadow-[0_10px_40px_rgba(0,0,0,0.22)] transition-all duration-500 relative overflow-hidden group/card hover:border-white/35 hover:bg-white/[0.22]">
         
         {/* Subtle interior sheens */}
         <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.03] to-transparent pointer-events-none" />
@@ -52,7 +51,7 @@ export default function TestimonialCard({ index, setIndex }: TestimonialCardProp
         <div className="space-y-6 relative z-10">
           
           {/* Quote text wrapper with dynamic height & smooth Framer Motion transitions */}
-          <div className="min-h-[90px] flex items-center">
+          <div className="min-h-[72px] flex items-center">
             <AnimatePresence mode="wait">
               <motion.p
                 key={index}
@@ -60,7 +59,7 @@ export default function TestimonialCard({ index, setIndex }: TestimonialCardProp
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.45, ease: "easeOut" }}
-                className="text-base sm:text-lg font-medium leading-relaxed font-sans tracking-tight text-white/95"
+                className="text-sm sm:text-base font-medium leading-relaxed font-sans tracking-tight text-white/95"
               >
                 “{current.quote}”
               </motion.p>
@@ -123,7 +122,6 @@ export default function TestimonialCard({ index, setIndex }: TestimonialCardProp
           </div>
 
         </div>
-      </div>
     </div>
   );
 }
