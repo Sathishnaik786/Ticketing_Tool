@@ -176,14 +176,16 @@ export const Navbar = () => {
           {/* RIGHT: Actions Area */}
           <div className="ml-auto flex-shrink-0 flex items-center gap-3 relative z-10">
             {/* Login CTA — desktop */}
-            <Link
-              to="/login"
-              className="hidden sm:block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full"
-            >
-              <PremiumButton className="h-12 px-8 rounded-full text-sm font-semibold min-w-[130px]">
-                Login
-              </PremiumButton>
-            </Link>
+            {location.pathname !== '/login' && (
+              <Link
+                to="/login"
+                className="hidden sm:block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full"
+              >
+                <PremiumButton className="h-12 px-8 rounded-full text-sm font-semibold min-w-[130px]">
+                  Login
+                </PremiumButton>
+              </Link>
+            )}
 
             {/* ThemeToggle */}
             <div className="flex items-center justify-center h-12 w-12 rounded-full border border-slate-200/50 dark:border-white/10 bg-white/5 backdrop-blur-md">
