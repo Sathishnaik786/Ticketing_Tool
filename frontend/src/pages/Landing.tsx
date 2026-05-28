@@ -88,7 +88,14 @@ export const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navLinks = ['Workforce', 'Payroll', 'Intelligence', 'Governance', 'Projects', 'Operations'];
+  const navLinks = [
+    { label: 'Workforce', path: '/workforce' },
+    { label: 'Payroll', path: '/payroll' },
+    { label: 'Intelligence', path: '/intelligence' },
+    { label: 'Governance', path: '/governance' },
+    { label: 'Operations', path: '/operations' },
+    { label: 'Company', path: '/about' }
+  ];
 
   const isLinkActive = (path: string) => location.pathname === path;
 
@@ -97,7 +104,7 @@ export const Navbar = () => {
       {/* ── Floating Capsule Wrapper ── */}
       <div
         className={cn(
-          "fixed top-5 left-1/2 -translate-x-1/2 z-[150] w-[95%] max-w-[1700px]",
+          "fixed top-5 left-1/2 -translate-x-1/2 z-[150] w-[94%] max-w-[1700px]",
           "transition-all duration-500 ease-out"
         )}
         onMouseLeave={() => setActiveCategory(null)}
@@ -105,11 +112,14 @@ export const Navbar = () => {
         <nav
           aria-label="Main navigation"
           className={cn(
-            "relative flex items-center justify-between w-full rounded-full px-6 xl:px-10 bg-white/[0.08] dark:bg-slate-950/[0.55] backdrop-blur-3xl border border-white/15 dark:border-white/10",
+            "relative flex items-center rounded-full px-8 xl:px-10 overflow-hidden",
+            "bg-white/[0.08] dark:bg-slate-950/[0.55]",
+            "backdrop-blur-3xl",
+            "border border-white/15 dark:border-white/10",
             isScrolled || activeCategory
               ? "h-[72px] shadow-[0_20px_50px_rgba(15,23,42,0.18)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
               : "h-[88px] shadow-[0_20px_80px_rgba(15,23,42,0.10)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.40)]",
-            "transition-all duration-500 ease-out overflow-visible"
+            "transition-all duration-500 ease-out"
           )}
         >
           {/* Luminous gradient overlay */}
@@ -123,11 +133,11 @@ export const Navbar = () => {
             className="absolute inset-px rounded-full border border-white/10 pointer-events-none"
           />
 
-          {/* LEFT: Logo */}
-          <div className="flex-shrink-0">
+          {/* LEFT: Logo Area */}
+          <div className="flex-shrink-0 relative z-10 lg:min-w-[200px] xl:min-w-[240px]">
             <Link
               to="/"
-              className="relative flex items-center gap-4 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full px-2 py-1"
+              className="relative inline-flex items-center gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full px-2 py-1"
             >
               <img
                 src="/logo.png"
@@ -135,49 +145,48 @@ export const Navbar = () => {
                 loading="lazy"
                 className="w-11 h-11 object-contain rounded-xl brightness-110 drop-shadow-sm"
               />
-              <span className="font-display font-semibold text-[26px] xl:text-[28px] tracking-tight text-slate-900 dark:text-white">
+              <span className="font-display font-semibold text-[26px] xl:text-[28px] tracking-tight text-slate-900 dark:text-white whitespace-nowrap">
                 YVI <span className="text-orange-500">People</span>
               </span>
             </Link>
           </div>
 
           {/* CENTER: Navigation Links */}
-          <div className="hidden lg:flex flex-1 justify-center gap-8 xl:gap-14 min-w-0">
-            {navLinks.map((link) => {
-              const linkPath = `/${link.toLowerCase()}`;
-              const active = isLinkActive(linkPath) || activeCategory === link;
+          <div className="absolute left-1/2 -translate-x-1/2 z-10 hidden lg:flex items-center lg:gap-4 xl:gap-8 2xl:gap-12 whitespace-nowrap">
+            {navLinks.map((nav) => {
+              const active = isLinkActive(nav.path) || activeCategory === nav.label;
               return (
                 <Link
-                  key={link}
-                  to={linkPath}
-                  onMouseEnter={() => setActiveCategory(link)}
+                  key={nav.label}
+                  to={nav.path}
+                  onMouseEnter={() => setActiveCategory(nav.label)}
                   className={cn(
-                    "relative text-[15px] font-medium tracking-wide py-2 px-1 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded transition-all duration-300 ease-out",
+                    "relative inline-flex items-center text-[13px] xl:text-[14px] 2xl:text-[15px] font-semibold tracking-wide py-2 px-1 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded transition-all duration-300 ease-out",
                     active
-                      ? "text-orange-500 font-semibold after:absolute after:left-0 after:right-0 after:bottom-[-8px] after:h-[2px] after:bg-orange-500 after:rounded-full after:shadow-[0_0_8px_rgba(234,88,12,0.5)]"
-                      : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-8px] hover:after:h-[2px] hover:after:bg-orange-500 hover:after:rounded-full"
+                      ? "text-orange-500 font-semibold after:absolute after:left-0 after:right-0 after:bottom-[-10px] after:h-[2px] after:bg-orange-500 after:rounded-full after:shadow-[0_0_8px_rgba(234,88,12,0.5)]"
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-10px] hover:after:h-[2px] hover:after:bg-orange-500 hover:after:rounded-full"
                   )}
                 >
-                  {link}
+                  {nav.label}
                 </Link>
               );
             })}
           </div>
 
-          {/* RIGHT: Actions */}
-          <div className="flex-shrink-0 flex items-center gap-4 relative">
+          {/* RIGHT: Actions Area */}
+          <div className="ml-auto flex-shrink-0 flex items-center gap-3 relative z-10">
             {/* Login CTA — desktop */}
             <Link
               to="/login"
               className="hidden sm:block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full"
             >
-              <PremiumButton className="h-12 px-8 rounded-full text-sm font-semibold">
+              <PremiumButton className="h-12 px-8 rounded-full text-sm font-semibold min-w-[130px]">
                 Login
               </PremiumButton>
             </Link>
 
             {/* ThemeToggle */}
-            <div className="flex items-center justify-center h-12 w-12 rounded-full border border-white/10 bg-white/5 backdrop-blur-md">
+            <div className="flex items-center justify-center h-12 w-12 rounded-full border border-slate-200/50 dark:border-white/10 bg-white/5 backdrop-blur-md">
               <ThemeToggle />
             </div>
 
@@ -295,18 +304,17 @@ export const Navbar = () => {
               {/* Nav items */}
               <nav aria-label="Mobile navigation" className="flex-1 overflow-y-auto px-7 py-8">
                 <ul className="flex flex-col gap-2" role="list">
-                  {navLinks.map((link, i) => {
-                    const linkPath = `/${link.toLowerCase()}`;
-                    const active = isLinkActive(linkPath);
+                  {navLinks.map((nav, i) => {
+                    const active = isLinkActive(nav.path);
                     return (
                       <motion.li
-                        key={link}
+                        key={nav.label}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.06 * i, duration: 0.3, ease: "easeOut" }}
                       >
                         <Link
-                          to={linkPath}
+                          to={nav.path}
                           onClick={() => setMobileMenuOpen(false)}
                           className={cn(
                             "block w-full text-left text-2xl font-semibold tracking-tight",
@@ -320,7 +328,7 @@ export const Navbar = () => {
                             "focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none"
                           )}
                         >
-                          {link}
+                          {nav.label}
                         </Link>
                       </motion.li>
                     );

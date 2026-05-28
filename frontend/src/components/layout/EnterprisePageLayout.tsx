@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import ThemeToggle from '@/components/auth/ThemeToggle';
 import { GlassCard } from '@/components/ui/GlassCard';
 import PremiumButton from '@/components/ui/PremiumButton';
 import SectionHeading from '@/components/landing/SectionHeading';
 import { AnimatedContainer } from '@/components/landing/AnimatedContainer';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, X } from 'lucide-react';
 
 interface EnterprisePageLayoutProps {
   children: React.ReactNode;
@@ -17,6 +19,7 @@ interface EnterprisePageLayoutProps {
 
 export function EnterprisePageLayout({ children, title, label, subtitle, accentWord }: EnterprisePageLayoutProps) {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -28,6 +31,15 @@ export function EnterprisePageLayout({ children, title, label, subtitle, accentW
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [location.pathname]);
+
+  const navLinks = [
+    { label: 'Workforce', path: '/workforce' },
+    { label: 'Payroll', path: '/payroll' },
+    { label: 'Intelligence', path: '/intelligence' },
+    { label: 'Governance', path: '/governance' },
+    { label: 'Operations', path: '/operations' },
+    { label: 'Company', path: '/about' }
+  ];
 
   return (
     <div className="min-h-screen mesh-bg-light dark:mesh-bg-dark text-slate-900 dark:text-white transition-colors duration-500 font-sans selection:bg-orange-500 selection:text-white overflow-x-hidden relative">
@@ -41,61 +53,228 @@ export function EnterprisePageLayout({ children, title, label, subtitle, accentW
         Skip to main content
       </a>
 
-      <div className={cn("fixed top-5 left-1/2 -translate-x-1/2 z-[150] w-[95%] max-w-[1700px] transition-all duration-500 ease-out")}>
-        <nav aria-label="Main navigation" className={cn("relative flex items-center justify-between w-full rounded-full px-6 xl:px-10 bg-white/[0.08] dark:bg-slate-950/[0.55] backdrop-blur-3xl border border-white/15 dark:border-white/10", isScrolled ? "h-[72px] shadow-[0_20px_50px_rgba(15,23,42,0.18)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.55)]" : "h-[88px] shadow-[0_20px_80px_rgba(15,23,42,0.10)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.40)]", "transition-all duration-500 ease-out overflow-visible")}>
+      <div className={cn("fixed top-5 left-1/2 -translate-x-1/2 z-[150] w-[94%] max-w-[1700px] transition-all duration-500 ease-out")}>
+        <nav
+          aria-label="Main navigation"
+          className={cn(
+            "relative flex items-center rounded-full px-8 xl:px-10 overflow-hidden",
+            "bg-white/[0.08] dark:bg-slate-950/[0.55]",
+            "backdrop-blur-3xl",
+            "border border-white/15 dark:border-white/10",
+            isScrolled
+              ? "h-[72px] shadow-[0_20px_50px_rgba(15,23,42,0.18)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+              : "h-[88px] shadow-[0_20px_80px_rgba(15,23,42,0.10)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.40)]",
+            "transition-all duration-500 ease-out"
+          )}
+        >
           <div aria-hidden="true" className="absolute inset-0 rounded-full bg-gradient-to-r from-white/10 via-transparent to-orange-500/5 pointer-events-none" />
           <div aria-hidden="true" className="absolute inset-px rounded-full border border-white/10 pointer-events-none" />
 
           {/* LEFT: Logo */}
-          <div className="flex-shrink-0">
-            <Link to="/" className="relative flex items-center gap-4 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full px-2 py-1">
+          <div className="flex-shrink-0 relative z-10 lg:min-w-[200px] xl:min-w-[240px]">
+            <Link to="/" className="relative inline-flex items-center gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full px-2 py-1">
               <img src="/logo.png" alt="YVI People logo" loading="lazy" className="w-11 h-11 object-contain rounded-xl brightness-110 drop-shadow-sm" />
-              <span className="font-display font-semibold text-[26px] xl:text-[28px] tracking-tight text-slate-900 dark:text-white">YVI <span className="text-orange-500">People</span></span>
+              <span className="font-display font-semibold text-[26px] xl:text-[28px] tracking-tight text-slate-900 dark:text-white whitespace-nowrap">YVI <span className="text-orange-500">People</span></span>
             </Link>
           </div>
 
           {/* CENTER: Navigation Links */}
-          <div className="hidden lg:flex flex-1 justify-center gap-8 xl:gap-14 min-w-0">
-            {[
-              { label: 'Home', path: '/' },
-              { label: 'Workforce', path: '/workforce' },
-              { label: 'Payroll', path: '/payroll' },
-              { label: 'Intelligence', path: '/intelligence' },
-              { label: 'Governance', path: '/governance' },
-              { label: 'Operations', path: '/operations' },
-              { label: 'Company', path: '/about' }
-            ].map((nav) => {
-              const active = location.pathname === nav.path;
-              return (
-                <Link
-                  key={nav.label}
-                  to={nav.path}
-                  className={cn(
-                    "relative text-[15px] font-medium tracking-wide py-2 px-1 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded transition-all duration-300 ease-out",
-                    active
-                      ? "text-orange-500 dark:text-orange-400 font-semibold after:absolute after:left-0 after:right-0 after:bottom-[-8px] after:h-[2px] after:bg-orange-500 after:rounded-full after:shadow-[0_0_8px_rgba(234,88,12,0.5)]"
-                      : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-8px] hover:after:h-[2px] hover:after:bg-orange-500 hover:after:rounded-full"
-                  )}
-                >
-                  {nav.label}
-                </Link>
-              );
-            })}
+          <div className="absolute left-1/2 -translate-x-1/2 z-10 hidden lg:flex items-center lg:gap-4 xl:gap-8 2xl:gap-12 whitespace-nowrap">
+            {navLinks.map((nav) => (
+              <NavLink
+                key={nav.label}
+                to={nav.path}
+                className={({ isActive }) => cn(
+                  "relative inline-flex items-center text-[13px] xl:text-[14px] 2xl:text-[15px] font-semibold tracking-wide py-2 px-1 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded transition-all duration-300 ease-out",
+                  isActive
+                    ? "text-orange-500 font-semibold after:absolute after:left-0 after:right-0 after:bottom-[-10px] after:h-[2px] after:bg-orange-500 after:rounded-full after:shadow-[0_0_8px_rgba(234,88,12,0.5)]"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-10px] hover:after:h-[2px] hover:after:bg-orange-500 hover:after:rounded-full"
+                )}
+              >
+                {nav.label}
+              </NavLink>
+            ))}
           </div>
 
           {/* RIGHT: Actions */}
-          <div className="flex-shrink-0 flex items-center gap-4 relative">
+          <div className="ml-auto flex-shrink-0 flex items-center gap-3 relative z-10">
             <Link to="/login" className="hidden sm:block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full">
-              <PremiumButton className="h-12 px-8 rounded-full text-sm font-semibold">
+              <PremiumButton className="h-12 px-8 rounded-full text-sm font-semibold min-w-[130px] flex-shrink-0">
                 Login
               </PremiumButton>
             </Link>
-            <div className="flex items-center justify-center h-12 w-12 rounded-full border border-white/10 bg-white/5 backdrop-blur-md">
+            
+            {/* ThemeToggle */}
+            <div className="flex items-center justify-center h-12 w-12 rounded-full border border-slate-200/50 dark:border-white/10 bg-white/5 backdrop-blur-md">
               <ThemeToggle />
             </div>
+
+            {/* Mobile hamburger */}
+            <button
+              aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav-drawer"
+              className={cn(
+                "lg:hidden flex items-center justify-center w-12 h-12 rounded-full",
+                "bg-white/10 dark:bg-white/5 hover:bg-white/20 dark:hover:bg-white/10",
+                "border border-white/15 dark:border-white/10",
+                "text-slate-700 dark:text-white transition-all duration-200",
+                "focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none"
+              )}
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                {mobileMenuOpen ? (
+                  <motion.span
+                    key="close-icon"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className="flex items-center"
+                  >
+                    <X size={18} />
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="open-icon"
+                    initial={{ rotate: 90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -90, opacity: 0 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className="flex items-center"
+                  >
+                    <Menu size={18} />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </button>
           </div>
         </nav>
       </div>
+
+      {/* ── Mobile Fullscreen Glass Drawer ── */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="mobile-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="fixed inset-0 z-[145] bg-black/30 backdrop-blur-xl lg:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
+
+            {/* Drawer */}
+            <motion.div
+              id="mobile-nav-drawer"
+              key="mobile-drawer"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigation menu"
+              initial={{ x: "-100%", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: "-100%", opacity: 0 }}
+              transition={{ type: "spring", stiffness: 340, damping: 38, mass: 0.8 }}
+              className={cn(
+                "fixed top-0 left-0 h-full z-[149] lg:hidden",
+                "w-[85%] max-w-[420px]",
+                "bg-white/[0.75] dark:bg-slate-950/[0.80]",
+                "backdrop-blur-3xl",
+                "border-r border-white/20 dark:border-white/10",
+                "rounded-r-[2rem]",
+                "shadow-[0_30px_100px_rgba(0,0,0,0.35)]",
+                "flex flex-col"
+              )}
+            >
+              {/* Drawer header */}
+              <div className="flex items-center justify-between px-7 pt-8 pb-6">
+                <Link
+                  to="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-lg"
+                >
+                  <img
+                    src="/logo.png"
+                    alt="YVI People logo"
+                    loading="lazy"
+                    className="w-10 h-10 object-contain rounded-xl brightness-110"
+                  />
+                  <span className="font-display font-semibold text-2xl tracking-tight text-slate-900 dark:text-white">
+                    YVI <span className="text-orange-500">People</span>
+                  </span>
+                </Link>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  aria-label="Close navigation menu"
+                  className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/15 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div className="mx-7 h-px bg-slate-200/60 dark:bg-white/[0.08]" aria-hidden="true" />
+
+              {/* Nav items */}
+              <nav aria-label="Mobile navigation" className="flex-1 overflow-y-auto px-7 py-8">
+                <ul className="flex flex-col gap-2" role="list">
+                  {navLinks.map((nav, i) => {
+                    const active = location.pathname === nav.path;
+                    return (
+                      <motion.li
+                        key={nav.label}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.06 * i, duration: 0.3, ease: "easeOut" }}
+                      >
+                        <Link
+                          to={nav.path}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={cn(
+                            "block w-full text-left text-2xl font-semibold tracking-tight",
+                            active
+                              ? "text-orange-500 font-bold"
+                              : "text-slate-800 dark:text-slate-100 hover:text-orange-500 dark:hover:text-orange-400",
+                            "transition-colors duration-200 py-3 px-2 rounded-xl",
+                            active
+                              ? "bg-orange-500/10"
+                              : "hover:bg-orange-50/60 dark:hover:bg-orange-500/5",
+                            "focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none"
+                          )}
+                        >
+                          {nav.label}
+                        </Link>
+                      </motion.li>
+                    );
+                  })}
+                </ul>
+              </nav>
+
+              {/* Drawer footer */}
+              <div className="px-7 pb-10 pt-4 border-t border-slate-200/60 dark:border-white/[0.08]">
+                <div className="flex items-center justify-end mb-5">
+                  <ThemeToggle />
+                </div>
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded-2xl"
+                >
+                  <PremiumButton className="w-full h-14 rounded-2xl text-[16px]">
+                    Login
+                  </PremiumButton>
+                </Link>
+              </div>
+
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <main id="main-content" className="pt-32">
         <section className="py-20 px-6">
