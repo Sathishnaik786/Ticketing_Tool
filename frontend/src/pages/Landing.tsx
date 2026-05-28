@@ -108,7 +108,7 @@ export const Navbar = () => {
             >
               <img src="/logo.png" alt="YVI People logo" loading="lazy" className="w-10 h-10 object-contain rounded-xl brightness-110" />
               <span className="font-display font-semibold text-2xl tracking-tight text-slate-900 dark:text-white">
-                YVI <span className="text-orange-500">EMS</span>
+                YVI <span className="text-orange-500">People</span>
               </span>
             </Link>
 
@@ -655,7 +655,7 @@ export default function Landing() {
               <div className="md:col-span-2 space-y-6">
                 <Link to="/" className="flex items-center gap-3 focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-lg max-w-max">
                   <img src="/logo.png" alt="YVI People enterprise logo" loading="lazy" className="w-10 h-10 object-contain brightness-110" />
-                  <span className="font-display font-semibold text-2xl tracking-tight text-slate-900 dark:text-white">YVI <span className="text-orange-550 dark:text-orange-400">EMS</span></span>
+                  <span className="font-display font-semibold text-2xl tracking-tight text-slate-900 dark:text-white">YVI <span className="text-orange-550 dark:text-orange-400">People</span></span>
                 </Link>
                 <p className="font-sans font-normal text-sm text-slate-500 leading-relaxed max-w-sm">
                   The world's most advanced autonomous enterprise operating system. Orchestrating global human capital with operational precision.
