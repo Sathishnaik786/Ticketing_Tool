@@ -29,13 +29,13 @@ export function AppLoader({ isLoading }: AppLoaderProps) {
             ease: "easeInOut",
           }}
         >
-          <img 
-                      src="/logo.png"
-                      alt="YVI Employee MS Logo" 
-                      className="h-12 w-12 object-contain text-primary"
-                      loading="eager"
-                      referrerPolicy="no-referrer"
-                    />
+          <img
+            src="/logo.png"
+            alt="YVI Employee MS Logo"
+            className="h-12 w-12 object-contain text-primary"
+            loading="eager"
+            referrerPolicy="no-referrer"
+          />
         </motion.div>
         <motion.div
           className="flex gap-1"
@@ -86,7 +86,7 @@ export function AppLoader({ isLoading }: AppLoaderProps) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
-          Loading YVI EMS...
+          Loading YVI People...
         </motion.p>
       </div>
     </motion.div>
