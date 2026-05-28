@@ -595,144 +595,144 @@ export default function Landing() {
           </div>
         </section>
 
-      {/* FAQ & Support */}
-      <section className="py-[var(--section-spacing)] px-[var(--page-padding)] bg-white/50 dark:bg-black border-y border-slate-200/50 dark:border-white/5 relative">
-         <div className="max-w-4xl mx-auto space-y-24">
-            <SectionHeading 
+        {/* FAQ & Support */}
+        <section className="py-[var(--section-spacing)] px-[var(--page-padding)] bg-white/50 dark:bg-black border-y border-slate-200/50 dark:border-white/5 relative">
+          <div className="max-w-4xl mx-auto space-y-24">
+            <SectionHeading
               label="Operational Support"
               title="Common Protocols"
               align="center"
             />
             <GlassCard className="p-8 md:p-12 border border-slate-200/50 dark:border-white/5 shadow-soft dark:shadow-[0_30px_100px_rgba(0,0,0,0.5)]">
-               <div className="divide-y divide-slate-200/50 dark:divide-white/5 -my-8">
-                  {[
-                    { q: 'How does the EMS handle multi-region compliance?', a: 'The platform integrates a dynamic governance engine that automatically updates localized tax schemas and labor protocols based on the entity jurisdiction.' },
-                    { q: 'What is the security standard for data transit?', a: 'All data is encrypted via TLS 1.3 in transit and AES-256 at rest, with SOC2 Type II and ISO 27001 certified data center infrastructure.' },
-                    { q: 'How does the payroll automation engine work?', a: 'Our high-precision payroll nexus evaluates gross-to-net calculations dynamically, executes micro-audits, and dispatches direct deposits instantly.' },
-                    { q: 'Can the platform integrate with existing HR systems?', a: 'Yes, YVI EMS offers extensive enterprise-grade REST APIs and webhooks that synchronize effortlessly with Workday, SAP, and other major platforms.' },
-                    { q: 'What support and SLA guarantees are available?', a: 'We offer round-the-clock premium technical support with guaranteed 15-minute response times for critical incidents under our Enterprise SLA.' }
-                  ].map((item, i) => (
-                    <FAQItem key={i} question={item.q} answer={item.a} />
-                  ))}
-               </div>
+              <div className="divide-y divide-slate-200/50 dark:divide-white/5 -my-8">
+                {[
+                  { q: 'How does the EMS handle multi-region compliance?', a: 'The platform integrates a dynamic governance engine that automatically updates localized tax schemas and labor protocols based on the entity jurisdiction.' },
+                  { q: 'What is the security standard for data transit?', a: 'All data is encrypted via TLS 1.3 in transit and AES-256 at rest, with SOC2 Type II and ISO 27001 certified data center infrastructure.' },
+                  { q: 'How does the payroll automation engine work?', a: 'Our high-precision payroll nexus evaluates gross-to-net calculations dynamically, executes micro-audits, and dispatches direct deposits instantly.' },
+                  { q: 'Can the platform integrate with existing HR systems?', a: 'Yes, YVI People offers extensive enterprise-grade REST APIs and webhooks that synchronize effortlessly with Workday, SAP, and other major platforms.' },
+                  { q: 'What support and SLA guarantees are available?', a: 'We offer round-the-clock premium technical support with guaranteed 15-minute response times for critical incidents under our Enterprise SLA.' }
+                ].map((item, i) => (
+                  <FAQItem key={i} question={item.q} answer={item.a} />
+                ))}
+              </div>
             </GlassCard>
-         </div>
-      </section>
+          </div>
+        </section>
 
-      {/* Final CTA */}
-      <section className="py-[var(--section-spacing)] px-[var(--page-padding)]">
-         <div className="max-w-[1300px] mx-auto rounded-[var(--radius-card)] bg-white/[0.22] dark:bg-gradient-to-br dark:from-slate-900 dark:to-black p-16 md:p-24 text-center border border-white/30 dark:border-white/10 backdrop-blur-2xl relative overflow-hidden shadow-premium before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/15 dark:before:from-white/5 before:to-transparent before:opacity-30 before:pointer-events-none after:absolute after:inset-px after:rounded-[var(--radius-card)] after:border after:border-white/10 dark:after:border-white/5 after:pointer-events-none group hover:shadow-[0_40px_120px_rgba(234,88,12,0.12)] transition-shadow duration-700">
+        {/* Final CTA */}
+        <section className="py-[var(--section-spacing)] px-[var(--page-padding)]">
+          <div className="max-w-[1300px] mx-auto rounded-[var(--radius-card)] bg-white/[0.22] dark:bg-gradient-to-br dark:from-slate-900 dark:to-black p-16 md:p-24 text-center border border-white/30 dark:border-white/10 backdrop-blur-2xl relative overflow-hidden shadow-premium before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/15 dark:before:from-white/5 before:to-transparent before:opacity-30 before:pointer-events-none after:absolute after:inset-px after:rounded-[var(--radius-card)] after:border after:border-white/10 dark:after:border-white/5 after:pointer-events-none group hover:shadow-[0_40px_120px_rgba(234,88,12,0.12)] transition-shadow duration-700">
             {/* Cinematic Ambient Glow inside the card */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-500/10 dark:bg-orange-500/15 blur-[120px] rounded-full pointer-events-none animate-slow-pulse" />
             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(234,88,12,0.12),transparent_70%)] pointer-events-none" />
 
             <div className="relative z-10 space-y-12">
-               <h2 className="font-display font-semibold tracking-[-0.05em] md:tracking-[-0.06em] text-[length:var(--font-size-hero)] leading-[0.95] text-slate-900 dark:text-white">
-                  Architect your <br />
-                  <span className="text-orange-500">Enterprise Node.</span>
-               </h2>
-               <div className="flex flex-col sm:flex-row items-center justify-center gap-8 font-sans">
-                  <Link to="/login" className="focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-2xl focus-visible:outline-none">
-                    <PremiumButton>
-                      Establish access
-                    </PremiumButton>
-                  </Link>
-                  <Button 
-                    variant="ghost" 
-                    className="h-12 px-8 rounded-2xl text-slate-700 dark:text-white font-sans font-semibold tracking-wide text-sm border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 transition-all focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none"
-                  >
-                    View documentation
-                  </Button>
-               </div>
+              <h2 className="font-display font-semibold tracking-[-0.05em] md:tracking-[-0.06em] text-[length:var(--font-size-hero)] leading-[0.95] text-slate-900 dark:text-white">
+                Architect your <br />
+                <span className="text-orange-500">Enterprise Node.</span>
+              </h2>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-8 font-sans">
+                <Link to="/login" className="focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-2xl focus-visible:outline-none">
+                  <PremiumButton>
+                    Establish access
+                  </PremiumButton>
+                </Link>
+                <Button
+                  variant="ghost"
+                  className="h-12 px-8 rounded-2xl text-slate-700 dark:text-white font-sans font-semibold tracking-wide text-sm border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 transition-all focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none"
+                >
+                  View documentation
+                </Button>
+              </div>
             </div>
-         </div>
-      </section>
+          </div>
+        </section>
 
-      {/* Footer */}
-      <footer className="py-16 px-[var(--page-padding)] bg-white/30 dark:bg-black border-t border-slate-200/50 dark:border-white/5 font-sans relative z-10">
-         <div className="max-w-[1500px] mx-auto space-y-16">
+        {/* Footer */}
+        <footer className="py-16 px-[var(--page-padding)] bg-white/30 dark:bg-black border-t border-slate-200/50 dark:border-white/5 font-sans relative z-10">
+          <div className="max-w-[1500px] mx-auto space-y-16">
             <div className="grid grid-cols-1 md:grid-cols-6 gap-12 md:gap-20">
-               <div className="md:col-span-2 space-y-6">
-                  <Link to="/" className="flex items-center gap-3 focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-lg max-w-max">
-                     <img src="/logo.png" alt="YVI EMS enterprise logo" loading="lazy" className="w-10 h-10 object-contain brightness-110" />
-                     <span className="font-display font-semibold text-2xl tracking-tight text-slate-900 dark:text-white">YVI <span className="text-orange-550 dark:text-orange-400">EMS</span></span>
-                  </Link>
-                  <p className="font-sans font-normal text-sm text-slate-500 leading-relaxed max-w-sm">
-                     The world's most advanced autonomous enterprise operating system. Orchestrating global human capital with operational precision.
-                  </p>
-                  {/* Premium Trust Certification Chips */}
-                  <div className="flex flex-wrap gap-2 pt-2">
-                     {['SOC2 Type II', 'ISO 27001', 'AES-256', 'HIPAA'].map((t) => (
-                       <span key={t} className="text-[9px] font-sans font-semibold px-2.5 py-1 rounded-lg bg-slate-100/80 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                         {t}
-                       </span>
-                     ))}
-                  </div>
-               </div>
-               
-               {[
-                 {
-                   title: 'Nexus',
-                   links: ['Core Intelligence', 'Governance Hub', 'Audit Console', 'System Status']
-                 },
-                 {
-                   title: 'Governance',
-                   links: ['Compliance Engine', 'Risk Assessment', 'Regional Tax', 'RBAC Registry']
-                 },
-                 {
-                   title: 'Company',
-                   links: ['About Us', 'Enterprise SLA', 'Security Standards', 'Contact Sales']
-                 },
-                 {
-                   title: 'Intelligence',
-                   links: ['Attritions AI', 'Payroll Forecasts', 'Growth Analytics', 'Performance Core']
-                 }
-               ].map((cat) => (
-                 <div key={cat.title}>
-                    <h4 className="font-sans font-semibold text-xs tracking-wide text-slate-400 dark:text-slate-500 mb-6">{cat.title}</h4>
-                    <ul className="space-y-4 font-sans font-normal text-sm">
-                       {cat.links.map((link) => (
-                         <li key={link}>
-                           <a 
-                             href="#" 
-                             className="text-slate-500 dark:text-slate-400 hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5"
-                           >
-                             {link}
-                           </a>
-                         </li>
-                       ))}
-                    </ul>
-                 </div>
-               ))}
+              <div className="md:col-span-2 space-y-6">
+                <Link to="/" className="flex items-center gap-3 focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-lg max-w-max">
+                  <img src="/logo.png" alt="YVI People enterprise logo" loading="lazy" className="w-10 h-10 object-contain brightness-110" />
+                  <span className="font-display font-semibold text-2xl tracking-tight text-slate-900 dark:text-white">YVI <span className="text-orange-550 dark:text-orange-400">EMS</span></span>
+                </Link>
+                <p className="font-sans font-normal text-sm text-slate-500 leading-relaxed max-w-sm">
+                  The world's most advanced autonomous enterprise operating system. Orchestrating global human capital with operational precision.
+                </p>
+                {/* Premium Trust Certification Chips */}
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {['SOC2 Type II', 'ISO 27001', 'AES-256', 'HIPAA'].map((t) => (
+                    <span key={t} className="text-[9px] font-sans font-semibold px-2.5 py-1 rounded-lg bg-slate-100/80 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {[
+                {
+                  title: 'Nexus',
+                  links: ['Core Intelligence', 'Governance Hub', 'Audit Console', 'System Status']
+                },
+                {
+                  title: 'Governance',
+                  links: ['Compliance Engine', 'Risk Assessment', 'Regional Tax', 'RBAC Registry']
+                },
+                {
+                  title: 'Company',
+                  links: ['About Us', 'Enterprise SLA', 'Security Standards', 'Contact Sales']
+                },
+                {
+                  title: 'Intelligence',
+                  links: ['Attritions AI', 'Payroll Forecasts', 'Growth Analytics', 'Performance Core']
+                }
+              ].map((cat) => (
+                <div key={cat.title}>
+                  <h4 className="font-sans font-semibold text-xs tracking-wide text-slate-400 dark:text-slate-500 mb-6">{cat.title}</h4>
+                  <ul className="space-y-4 font-sans font-normal text-sm">
+                    {cat.links.map((link) => (
+                      <li key={link}>
+                        <a
+                          href="#"
+                          className="text-slate-500 dark:text-slate-400 hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5"
+                        >
+                          {link}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
- 
+
             {/* Bottom Row */}
             <div className="pt-8 border-t border-slate-200/50 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
-               <div className="flex gap-6 font-sans font-normal text-sm text-slate-400">
-                  <a href="#" className="hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5">Privacy policy</a>
-                  <a href="#" className="hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5">Terms of service</a>
-                  <a href="#" className="hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5">Security</a>
-               </div>
- 
-               <div className="flex items-center gap-4">
-                  {[
-                    { icon: Linkedin, label: 'LinkedIn', href: 'https://linkedin.com' },
-                    { icon: Twitter, label: 'Twitter/X', href: 'https://twitter.com' },
-                    { icon: Github, label: 'GitHub', href: 'https://github.com' }
-                  ].map((soc) => (
-                    <a
-                      key={soc.label}
-                      href={soc.href}
-                      aria-label={soc.label}
-                      className="text-slate-400 hover:text-orange-500 hover:-translate-y-1 hover:scale-110 active:scale-95 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 shadow-sm border border-transparent hover:border-slate-200 dark:hover:border-white/5"
-                    >
-                      <soc.icon size={18} />
-                    </a>
-                  ))}
-               </div>
+              <div className="flex gap-6 font-sans font-normal text-sm text-slate-400">
+                <a href="#" className="hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5">Privacy policy</a>
+                <a href="#" className="hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5">Terms of service</a>
+                <a href="#" className="hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5">Security</a>
+              </div>
+
+              <div className="flex items-center gap-4">
+                {[
+                  { icon: Linkedin, label: 'LinkedIn', href: 'https://linkedin.com' },
+                  { icon: Twitter, label: 'Twitter/X', href: 'https://twitter.com' },
+                  { icon: Github, label: 'GitHub', href: 'https://github.com' }
+                ].map((soc) => (
+                  <a
+                    key={soc.label}
+                    href={soc.href}
+                    aria-label={soc.label}
+                    className="text-slate-400 hover:text-orange-500 hover:-translate-y-1 hover:scale-110 active:scale-95 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 shadow-sm border border-transparent hover:border-slate-200 dark:hover:border-white/5"
+                  >
+                    <soc.icon size={18} />
+                  </a>
+                ))}
+              </div>
             </div>
-         </div>
-      </footer>
+          </div>
+        </footer>
 
       </main>
     </div>
