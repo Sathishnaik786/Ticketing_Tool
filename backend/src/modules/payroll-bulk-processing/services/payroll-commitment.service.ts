@@ -1,7 +1,141 @@
-import { supabaseAdmin } from '@lib/supabase';
-import { PayslipGeneratorService } from './payslip-generator.service';
+// @ts-ignore
+import { supabaseAdmin as _supabaseAdmin } from '@lib/supabase';
+// @ts-ignore
+const supabaseAdmin: any = _supabaseAdmin;
+import { PayslipGeneratorService, ResolvedPayslipRenderPayload, CompanyPayrollConfig } from './payslip-generator.service';
 import { PayslipStorageService } from './payslip-storage.service';
 import { MappingStatus } from '../types/bulk-upload.types';
+
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const getMonthName = (monthNumber: number): string => {
+  if (!monthNumber || monthNumber < 1 || monthNumber > 12) return String(monthNumber);
+  return MONTH_NAMES[monthNumber - 1];
+};
+
+async function fetchCompanyConfig(): Promise<CompanyPayrollConfig> {
+  let activeTemplate: any = null;
+  try {
+    const { data: dbTemplate } = await supabaseAdmin
+      .from('payslip_templates')
+      .select('*')
+      .eq('is_active', true)
+      .maybeSingle();
+    
+    activeTemplate = dbTemplate;
+  } catch (err) {
+    console.warn('[PAYSLIP_TEMPLATE_RESOLUTION] Failed to query active template, applying corporate defaults:', err);
+  }
+
+  return {
+    primaryColor: activeTemplate?.theme_colors?.primary || '#0f172a',
+    secondaryColor: activeTemplate?.theme_colors?.secondary || '#475569',
+    accentColor: activeTemplate?.theme_colors?.accent || '#10b981',
+    fontFamily: activeTemplate?.font_family || 'Inter',
+    watermarkText: activeTemplate?.watermark_text !== undefined ? activeTemplate?.watermark_text : 'CONFIDENTIAL',
+    organizationName: activeTemplate?.organization_name || 'YVI Enterprise EMS',
+    companyAddress: activeTemplate?.company_address || '123 Enterprise Corporate Boulevard, Tech Park, Suite 400',
+    footerText: activeTemplate?.footer_text || 'This is a computer-generated document and does not require a physical signature.',
+    logoUrl: activeTemplate?.logo_url || '',
+    bankSectionEnabled: activeTemplate?.bank_section_enabled !== false,
+    statutorySectionEnabled: activeTemplate?.statutory_section_enabled !== false,
+    signatureEnabled: activeTemplate?.signature_enabled !== false,
+    qrVerificationEnabled: activeTemplate?.qr_verification_enabled !== false
+  };
+}
+
+async function buildRenderPayload(
+    employeeId: string, 
+    row: any, 
+    rowDetails: any, 
+    companyConfig: CompanyPayrollConfig,
+    isRetry: boolean = false
+): Promise<ResolvedPayslipRenderPayload> {
+    const payslipNumber = `PAY-${row.payroll_year}${row.payroll_month.toString().padStart(2, '0')}-${employeeId.substring(0, 4)}-${isRetry ? 'RETRY-' : ''}${Math.floor(Math.random() * 1000)}`;
+
+    let employeeName = row.employee_name || row.raw_data?.employeeName;
+    let designation = row.designation || row.raw_data?.designation;
+    let department = row.department || row.raw_data?.department;
+
+    if (!employeeName || !designation || !department) {
+        try {
+          const { data: dbEmp } = await supabaseAdmin
+            .from('employees')
+            .select(`
+              first_name, 
+              last_name, 
+              position, 
+              department:departments(name)
+            `)
+            .eq('id', employeeId)
+            .maybeSingle();
+
+          if (dbEmp) {
+            if (!employeeName && (dbEmp.first_name || dbEmp.last_name)) {
+              employeeName = `${dbEmp.first_name || ''} ${dbEmp.last_name || ''}`.trim();
+            }
+            if (!designation && dbEmp.position) designation = dbEmp.position;
+            if (!department && dbEmp.department && (dbEmp.department as any).name) {
+              department = (dbEmp.department as any).name;
+            }
+          }
+        } catch (err) {
+          console.warn('[DB_EMPLOYEE_FETCH_WARN] Failed to query employee fallback details:', err);
+        }
+    }
+
+    if (!employeeName) employeeName = 'Employee';
+    if (!designation) designation = 'Staff Member';
+    if (!department) department = 'Operations';
+
+    const resolvedMonth = getMonthName(row.payroll_month);
+    const gross = rowDetails?.gross || row.gross_salary || 0;
+    const net = rowDetails?.net || row.net_salary || 0;
+
+    return {
+      templateVersion: 'v1',
+      payslipNumber,
+      resolvedEmployeeName: employeeName,
+      resolvedEmployeeCode: row.employee_code,
+      resolvedDesignation: designation,
+      resolvedDepartment: department,
+      resolvedMonth,
+      resolvedYear: row.payroll_year,
+      totalWorkingDays: row.total_working_days || row.raw_data?.totalWorkingDays || 0,
+      payableDays: row.payable_days || row.raw_data?.payableDays || 0,
+      lopDays: row.lop_days || row.raw_data?.lopDays || 0,
+      
+      basic: rowDetails?.base || row.raw_data?.basic || 0,
+      hra: rowDetails?.hra || row.raw_data?.hra || 0,
+      specialAllowance: rowDetails?.specialAllowance || row.raw_data?.specialAllowance || 0,
+      bonus: rowDetails?.additions?.bonus || row.raw_data?.bonus || 0,
+      incentives: rowDetails?.additions?.incentives || row.raw_data?.incentives || 0,
+      overtime: rowDetails?.additions?.overtime || row.raw_data?.overtime || 0,
+      otherAdditions: rowDetails?.additions?.other || row.raw_data?.otherAdditions || 0,
+      variablePay: rowDetails?.additions?.variable || row.raw_data?.variablePay || 0,
+
+      pf: rowDetails?.deductions?.pf || row.raw_data?.pf || 0,
+      esi: rowDetails?.deductions?.esi || row.raw_data?.esi || 0,
+      professionalTax: rowDetails?.deductions?.pt || row.raw_data?.professionalTax || 0,
+      incomeTax: rowDetails?.deductions?.tds || row.raw_data?.incomeTax || 0,
+      otherDeductions: rowDetails?.deductions?.other || row.raw_data?.otherDeductions || 0,
+
+      grossSalary: gross,
+      totalDeductions: gross - net,
+      netSalary: net,
+
+      resolvedPAN: row.pan || row.raw_data?.pan || rowDetails?.metadata?.pan || 'N/A',
+      resolvedUAN: row.uan || row.raw_data?.uan || rowDetails?.metadata?.uan || 'N/A',
+      resolvedBankName: row.bank_name || row.raw_data?.bankName || rowDetails?.metadata?.bankName || 'N/A',
+      resolvedAccountNumber: row.bank_account || row.raw_data?.bankAccount || rowDetails?.metadata?.bankAccount || 'N/A',
+      resolvedIFSC: row.ifsc_code || row.raw_data?.ifscCode || rowDetails?.metadata?.ifscCode || 'N/A',
+
+      companyConfig
+    };
+}
 
 export class PayrollCommitmentService {
   /**
@@ -43,7 +177,7 @@ export class PayrollCommitmentService {
       .from('payroll_bulk_row_mappings')
       .select(`
         *,
-        row:payroll_bulk_upload_rows(*)
+        row:payroll_bulk_upload_rows!inner(*)
       `)
       .eq('row.upload_id', uploadId)
       .in('mapping_status', [MappingStatus.MATCHED, MappingStatus.PARTIAL_MATCH]);
@@ -54,6 +188,9 @@ export class PayrollCommitmentService {
     }
 
     console.info("[PAYROLL_COMMIT_STARTED]", { uploadId, userId, previewId: preview.id });
+
+    // Fetch config once per batch
+    const companyConfig = await fetchCompanyConfig();
 
     let successfulCount = 0;
     let failedCount = 0;
@@ -66,19 +203,23 @@ export class PayrollCommitmentService {
         // 4. Extract Calculation Details from Preview Metadata
         const rowDetails = preview.metadata?.calculatedDetails?.find((d: any) => d.rowId === row.id);
         
-        // 5. Create Core Payroll Record (Accounting Phase - MUST SUCCEED)
+        // 5. Build Hardened Render Payload FIRST
+        const renderPayload = await buildRenderPayload(employeeId, row, rowDetails, companyConfig, false);
+
+        // 6. Create Core Payroll Record (Accounting Phase - MUST SUCCEED)
         const { data: payrollRecord, error: prError } = await supabaseAdmin
           .from('payroll_records')
           .insert({
             employee_id: employeeId,
-            gross_salary: rowDetails?.gross || row.gross_salary,
-            net_salary: rowDetails?.net || row.net_salary,
+            gross_salary: renderPayload.grossSalary,
+            net_salary: renderPayload.netSalary,
             status: 'PROCESSED',
             is_locked: true,
             metadata: {
               ...(rowDetails || {}),
               commitment_id: commitment.id,
-              upload_id: uploadId
+              upload_id: uploadId,
+              render_payload: renderPayload
             },
             processed_at: new Date().toISOString()
           })
@@ -93,95 +234,15 @@ export class PayrollCommitmentService {
         console.log(`[PAYROLL_COMMITMENT] [ACCOUNTING_SUCCESS] Record Created: ${payrollRecord.id}`);
         successfulCount++;
 
-        // 6. Document Generation Phase (Non-blocking for accounting)
+        // 7. Document Generation Phase (Non-blocking for accounting)
         try {
             console.info("[PAYSLIP_RENDER_START]", row.employee_code);
-            const payslipNumber = `PAY-${row.payroll_year}${row.payroll_month.toString().padStart(2, '0')}-${employeeId.substring(0, 4)}-${Math.floor(Math.random() * 1000)}`;
-            
-            // Resolve employee identity from DB first, falling back to Excel raw data
-            let employeeName = '';
-            let designation = '';
-            let department = '';
 
-            try {
-              const { data: dbEmp } = await supabaseAdmin
-                .from('employees')
-                .select(`
-                  first_name, 
-                  last_name, 
-                  position, 
-                  department:departments(name)
-                `)
-                .eq('id', employeeId)
-                .maybeSingle();
-
-              if (dbEmp) {
-                if (dbEmp.first_name || dbEmp.last_name) {
-                  employeeName = `${dbEmp.first_name || ''} ${dbEmp.last_name || ''}`.trim();
-                }
-                if (dbEmp.position) {
-                  designation = dbEmp.position;
-                }
-                if (dbEmp.department && (dbEmp.department as any).name) {
-                  department = (dbEmp.department as any).name;
-                }
-              }
-            } catch (err) {
-              console.warn('[DB_EMPLOYEE_FETCH_WARN] Failed to query employee details from database:', err);
-            }
-
-            // Fallback to Excel upload columns if database fields are blank
-            if (!employeeName && row.employee_name) {
-              employeeName = row.employee_name;
-            }
-            if (!designation && row.designation) {
-              designation = row.designation;
-            }
-            if (!department && row.department) {
-              department = row.department;
-            }
-
-            // Absolute fallback values for validation safety
-            if (!employeeName) employeeName = 'Employee';
-            if (!designation) designation = 'Staff Member';
-            if (!department) department = 'Operations';
-
-            const payslipData = {
-              ...row,
-              payslipNumber,
-              employeeName,
-              employeeCode: row.employee_code,
-              designation,
-              department,
-              payrollMonth: row.payroll_month,
-              payrollYear: row.payroll_year,
-              basic: rowDetails?.base || 0,
-              hra: rowDetails?.hra || 0,
-              specialAllowance: rowDetails?.specialAllowance || 0,
-              bonus: rowDetails?.additions?.bonus || 0,
-              incentives: rowDetails?.additions?.incentives || 0,
-              overtime: rowDetails?.additions?.overtime || 0,
-              otherAdditions: rowDetails?.additions?.other || 0,
-              variablePay: rowDetails?.additions?.variable || 0,
-              pf: rowDetails?.deductions?.pf || 0,
-              esi: rowDetails?.deductions?.esi || 0,
-              professionalTax: rowDetails?.deductions?.pt || 0,
-              incomeTax: rowDetails?.deductions?.tds || 0,
-              otherDeductions: rowDetails?.deductions?.other || 0,
-              grossSalary: rowDetails?.gross || 0,
-              netSalary: rowDetails?.net || 0,
-              totalDeductions: (rowDetails?.gross || 0) - (rowDetails?.net || 0),
-              pan: rowDetails?.metadata?.pan || 'N/A',
-              uan: rowDetails?.metadata?.uan || 'N/A',
-              bankName: rowDetails?.metadata?.bankName || 'N/A',
-              bankAccount: rowDetails?.metadata?.bankAccount || 'N/A'
-            };
-
-            const { buffer, hash, token } = await PayslipGeneratorService.generatePayslip(payslipData);
+            const { buffer, hash, token } = await PayslipGeneratorService.generatePayslip(renderPayload);
             console.info("[PDF_RENDER_SUCCESS]", { employeeId, bufferLength: buffer.length });
 
-            // 7. Upload PDF to Storage
-            const fileName = `${payslipNumber}.pdf`;
+            // 8. Upload PDF to Storage
+            const fileName = `${renderPayload.payslipNumber}.pdf`;
             const pdfPath = await PayslipStorageService.uploadPayslip({
               employeeId: employeeId,
               fileName,
@@ -189,14 +250,14 @@ export class PayrollCommitmentService {
             });
             console.info("[PDF_STORAGE_UPLOAD_SUCCESS]", { employeeId, pdfPath });
 
-            // 8. Register Payslip Document
+            // 9. Register Payslip Document
             await supabaseAdmin
               .from('employee_payslip_documents')
               .insert({
                 employee_id: employeeId,
                 payroll_record_id: payrollRecord.id,
                 payroll_cycle_id: commitment.id,
-                payslip_number: payslipNumber,
+                payslip_number: renderPayload.payslipNumber,
                 pdf_url: pdfPath,
                 pdf_hash: hash,
                 verification_token: token,
@@ -204,7 +265,7 @@ export class PayrollCommitmentService {
                 generated_at: new Date().toISOString()
               });
 
-            // 9. Update Accounting Record with Document State
+            // 10. Update Accounting Record with Document State
             const { error: updateError } = await supabaseAdmin
               .from('payroll_records')
               .update({
@@ -221,13 +282,13 @@ export class PayrollCommitmentService {
             }
             console.info("[PAYROLL_RECORD_UPDATED]", { recordId: payrollRecord.id, status: 'GENERATED' });
 
-            // 10. Log individual success
+            // 11. Log individual success
             await supabaseAdmin.from('payroll_commitment_audits').insert({
               commitment_id: commitment.id,
               employee_id: employeeId,
               action_type: 'PAYSLIP_GENERATED',
               performed_by: userId,
-              metadata: { payslipNumber, pdfPath }
+              metadata: { payslipNumber: renderPayload.payslipNumber, pdfPath }
             });
 
         } catch (docErr: any) {
@@ -265,15 +326,14 @@ export class PayrollCommitmentService {
       }
     }
 
-    // 10. Update Commitment Completion Status
-    // Final Audit: Count actual document success/failure across the batch
+    // 12. Update Commitment Completion Status
     const { data: batchRecords } = await supabaseAdmin
       .from('payroll_records')
       .select('document_status')
-      .in('employee_id', mappings.map(m => m.employee_id));
+      .in('employee_id', mappings.map((m: any) => m.employee_id));
 
-    const totalDocSucceeded = batchRecords?.filter(r => r.document_status === 'GENERATED').length || 0;
-    const totalDocFailed = batchRecords?.filter(r => r.document_status === 'FAILED').length || 0;
+    const totalDocSucceeded = batchRecords?.filter((r: any) => r.document_status === 'GENERATED').length || 0;
+    const totalDocFailed = batchRecords?.filter((r: any) => r.document_status === 'FAILED').length || 0;
     
     const finalStatus = (failedCount > 0 || totalDocFailed > 0)
         ? (successfulCount > 0 ? 'PARTIAL_FAILURE' : 'FAILED')
@@ -300,7 +360,6 @@ export class PayrollCommitmentService {
 
   /**
    * Retries payslip generation for employees who have a payroll_record but no payslip.
-   * This is idempotent and does not create new accounting entries.
    */
   static async retryPayslipGeneration(commitmentId: string, userId: string) {
     console.log(`[PAYROLL_RETRY] Initiating recovery for commitment: ${commitmentId}`);
@@ -314,18 +373,19 @@ export class PayrollCommitmentService {
     if (cError || !commitment) throw new Error('Commitment record not found');
     const preview = commitment.preview;
 
-    // 1. Find employees in this batch who have a payroll record but NO payslip document
     const { data: mappings, error: mError } = await supabaseAdmin
       .from('payroll_bulk_row_mappings')
       .select(`
         *,
-        row:payroll_bulk_upload_rows(*)
+        row:payroll_bulk_upload_rows!inner(*)
       `)
       .eq('row.upload_id', commitment.upload_id)
       .in('mapping_status', [MappingStatus.MATCHED, MappingStatus.PARTIAL_MATCH]);
 
     if (mError) throw mError;
 
+    // Fetch config once per batch
+    const companyConfig = await fetchCompanyConfig();
     let recoveredCount = 0;
 
     for (const mapping of mappings) {
@@ -333,12 +393,10 @@ export class PayrollCommitmentService {
       const row = mapping.row;
 
       try {
-        // Check if payroll_record exists
         const { data: payrollRecord } = await supabaseAdmin
           .from('payroll_records')
-          .select('id')
+          .select('id, metadata')
           .eq('employee_id', employeeId)
-          // Ideally we match by month/year here to be precise
           .eq('gross_salary', row.gross_salary)
           .order('processed_at', { ascending: false })
           .limit(1)
@@ -349,7 +407,6 @@ export class PayrollCommitmentService {
             continue;
         }
 
-        // Check if payslip already exists
         const { data: existingDoc } = await supabaseAdmin
           .from('employee_payslip_documents')
           .select('id')
@@ -363,50 +420,33 @@ export class PayrollCommitmentService {
 
         console.log(`[PAYROLL_RETRY] Attempting recovery for ${employeeId}`);
 
-        // REUSE THE DOCUMENT GENERATION LOGIC
-        const rowDetails = preview.metadata?.calculatedDetails?.find((d: any) => d.rowId === row.id);
-        const payslipNumber = `PAY-${row.payroll_year}${row.payroll_month.toString().padStart(2, '0')}-${employeeId.substring(0, 4)}-RETRY-${Math.floor(Math.random() * 1000)}`;
-        
-        const payslipData = {
-          ...row,
-          payslipNumber,
-          employeeName: row.employee_name,
-          employeeCode: row.employee_code,
-          designation: row.designation,
-          department: row.department,
-          payrollMonth: row.payroll_month,
-          payrollYear: row.payroll_year,
-          basic: rowDetails?.base || 0,
-          hra: rowDetails?.hra || 0,
-          specialAllowance: rowDetails?.specialAllowance || 0,
-          bonus: rowDetails?.additions?.bonus || 0,
-          incentives: rowDetails?.additions?.incentives || 0,
-          overtime: rowDetails?.additions?.overtime || 0,
-          otherAdditions: rowDetails?.additions?.other || 0,
-          variablePay: rowDetails?.additions?.variable || 0,
-          pf: rowDetails?.deductions?.pf || 0,
-          esi: rowDetails?.deductions?.esi || 0,
-          professionalTax: rowDetails?.deductions?.pt || 0,
-          incomeTax: rowDetails?.deductions?.tds || 0,
-          otherDeductions: rowDetails?.deductions?.other || 0,
-          grossSalary: rowDetails?.gross || 0,
-          netSalary: rowDetails?.net || 0,
-          totalDeductions: (rowDetails?.gross || 0) - (rowDetails?.net || 0),
-          pan: rowDetails?.metadata?.pan || 'N/A',
-          uan: rowDetails?.metadata?.uan || 'N/A',
-          bankName: rowDetails?.metadata?.bankName || 'N/A',
-          bankAccount: rowDetails?.metadata?.bankAccount || 'N/A'
-        };
+        // Extract or rebuild the payload
+        let renderPayload = (payrollRecord.metadata as any)?.render_payload;
+        if (!renderPayload) {
+            const rowDetails = preview.metadata?.calculatedDetails?.find((d: any) => d.rowId === row.id);
+            renderPayload = await buildRenderPayload(employeeId, row, rowDetails, companyConfig, true);
+            
+            // Backfill the payload if it was missing
+            await supabaseAdmin
+              .from('payroll_records')
+              .update({
+                metadata: {
+                  ...payrollRecord.metadata,
+                  render_payload: renderPayload
+                }
+              })
+              .eq('id', payrollRecord.id);
+        }
 
-        const { buffer, hash, token } = await PayslipGeneratorService.generatePayslip(payslipData);
-        const fileName = `${payslipNumber}.pdf`;
+        const { buffer, hash, token } = await PayslipGeneratorService.generatePayslip(renderPayload);
+        const fileName = `${renderPayload.payslipNumber}.pdf`;
         const pdfPath = await PayslipStorageService.uploadPayslip({ employeeId, fileName, buffer });
 
         await supabaseAdmin.from('employee_payslip_documents').insert({
             employee_id: employeeId,
             payroll_record_id: payrollRecord.id,
             payroll_cycle_id: commitmentId,
-            payslip_number: payslipNumber,
+            payslip_number: renderPayload.payslipNumber,
             pdf_url: pdfPath,
             pdf_hash: hash,
             verification_token: token,
@@ -414,7 +454,6 @@ export class PayrollCommitmentService {
             generated_at: new Date().toISOString()
         });
 
-        // Update Accounting Record with Recovered Document State
         await supabaseAdmin
           .from('payroll_records')
           .update({
@@ -430,7 +469,7 @@ export class PayrollCommitmentService {
             employee_id: employeeId,
             action_type: 'PAYSLIP_RECOVERED',
             performed_by: userId,
-            metadata: { payslipNumber, pdfPath }
+            metadata: { payslipNumber: renderPayload.payslipNumber, pdfPath }
         });
 
         recoveredCount++;
@@ -440,17 +479,14 @@ export class PayrollCommitmentService {
       }
     }
 
-    // 2. Final Summary Reconciliation
-    // Recalculate based on actual document persistence for this upload
     const { data: finalRecords } = await supabaseAdmin
       .from('payroll_records')
       .select('document_status')
-      .in('employee_id', mappings.map(m => m.employee_id));
+      .in('employee_id', mappings.map((m: any) => m.employee_id));
 
-    const totalSucceeded = finalRecords?.filter(r => r.document_status === 'GENERATED').length || 0;
-    const totalUnresolved = finalRecords?.filter(r => r.document_status === 'FAILED' || r.document_status === 'PENDING').length || 0;
+    const totalSucceeded = finalRecords?.filter((r: any) => r.document_status === 'GENERATED').length || 0;
+    const totalUnresolved = finalRecords?.filter((r: any) => r.document_status === 'FAILED' || r.document_status === 'PENDING').length || 0;
     
-    // Status is only COMPLETED if there are ZERO FAILED/PENDING documents
     const finalStatus = totalUnresolved === 0 ? 'COMPLETED' : 'PARTIAL_FAILURE';
 
     console.info(`[PAYROLL_RETRY_RECONCILE] Succeeded=${totalSucceeded}, Unresolved=${totalUnresolved}, Status=${finalStatus}`);

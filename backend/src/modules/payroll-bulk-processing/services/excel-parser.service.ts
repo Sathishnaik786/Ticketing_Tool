@@ -41,15 +41,44 @@ export class ExcelParserService {
         return Number(val) || 0;
     };
 
+    const parseMonth = (val: any) => {
+        if (val === null || val === undefined) return 0;
+        if (typeof val === 'number') return val;
+        
+        const strVal = String(val).trim().toLowerCase();
+        
+        const months: { [key: string]: number } = {
+            'january': 1, 'jan': 1,
+            'february': 2, 'feb': 2,
+            'march': 3, 'mar': 3,
+            'april': 4, 'apr': 4,
+            'may': 5,
+            'june': 6, 'jun': 6,
+            'july': 7, 'jul': 7,
+            'august': 8, 'aug': 8,
+            'september': 9, 'sep': 9,
+            'october': 10, 'oct': 10,
+            'november': 11, 'nov': 11,
+            'december': 12, 'dec': 12
+        };
+        
+        if (months[strVal]) return months[strVal];
+        return Number(val) || 0;
+    };
+
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return; // Skip header
 
       const data: ExcelRowData = {
         employeeCode: getVal(row, 'employee code', 'emp code', 'code')?.toString() || '',
-        month: toNum(getVal(row, 'month')),
+        employeeName: getVal(row, 'employee name', 'name', 'emp name')?.toString() || '',
+        department: getVal(row, 'department', 'dept')?.toString() || '',
+        designation: getVal(row, 'designation', 'position', 'role')?.toString() || '',
+        month: parseMonth(getVal(row, 'month')),
         year: toNum(getVal(row, 'year')),
         
         // Operational Variables
+        totalWorkingDays: toNum(getVal(row, 'total working days', 'working days total', 'total days')),
         payableDays: toNum(getVal(row, 'payable days', 'working days')),
         lopDays: toNum(getVal(row, 'lop days', 'unpaid leaves')),
         
@@ -63,8 +92,10 @@ export class ExcelParserService {
         otherAdditions: toNum(getVal(row, 'other additions', 'additions')),
 
         // Deductions
-        pfEmployee: toNum(getVal(row, 'pf employee', 'employee pf', 'pf')),
+        pf: toNum(getVal(row, 'pf employee', 'employee pf', 'pf')),
         pfEmployer: toNum(getVal(row, 'pf employer', 'employer pf')),
+        esi: toNum(getVal(row, 'esi employee', 'employee esi', 'esi')),
+        esiEmployer: toNum(getVal(row, 'esi employer', 'employer esi')),
         professionalTax: toNum(getVal(row, 'professional tax', 'pt')),
         incomeTax: toNum(getVal(row, 'income tax', 'tds', 'tax')),
         otherDeductions: toNum(getVal(row, 'other deductions', 'deductions')),

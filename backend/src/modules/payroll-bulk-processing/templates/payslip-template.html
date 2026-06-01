@@ -14,15 +14,13 @@
             font-family: var(--font-family); 
             color: #334155; 
             margin: 0; 
-            padding: 40px; 
+            padding: 0; /* Let Puppeteer handle the margins */
             position: relative; 
-            min-height: 100%;
+            box-sizing: border-box;
         }
 
         /* Institutional Watermark */
-        {{#if watermarkText}}
-        body::before {
-            content: '{{watermarkText}}';
+        .watermark-overlay {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -36,21 +34,21 @@
             text-transform: uppercase;
             letter-spacing: 0.2em;
         }
-        {{/if}}
 
         .header { 
             display: flex; 
             justify-content: space-between; 
             align-items: center;
-            border-bottom: 3px solid var(--primary-color); 
-            padding-bottom: 25px; 
-            margin-bottom: 30px; 
+            border-bottom: 2px solid var(--primary-color); 
+            padding-bottom: 10px; 
+            margin-bottom: 15px; 
         }
 
         .company-header-block {
             display: flex;
             align-items: center;
             gap: 20px;
+            max-width: 65%;
         }
 
         .company-logo {
@@ -73,6 +71,10 @@
             font-size: 11px; 
             color: var(--secondary-color); 
             font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
 
         .payslip-title { 
@@ -98,8 +100,8 @@
         .info-grid { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
-            gap: 30px; 
-            margin-bottom: 30px; 
+            gap: 15px; 
+            margin-bottom: 15px; 
         }
 
         .info-section h3 { 
@@ -134,27 +136,32 @@
         table { 
             width: 100%; 
             border-collapse: collapse; 
-            margin-bottom: 30px; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            table-layout: fixed;
+            margin-bottom: 15px; 
+            border: 1px solid #cbd5e1;
         }
 
         th { 
-            background-color: #f8fafc; 
+            background-color: var(--primary-color); 
             text-align: left; 
-            padding: 12px; 
+            padding: 6px 10px; 
             font-size: 10px; 
-            font-weight: 900;
+            font-weight: 800;
             text-transform: uppercase; 
-            color: var(--secondary-color); 
-            border-bottom: 2px solid #e2e8f0; 
+            color: #ffffff; 
+            border: 1px solid #cbd5e1;
             letter-spacing: 0.05em;
         }
 
         td { 
-            padding: 12px; 
+            padding: 5px 10px; 
             font-size: 11px; 
-            border-bottom: 1px solid #f1f5f9; 
+            border: 1px solid #e2e8f0;
             font-weight: 500;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8fafc;
         }
 
         .amount { 
@@ -167,25 +174,26 @@
         .summary-grid { 
             display: grid; 
             grid-template-columns: 1fr 1.2fr; 
-            gap: 40px; 
-            margin-top: 20px;
+            gap: 15px; 
+            margin-top: 10px;
         }
 
         .notes-box {
             font-size: 10px;
-            line-height: 1.6;
+            line-height: 1.5;
             color: #64748b;
-            padding: 15px;
+            padding: 12px;
             background-color: #f8fafc;
-            border-radius: 12px;
-            border: 1px solid #f1f5f9;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
         }
 
         .summary-box { 
             background-color: #f8fafc; 
-            padding: 20px; 
-            border-radius: 16px; 
-            border: 1px solid #f1f5f9;
+            padding: 15px; 
+            border-radius: 8px; 
+            border: 1px solid #e2e8f0;
+            text-align: right;
         }
 
         .total-row { 
@@ -199,19 +207,43 @@
 
         .net-pay { 
             display: flex; 
-            justify-content: space-between; 
+            flex-direction: column;
+            align-items: flex-end;
             margin-top: 15px; 
             padding-top: 15px; 
             border-top: 2px dashed #cbd5e1; 
-            font-size: 18px; 
-            font-weight: 900; 
-            color: var(--primary-color); 
+        }
+        
+        .net-pay-label {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 5px;
+        }
+        
+        .net-pay-amount {
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--primary-color);
+            font-family: 'Courier New', Courier, monospace;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+        
+        .net-pay-words {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
         }
 
         .footer { 
-            margin-top: 60px; 
+            margin-top: 20px; 
             border-top: 1.5px solid #e2e8f0; 
-            padding-top: 25px; 
+            padding-top: 10px; 
             text-align: center; 
         }
 
@@ -220,14 +252,6 @@
             color: #94a3b8; 
             margin: 4px 0;
             font-weight: 600;
-        }
-
-        .verification { 
-            font-size: 8px; 
-            color: #cbd5e1; 
-            margin-top: 12px; 
-            word-break: break-all; 
-            font-family: monospace;
         }
 
         /* Digital Signature Box */
@@ -258,6 +282,9 @@
     </style>
 </head>
 <body>
+    {{#if watermarkText}}
+    <div class="watermark-overlay">{{watermarkText}}</div>
+    {{/if}}
     <div class="header">
         <div class="company-header-block">
             {{#if logoUrl}}
@@ -270,29 +297,36 @@
         </div>
         <div class="payslip-title">
             <h2>Salary Statement</h2>
-            <p>{{payrollMonth}} / {{payrollYear}}</p>
-            <p style="font-size: 9px; color: #94a3b8; font-family: monospace;">Ref: {{payslipNumber}}</p>
+            <p>{{resolvedMonth}} / {{resolvedYear}}</p>
         </div>
     </div>
 
     <div class="info-grid">
         <div class="info-section">
             <h3>Employee Details</h3>
-            <div class="info-item"><span class="info-label">Name:</span> <span class="info-val">{{employeeName}}</span></div>
-            <div class="info-item"><span class="info-label">ID:</span> <span class="info-val">{{employeeCode}}</span></div>
-            <div class="info-item"><span class="info-label">Designation:</span> <span class="info-val">{{designation}}</span></div>
-            <div class="info-item"><span class="info-label">Department:</span> <span class="info-val">{{department}}</span></div>
+            <div class="info-item"><span class="info-label">Name:</span> <span class="info-val">{{resolvedEmployeeName}}</span></div>
+            <div class="info-item"><span class="info-label">ID:</span> <span class="info-val">{{resolvedEmployeeCode}}</span></div>
+            <div class="info-item"><span class="info-label">Designation:</span> <span class="info-val">{{resolvedDesignation}}</span></div>
+            <div class="info-item"><span class="info-label">Department:</span> <span class="info-val">{{resolvedDepartment}}</span></div>
         </div>
         <div class="info-section">
             <h3>Payment & Statutory Details</h3>
             {{#if bankSectionEnabled}}
-                <div class="info-item"><span class="info-label">Bank:</span> <span class="info-val">{{bankName}}</span></div>
-                <div class="info-item"><span class="info-label">Account:</span> <span class="info-val">{{bankAccount}}</span></div>
+                <div class="info-item"><span class="info-label">Bank:</span> <span class="info-val">{{resolvedBankName}}</span></div>
+                <div class="info-item"><span class="info-label">Account:</span> <span class="info-val">{{resolvedAccountNumber}}</span></div>
             {{/if}}
             {{#if statutorySectionEnabled}}
-                <div class="info-item"><span class="info-label">PAN:</span> <span class="info-val">{{pan}}</span></div>
-                <div class="info-item"><span class="info-label">UAN:</span> <span class="info-val">{{uan}}</span></div>
+                <div class="info-item"><span class="info-label">PAN:</span> <span class="info-val">{{resolvedPAN}}</span></div>
+                <div class="info-item"><span class="info-label">UAN:</span> <span class="info-val">{{resolvedUAN}}</span></div>
             {{/if}}
+        </div>
+        <div class="info-section" style="grid-column: span 2;">
+            <h3>Attendance summary</h3>
+            <div style="display: flex; gap: 40px;">
+                <div class="info-item" style="flex: 1;"><span class="info-label">Total Working Days:</span> <span class="info-val">{{totalWorkingDays}}</span></div>
+                <div class="info-item" style="flex: 1;"><span class="info-label">Payable Days:</span> <span class="info-val">{{payableDays}}</span></div>
+                <div class="info-item" style="flex: 1;"><span class="info-label">LOP Days:</span> <span class="info-val">{{lopDays}}</span></div>
+            </div>
         </div>
     </div>
 
@@ -354,12 +388,14 @@
                 <td></td>
                 <td class="amount"></td>
             </tr>
+            <tr style="background-color: #e2e8f0; font-weight: 800;">
+                <td style="font-weight: 800;">Total Earnings</td>
+                <td class="amount" style="font-weight: 800;">{{grossSalary}}</td>
+                <td style="font-weight: 800;">Total Deductions</td>
+                <td class="amount" style="font-weight: 800;">{{totalDeductions}}</td>
+            </tr>
         </tbody>
     </table>
-
-    <div style="margin-bottom: 20px; font-size: 11px; font-weight: 800; color: var(--primary-color); text-transform: uppercase; letter-spacing: 0.02em;">
-        Net Salary (in words): {{netSalaryInWords}}
-    </div>
 
     <div class="summary-grid">
         <div class="notes-box">
@@ -369,7 +405,11 @@
         <div class="summary-box">
             <div class="total-row"><span>Gross Earnings</span> <span class="amount">₹ {{grossSalary}}</span></div>
             <div class="total-row"><span>Total Deductions</span> <span class="amount">₹ {{totalDeductions}}</span></div>
-            <div class="net-pay"><span>Net Payout</span> <span class="amount">₹ {{netSalary}}</span></div>
+            <div class="net-pay">
+                <div class="net-pay-label">Net Salary Payable</div>
+                <div class="net-pay-amount">₹{{netSalary}}</div>
+                <div class="net-pay-words">{{netSalaryInWords}}</div>
+            </div>
         </div>
     </div>
 
@@ -384,10 +424,6 @@
 
     <div class="footer">
         <p>{{footerText}}</p>
-        <p>Generated via Institutional Governance System on {{generatedAt}}</p>
-        <div class="verification">
-            Verification Token: {{verificationToken}} | Secure Document Hash: {{pdfHash}}
-        </div>
     </div>
 </body>
 </html>

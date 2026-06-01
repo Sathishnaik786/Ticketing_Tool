@@ -19,8 +19,10 @@ export const PayrollRowSchema = z.object({
   otherAdditions: z.number().min(0).default(0),
 
   // Deductions
-  pfEmployee: z.number().min(0).default(0),
+  pf: z.number().min(0).default(0),
   pfEmployer: z.number().min(0).default(0),
+  esi: z.number().min(0).default(0),
+  esiEmployer: z.number().min(0).default(0),
   professionalTax: z.number().min(0).default(0),
   incomeTax: z.number().min(0).default(0),
   otherDeductions: z.number().min(0).default(0),

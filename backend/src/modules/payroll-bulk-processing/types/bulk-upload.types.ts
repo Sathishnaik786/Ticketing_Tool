@@ -5,11 +5,13 @@ export interface ExcelRowData {
   designation: string;
   month: number;
   year: number;
+  totalWorkingDays: number;
   basic: number;
   hra: number;
   specialAllowance: number;
   bonus: number;
   pf: number;
+  esi: number;
   professionalTax: number;
   incomeTax: number;
   grossSalary: number;

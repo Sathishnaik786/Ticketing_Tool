@@ -4,13 +4,69 @@ import handlebars from 'handlebars';
 import crypto from 'crypto';
 import { PdfRendererService } from './pdf-renderer.service';
 import { numberToWords } from '../../../utils/number-to-words';
-import { supabaseAdmin } from '@lib/supabase';
+
+export interface CompanyPayrollConfig {
+  organizationName: string;
+  companyAddress: string;
+  logoUrl?: string;
+  footerText: string;
+  watermarkText?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
+  fontFamily?: string;
+  bankSectionEnabled?: boolean;
+  statutorySectionEnabled?: boolean;
+  signatureEnabled?: boolean;
+  qrVerificationEnabled?: boolean;
+}
+
+export interface ResolvedPayslipRenderPayload {
+  templateVersion?: string;
+  payslipNumber: string;
+  resolvedEmployeeName: string;
+  resolvedEmployeeCode: string;
+  resolvedDesignation: string;
+  resolvedDepartment: string;
+  resolvedMonth: string;
+  resolvedYear: number;
+  totalWorkingDays?: number;
+  payableDays?: number;
+  lopDays?: number;
+
+  basic: number;
+  hra: number;
+  specialAllowance: number;
+  bonus: number;
+  incentives: number;
+  overtime: number;
+  otherAdditions: number;
+  variablePay: number;
+
+  pf: number;
+  esi: number;
+  professionalTax: number;
+  incomeTax: number;
+  otherDeductions: number;
+
+  grossSalary: number;
+  totalDeductions: number;
+  netSalary: number;
+
+  resolvedPAN: string;
+  resolvedUAN: string;
+  resolvedBankName: string;
+  resolvedAccountNumber: string;
+  resolvedIFSC: string;
+
+  companyConfig: CompanyPayrollConfig;
+}
 
 export class PayslipGeneratorService {
   /**
    * Generates a payslip PDF from data, dynamically rendering with the active branded template structure.
    */
-  static async generatePayslip(data: any): Promise<{ buffer: Buffer; hash: string; token: string }> {
+  static async generatePayslip(data: ResolvedPayslipRenderPayload): Promise<{ buffer: Buffer; hash: string; token: string }> {
     const templatePath = path.join(__dirname, '../templates/payslip-template.html');
     const templateSource = fs.readFileSync(templatePath, 'utf8');
     const template = handlebars.compile(templateSource);
@@ -18,38 +74,10 @@ export class PayslipGeneratorService {
     const verificationToken = crypto.randomBytes(16).toString('hex');
     const generatedAt = new Date().toLocaleString();
 
-    console.log(`[PAYSLIP_GENERATION] Preparing data for ${data.employeeName} (${data.employeeCode})`);
+    console.log(`[PAYSLIP_GENERATION] Preparing data for ${data.resolvedEmployeeName} (${data.resolvedEmployeeCode})`);
 
-    // Fetch active branded template dynamically
-    let activeTemplate: any = null;
-    try {
-      const { data: dbTemplate } = await supabaseAdmin
-        .from('payslip_templates')
-        .select('*')
-        .eq('is_active', true)
-        .maybeSingle();
-      
-      activeTemplate = dbTemplate;
-    } catch (err) {
-      console.warn('[PAYSLIP_TEMPLATE_RESOLUTION] Failed to query active template, applying corporate defaults:', err);
-    }
-
-    // Resolve institutional template configurations with robust defaults
-    const templateConfig = {
-      primaryColor: activeTemplate?.theme_colors?.primary || '#0f172a',
-      secondaryColor: activeTemplate?.theme_colors?.secondary || '#475569',
-      accentColor: activeTemplate?.theme_colors?.accent || '#10b981',
-      fontFamily: activeTemplate?.font_family || 'Inter',
-      watermarkText: activeTemplate?.watermark_text || 'CONFIDENTIAL',
-      organizationName: activeTemplate?.organization_name || 'YVI Enterprise EMS',
-      companyAddress: activeTemplate?.company_address || '123 Enterprise Corporate Boulevard, Tech Park, Suite 400',
-      footerText: activeTemplate?.footer_text || 'This is a computer-generated document and does not require a physical signature.',
-      logoUrl: activeTemplate?.logo_url || '',
-      bankSectionEnabled: activeTemplate?.bank_section_enabled !== false,
-      statutorySectionEnabled: activeTemplate?.statutory_section_enabled !== false,
-      signatureEnabled: activeTemplate?.signature_enabled !== false,
-      qrVerificationEnabled: activeTemplate?.qr_verification_enabled !== false
-    };
+    // Configuration is injected entirely via payload - No DB queries during render phase
+    const templateConfig = data.companyConfig;
 
     // Prepare data for template with strict enterprise breakdown
     const templateData = {
@@ -81,11 +109,11 @@ export class PayslipGeneratorService {
         ? numberToWords(Math.round(Number(data.netSalary))) 
         : "Zero Rupees Only",
       
-      // Statutory Identifiers (Fallbacks)
-      pan: (data.pan && data.pan !== 'null' && data.pan !== 'undefined') ? data.pan : 'N/A',
-      uan: (data.uan && data.uan !== 'null' && data.uan !== 'undefined') ? data.uan : 'N/A',
-      bankName: (data.bankName && data.bankName !== 'null' && data.bankName !== 'undefined') ? data.bankName : 'N/A',
-      bankAccount: (data.bankAccount && data.bankAccount !== 'null' && data.bankAccount !== 'undefined') ? data.bankAccount : 'N/A'
+      // Statutory Identifiers (Fallbacks mapped directly from strict payload)
+      pan: (data.resolvedPAN && data.resolvedPAN !== 'null' && data.resolvedPAN !== 'undefined') ? data.resolvedPAN : 'N/A',
+      uan: (data.resolvedUAN && data.resolvedUAN !== 'null' && data.resolvedUAN !== 'undefined') ? data.resolvedUAN : 'N/A',
+      bankName: (data.resolvedBankName && data.resolvedBankName !== 'null' && data.resolvedBankName !== 'undefined') ? data.resolvedBankName : 'N/A',
+      bankAccount: (data.resolvedAccountNumber && data.resolvedAccountNumber !== 'null' && data.resolvedAccountNumber !== 'undefined') ? data.resolvedAccountNumber : 'N/A'
     };
 
     const html = template(templateData);
