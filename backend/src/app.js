@@ -163,15 +163,19 @@ try {
 
   // Mount bulk processing routes
   app.use('/api/payroll-bulk', generalLimiter, bulkUploadRoutes.default || bulkUploadRoutes);
+  app.use('/payroll-bulk', generalLimiter, bulkUploadRoutes.default || bulkUploadRoutes);
   
   // Mount employee payslip viewing routes
   app.use('/api/payroll/payslips', generalLimiter, employeePayslipRoutes.default || employeePayslipRoutes);
+  app.use('/payroll/payslips', generalLimiter, employeePayslipRoutes.default || employeePayslipRoutes);
 
   // Mount payslip publication routes
   app.use('/api/payroll/publication', generalLimiter, payslipPublicationRoutes);
+  app.use('/payroll/publication', generalLimiter, payslipPublicationRoutes);
   
   // Employee Self-Service Payslip Access
   app.use('/api/my-payslips', generalLimiter, employeePayslipRoutes.default || employeePayslipRoutes);
+  app.use('/my-payslips', generalLimiter, employeePayslipRoutes.default || employeePayslipRoutes);
 } catch (error) {
   console.error('❌ Failed to mount Payroll Bulk Module. Missing dependencies?', error.message);
 }
