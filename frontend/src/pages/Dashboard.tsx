@@ -167,7 +167,7 @@ export default function Dashboard() {
       </motion.div>
 
       {/* Employee Updates: High Visibility Access */}
-      <motion.div variants={slideUpVariants} className="z-10 relative">
+      <motion.div variants={slideUpVariants} className="z-10 relative mb-5">
         <div className="flex items-center justify-between mb-6 px-2">
           <h2 className="enterprise-subheading">Action Center</h2>
           <div className="h-px flex-1 bg-gradient-to-r from-border/50 to-transparent ml-6" />
@@ -183,8 +183,8 @@ export default function Dashboard() {
             <div className="h-px flex-1 bg-gradient-to-r from-border/50 to-transparent ml-6" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div 
-              className="enterprise-card group cursor-pointer hover:shadow-[0_8px_30px_rgba(6,182,212,0.15)] transition-all duration-300" 
+            <div
+              className="enterprise-card group cursor-pointer hover:shadow-[0_8px_30px_rgba(6,182,212,0.15)] transition-all duration-300"
               onClick={() => navigate('/app/payroll/my-payslips')}
             >
               <div className="flex items-start gap-4">
@@ -206,7 +206,7 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <motion.div
         variants={slideUpVariants}
-        className="space-y-6"
+        className="space-y-6 mb-5"
       >
         <div className="flex items-center justify-between px-2">
           <h2 className="enterprise-subheading">Real-time Metrics</h2>

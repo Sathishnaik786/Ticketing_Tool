@@ -19,7 +19,7 @@ export const EnterpriseCard = ({ children, className, title, description, header
     viewport={{ once: true }}
     transition={{ duration: 0.8, ease: [0.2, 0, 0, 1] }}
     className={cn(
-      "enterprise-card group/card relative overflow-hidden font-sans transition-all duration-500",
+      "enterprise-card group/card relative overflow-hidden font-sans transition-all duration-500 m-0 p-2",
       variant === 'teal' && "glass-panel-teal",
       variant === 'glass' && "liquid-surface",
       className

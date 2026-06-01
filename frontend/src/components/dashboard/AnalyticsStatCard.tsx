@@ -40,7 +40,7 @@ export function AnalyticsStatCard({
       className="h-full"
     >
       <Card className={cn(
-        'enterprise-card h-full relative overflow-hidden group',
+        ' h-full relative overflow-hidden group',
         status && statusColors[status],
         className
       )}>
@@ -67,7 +67,7 @@ export function AnalyticsStatCard({
 
         {/* Executive Shine Effect */}
         <div className="absolute top-0 left-[-100%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/[0.05] to-transparent skew-x-[-25deg] group-hover:left-[150%] transition-all duration-1000" />
-        
+
         {/* Decorative corner glow */}
         <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-700" />
       </Card>
