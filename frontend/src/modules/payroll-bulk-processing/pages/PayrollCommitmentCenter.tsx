@@ -11,9 +11,10 @@ import {
   History,
   FileCheck2,
   Lock,
-  Cpu,
   Search,
-  Zap
+  Zap,
+  Send,
+  Cpu
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -22,6 +23,9 @@ import {
   EnterpriseStatCard 
 } from '@/components/payroll/EnterpriseComponents';
 import { useBulkCommitments, useRetryCommitmentDocs } from '../hooks/useBulkUpload';
+import { BulkUploadService } from '../services/bulkUploadService';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { 
     Table, 
@@ -41,6 +45,26 @@ import { Building } from 'lucide-react';
 const PayrollCommitmentCenter = () => {
   const { data: commitments = [], isLoading } = useBulkCommitments();
   const retryMutation = useRetryCommitmentDocs();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const publishBatchMutation = useMutation({
+    mutationFn: (commitmentId: string) => BulkUploadService.publishCommitmentBatch(commitmentId),
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Batch published successfully!',
+      });
+      queryClient.invalidateQueries({ queryKey: ['payroll-bulk-commitments'] });
+    },
+    onError: (err: any) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to publish batch: ' + err.message,
+        variant: 'destructive',
+      });
+    }
+  });
 
   console.info("[COMMITMENTS_FETCHED]", commitments);
 
@@ -120,7 +144,6 @@ const PayrollCommitmentCenter = () => {
             title="System Integrity" 
             value="99.98%" 
             icon={ShieldCheck} 
-            color="neutral" 
         />
       </div>
 
@@ -213,6 +236,22 @@ const PayrollCommitmentCenter = () => {
                                                 >
                                                     {retryMutation.isPending ? <Clock className="animate-spin h-3 w-3 mr-1" /> : <Zap size={12} className="mr-1" />}
                                                     {retryMutation.isPending ? 'Retrying...' : 'Retry Docs'}
+                                                </Button>
+                                            )}
+                                            {commitment.commitment_status === 'COMPLETED' && (
+                                                <Button 
+                                                    variant="default" 
+                                                    size="sm" 
+                                                    onClick={() => {
+                                                        if (confirm('Are you sure you want to publish this entire batch to employees?')) {
+                                                            publishBatchMutation.mutate(commitment.id);
+                                                        }
+                                                    }}
+                                                    disabled={publishBatchMutation.isPending}
+                                                    className="rounded-xl h-8 text-[9px] font-black uppercase tracking-widest bg-emerald-600 hover:bg-emerald-500 text-white"
+                                                >
+                                                    {publishBatchMutation.isPending ? <Clock className="animate-spin h-3 w-3 mr-1" /> : <Send size={12} className="mr-1" />}
+                                                    Publish Batch
                                                 </Button>
                                             )}
                                             <Button 

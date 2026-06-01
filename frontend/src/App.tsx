@@ -41,6 +41,7 @@ import AboutPage from "./pages/About";
 import SecurityStandardsPage from "./pages/SecurityStandards";
 import EnterpriseSLAPage from "./pages/EnterpriseSLA";
 import ContactSalesPage from "./pages/ContactSales";
+import MyPayslips from "./pages/MyPayslips";
 import { updatesRoutes } from './modules/updates/updates.routes';
 import { payrollRoutes } from './modules/payroll/payroll.routes';
 import { bulkProcessingRoutes } from './modules/payroll-bulk-processing/bulk-processing.routes';
@@ -100,6 +101,7 @@ const router = createBrowserRouter([
       { path: "calendar", element: <CalendarPage /> },
       { path: "meetups", element: <MeetupsPage /> },
       { path: "documents", element: <Documents /> },
+      { path: "payroll/my-payslips", element: <MyPayslips /> },
       { path: "reports", element: <Reports /> },
 
       { path: "admin/users", element: <AdminUsers /> },

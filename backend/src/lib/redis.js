@@ -21,7 +21,7 @@ const baseRedisOptions = {
   },
   maxRetriesPerRequest: null, // Keep retrying in background safely, avoiding MaxRetriesPerRequestError
   enableReadyCheck: true,
-  lazyConnect: false,
+  lazyConnect: true, // PHASE 2: Defer connection to prevent immediate ECONNREFUSED spam
 };
 
 let redis;
@@ -79,8 +79,10 @@ const attachEventHandlers = (client, contextLabel) => {
   if (!client) return;
 
   const label = contextLabel || 'redis';
+  let errorCount = 0;
 
   client.on('connect', () => {
+    errorCount = 0; // Reset error count on successful connection
     logger.info(`Redis connected`, { context: label, mode: redisMode });
   });
 
@@ -89,16 +91,22 @@ const attachEventHandlers = (client, contextLabel) => {
   });
 
   client.on('error', (err) => {
-    // Important: never throw here – app should degrade gracefully
-    logger.error('Redis connection error', {
-      context: label,
-      mode: redisMode,
-      message: err?.message,
-    });
+    errorCount++;
+    // Suppress logs after 3 consecutive errors to avoid spam
+    if (errorCount <= 3) {
+      logger.error('Redis connection error', {
+        context: label,
+        mode: redisMode,
+        message: err?.message,
+      });
+    }
   });
 
   client.on('close', () => {
-    logger.warn('Redis connection closed', { context: label, mode: redisMode });
+    // Only warn if we were previously connected
+    if (errorCount === 0) {
+      logger.warn('Redis connection closed', { context: label, mode: redisMode });
+    }
   });
 
   client.on('reconnecting', (delay) => {

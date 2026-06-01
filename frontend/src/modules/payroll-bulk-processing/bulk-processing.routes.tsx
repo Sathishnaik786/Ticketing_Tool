@@ -10,9 +10,9 @@ const PayrollCommitmentCenter = lazy(() => import('./pages/PayrollCommitmentCent
 const EmployeePayslipsPage = lazy(() => import('./pages/EmployeePayslipsPage'));
 const PayslipTemplateGovernance = lazy(() => import('./pages/PayslipTemplateGovernance'));
 
-const SuspenseLoader = ({ children }: { children: React.ReactNode }) => (
+const withSuspense = (Component: React.ComponentType) => (
   <Suspense fallback={<PayrollDashboardSkeleton />}>
-    {children}
+    <Component />
   </Suspense>
 );
 
@@ -29,49 +29,49 @@ export const bulkProcessingRoutes: RouteObject[] = [
     children: [
       {
         index: true,
-        element: <SuspenseLoader><PayrollUploadCenter /></SuspenseLoader>,
+        element: withSuspense(PayrollUploadCenter),
       },
       {
         path: 'preview/:uploadId',
-        element: <SuspenseLoader><PayrollUploadPreview /></SuspenseLoader>,
+        element: withSuspense(PayrollUploadPreview),
       },
       {
         path: 'review/:uploadId/:rowId',
-        element: <SuspenseLoader><PayrollMappingReview /></SuspenseLoader>,
+        element: withSuspense(PayrollMappingReview),
       },
       {
         path: 'commitments',
-        element: <SuspenseLoader><PayrollCommitmentCenter /></SuspenseLoader>,
+        element: withSuspense(PayrollCommitmentCenter),
       },
       {
         path: 'reconciliation',
-        element: <SuspenseLoader><PayrollReconciliationDashboard /></SuspenseLoader>,
+        element: withSuspense(PayrollReconciliationDashboard),
       },
       {
         path: 'treasury',
-        element: <SuspenseLoader><TreasuryDashboard /></SuspenseLoader>,
+        element: withSuspense(TreasuryDashboard),
       },
       {
         path: 'executive-intelligence',
-        element: <SuspenseLoader><ExecutiveFinanceCommandCenter /></SuspenseLoader>,
+        element: withSuspense(ExecutiveFinanceCommandCenter),
       },
       {
         path: 'template-governance',
-        element: <SuspenseLoader><PayslipTemplateGovernance /></SuspenseLoader>,
+        element: withSuspense(PayslipTemplateGovernance),
       },
     ],
   },
   {
     path: 'my-statements',
-    element: <SuspenseLoader><EmployeePayslipsPage /></SuspenseLoader>,
+    element: withSuspense(EmployeePayslipsPage),
   },
   {
     path: 'tax-declarations',
-    element: <SuspenseLoader><InvestmentDeclarations /></SuspenseLoader>,
+    element: withSuspense(InvestmentDeclarations),
   },
   {
     path: 'payroll/payslip-governance',
-    element: <SuspenseLoader><PayslipTemplateGovernance /></SuspenseLoader>,
+    element: withSuspense(PayslipTemplateGovernance),
   }
 ];
 

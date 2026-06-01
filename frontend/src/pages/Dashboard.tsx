@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ import { EnterpriseHeader, EnterpriseStatCard } from '@/components/payroll/Enter
 
 export default function Dashboard() {
   const { user, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [analyticsData, setAnalyticsData] = useState<any>(null);
@@ -172,6 +174,34 @@ export default function Dashboard() {
         </div>
         <UpdatesQuickAccess />
       </motion.div>
+
+      {/* Employee Quick Actions */}
+      {user?.role === 'EMPLOYEE' && (
+        <motion.div variants={slideUpVariants} className="z-10 relative">
+          <div className="flex items-center justify-between mb-6 px-2">
+            <h2 className="enterprise-subheading">My Financials</h2>
+            <div className="h-px flex-1 bg-gradient-to-r from-border/50 to-transparent ml-6" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div 
+              className="enterprise-card group cursor-pointer hover:shadow-[0_8px_30px_rgba(6,182,212,0.15)] transition-all duration-300" 
+              onClick={() => navigate('/app/payroll/my-payslips')}
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+                  <FileText className="w-6 h-6 text-cyan-500 drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-cyan-500 transition-colors flex items-center gap-2">
+                    My Payslips
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">View and download your published salary statements.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Stats Grid */}
       <motion.div

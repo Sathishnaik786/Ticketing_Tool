@@ -14,33 +14,61 @@ console.log('[BOOT] Exception handlers registered.');
 require('dotenv').config();
 require('module-alias/register');
 
-console.log('[BOOT] Environment variables audit:');
-const requiredEnvs = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'JWT_SECRET'];
-requiredEnvs.forEach((env) => {
-  console.log(`[BOOT] ${env} detected: ${process.env[env] ? 'YES ✅' : 'NO ❌'}`);
-});
+async function bootstrap() {
+  console.log('[BOOT] Environment variables audit:');
+  const requiredEnvs = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'JWT_SECRET'];
+  requiredEnvs.forEach((env) => {
+    console.log(`[BOOT] ${env} detected: ${process.env[env] ? 'YES ✅' : 'NO ❌'}`);
+  });
 
-console.log('[BOOT] Initializing ts-node compiler register...');
-require('ts-node').register({
-  transpileOnly: true,
-  compilerOptions: {
-    module: "commonjs",
-    allowJs: true,
-    esModuleInterop: true,
-    ignoreDeprecations: "6.0"
+  console.log('[BOOT] Initializing ts-node compiler register...');
+  require('ts-node').register({
+    transpileOnly: true,
+    compilerOptions: {
+      module: "commonjs",
+      allowJs: true,
+      esModuleInterop: true,
+      ignoreDeprecations: "6.0"
+    }
+  });
+
+  const logger = require('@lib/logger');
+  const DockerHealth = require('@/utils/docker-health');
+  const RedisHealthService = require('@/services/redis-health.service');
+
+  let redisReady = false;
+  if (process.env.ENABLE_REDIS !== 'false') {
+    redisReady = await DockerHealth.bootstrapRedis();
+  } else {
+    logger.info('[REDIS_DISABLED] Redis explicitly disabled in .env');
   }
-});
 
-console.log('[BOOT] Loading Express app module...');
-const app = require('./app');
-console.log('[BOOT] Express app module loaded successfully.');
+  const { redis, redisMode, attachEventHandlers } = require('@lib/redis');
+
+  if (redisReady && process.env.ENABLE_REDIS !== 'false') {
+    try {
+      await redis.connect();
+      const healthService = new RedisHealthService(redis);
+      healthService.start();
+    } catch (err) {
+      logger.error('[REDIS_OFFLINE] Initial connect failed, falling back to memory mode', { message: err.message });
+      redisReady = false;
+    }
+  } else {
+    logger.info('[REDIS_OFFLINE] Running in memory mode');
+    process.env.ENABLE_SOCKET_REDIS = 'false';
+    process.env.ENABLE_CACHE = 'false';
+  }
+
+  console.log('[BOOT] Loading Express app module...');
+  const app = require('./app');
+  console.log('[BOOT] Express app module loaded successfully.');
 
 const config = require('@config');
 const http = require('http');
 const { Server } = require('socket.io');
 const { createAdapter } = require('@socket.io/redis-adapter');
-const { redis, redisMode, attachEventHandlers } = require('@lib/redis');
-const logger = require('@lib/logger');
+
 
 const PORT = process.env.PORT || config.PORT || 3003;
 
@@ -177,5 +205,9 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-// Trigger Nodemon compiler synchronization reboot - Identity fallbacks loaded
+}
 
+bootstrap().catch(err => {
+  console.error('[BOOT_CRITICAL] Server bootstrap failed:', err);
+  process.exit(1);
+});

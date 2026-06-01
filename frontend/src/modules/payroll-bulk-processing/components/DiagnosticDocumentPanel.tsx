@@ -11,8 +11,11 @@ import {
   RefreshCw,
   Database,
   ShieldCheck,
-  Link
+  Link,
+  Send
 } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { useToast } from '@/components/ui/use-toast';
 import { 
   Table, 
   TableBody, 
@@ -29,6 +32,7 @@ import { BulkUploadService } from '../services/bulkUploadService';
 export const DiagnosticDocumentPanel = ({ records = [] }: { records: any[] }) => {
   const [loadingRecordId, setLoadingRecordId] = useState<string | null>(null);
   const BUCKET_NAME = 'payroll-payslips';
+  const { toast } = useToast();
 
   const handleDownload = async (recordId: string, employeeName: string) => {
     try {
@@ -63,6 +67,23 @@ export const DiagnosticDocumentPanel = ({ records = [] }: { records: any[] }) =>
       setLoadingRecordId(null);
     }
   };
+
+  const publishPayslipMutation = useMutation({
+    mutationFn: (recordId: string) => BulkUploadService.publishPayslip(recordId),
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Payslip published successfully!',
+      });
+    },
+    onError: (err: any) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to publish payslip: ' + err.message,
+        variant: 'destructive',
+      });
+    }
+  });
 
   return (
     <div className="mt-20 p-10 rounded-[3rem] bg-slate-900 border border-white/10 shadow-2xl space-y-6">
@@ -186,6 +207,20 @@ export const DiagnosticDocumentPanel = ({ records = [] }: { records: any[] }) =>
                               <Download size={12} />
                             )}
                             Download
+                          </Button>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            disabled={publishPayslipMutation.isPending && publishPayslipMutation.variables === record.id}
+                            onClick={() => publishPayslipMutation.mutate(record.id)}
+                            className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-white bg-blue-600 hover:bg-blue-500 flex items-center gap-1.5 ml-2"
+                          >
+                            {publishPayslipMutation.isPending && publishPayslipMutation.variables === record.id ? (
+                              <RefreshCw className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Send size={12} />
+                            )}
+                            Publish
                           </Button>
                         </>
                       ) : (

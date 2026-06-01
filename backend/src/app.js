@@ -157,12 +157,20 @@ app.use('/payroll', generalLimiter, payrollRoutes.default || payrollRoutes);
 // Phase-1: Payroll Bulk Processing Module
 try {
   console.log('📦 Mounting Payroll Bulk Module...');
-  const payrollBulkRoutes = require('./modules/payroll-bulk-processing/routes/bulk-upload.routes');
-  app.use('/api/payroll-bulk', generalLimiter, payrollBulkRoutes.default || payrollBulkRoutes);
-  app.use('/payroll-bulk', generalLimiter, payrollBulkRoutes.default || payrollBulkRoutes);
-
-  // Employee Self-Service Payslip Access
+  const bulkUploadRoutes = require('./modules/payroll-bulk-processing/routes/bulk-upload.routes');
   const employeePayslipRoutes = require('./modules/payroll-bulk-processing/routes/employee-payslip.routes');
+  const payslipPublicationRoutes = require('./modules/payroll-bulk-processing/routes/payslip-publication.routes').default;
+
+  // Mount bulk processing routes
+  app.use('/api/payroll-bulk', generalLimiter, bulkUploadRoutes.default || bulkUploadRoutes);
+  
+  // Mount employee payslip viewing routes
+  app.use('/api/payroll/payslips', generalLimiter, employeePayslipRoutes.default || employeePayslipRoutes);
+
+  // Mount payslip publication routes
+  app.use('/api/payroll/publication', generalLimiter, payslipPublicationRoutes);
+  
+  // Employee Self-Service Payslip Access
   app.use('/api/my-payslips', generalLimiter, employeePayslipRoutes.default || employeePayslipRoutes);
 } catch (error) {
   console.error('❌ Failed to mount Payroll Bulk Module. Missing dependencies?', error.message);

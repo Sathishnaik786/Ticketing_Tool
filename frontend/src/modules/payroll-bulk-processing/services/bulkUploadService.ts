@@ -59,13 +59,28 @@ export const BulkUploadService = {
     return apiCall(`/payroll-bulk/commitments/${commitmentId}/retry-docs`, 'POST');
   },
 
+  publishPayslip: async (recordId: string): Promise<any> => {
+    const response = await apiCall(`/payroll/publication/record/${recordId}/publish`, 'POST');
+    return response.data || response;
+  },
+
+  publishCommitmentBatch: async (commitmentId: string): Promise<any> => {
+    const response = await apiCall(`/payroll/publication/batch/${commitmentId}/publish`, 'POST');
+    return response.data || response;
+  },
+
   getMyPayslips: async (): Promise<any[]> => {
-    const response = await apiCall('/my-payslips/my/payslips', 'GET');
+    const response = await apiCall('/payroll/publication/my-payslips', 'GET');
     return response.data || response;
   },
 
   getPayslipDownloadUrl: async (payslipId: string): Promise<string> => {
-    const response = await apiCall(`/my-payslips/my/payslips/download/${payslipId}`, 'GET');
+    const response = await apiCall(`/payroll/publication/my-payslips/${payslipId}/download`, 'POST');
+    return (response.data || response).url;
+  },
+
+  getPayslipViewUrl: async (payslipId: string): Promise<string> => {
+    const response = await apiCall(`/payroll/publication/my-payslips/${payslipId}/view`, 'POST');
     return (response.data || response).url;
   },
 
