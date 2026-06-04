@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { PayslipPublicationService } from '../services/payslip-publication.service';
-import { supabaseAdmin } from '@lib/supabase';
+const { supabaseAdmin } = require('@lib/supabase') as { supabaseAdmin: any };
 
 export class PayslipPublicationController {
   
@@ -16,7 +16,7 @@ export class PayslipPublicationController {
         return res.status(400).json({ error: 'Record ID is required' });
       }
 
-      const document = await PayslipPublicationService.publishDocument(recordId, user.id);
+      const document = await PayslipPublicationService.publishDocument(recordId as string, user.id as string);
       
       return res.status(200).json({
         message: 'Payslip published successfully',
@@ -40,7 +40,7 @@ export class PayslipPublicationController {
         return res.status(400).json({ error: 'Commitment ID is required' });
       }
 
-      const result = await PayslipPublicationService.publishBatch(commitmentId, user.id);
+      const result = await PayslipPublicationService.publishBatch(commitmentId as string, user.id as string);
       
       return res.status(200).json({
         message: `Successfully published ${result.publishedCount} payslips`,
@@ -60,7 +60,7 @@ export class PayslipPublicationController {
       const user = (req as any).user;
 
       // We need the employee UUID corresponding to this user.
-      const { data: employee, error: empError } = await supabaseAdmin
+      const { data: employee, error: empError } = await (supabaseAdmin as any)
         .from('employees')
         .select('id')
         .eq('user_id', user.id)
@@ -90,7 +90,7 @@ export class PayslipPublicationController {
       const { documentId } = req.params;
       const user = (req as any).user;
 
-      const { data: employee } = await supabaseAdmin
+      const { data: employee } = await (supabaseAdmin as any)
         .from('employees')
         .select('id')
         .eq('user_id', user.id)
@@ -98,7 +98,7 @@ export class PayslipPublicationController {
 
       if (!employee) return res.status(404).json({ error: 'Employee not found' });
 
-      const result = await PayslipPublicationService.recordViewAndGetUrl(documentId, employee.id);
+      const result = await PayslipPublicationService.recordViewAndGetUrl(documentId as string, employee.id as string);
       
       return res.status(200).json({ data: result });
     } catch (error: any) {
@@ -115,7 +115,7 @@ export class PayslipPublicationController {
       const { documentId } = req.params;
       const user = (req as any).user;
 
-      const { data: employee } = await supabaseAdmin
+      const { data: employee } = await (supabaseAdmin as any)
         .from('employees')
         .select('id')
         .eq('user_id', user.id)
@@ -123,7 +123,7 @@ export class PayslipPublicationController {
 
       if (!employee) return res.status(404).json({ error: 'Employee not found' });
 
-      const result = await PayslipPublicationService.recordDownloadAndGetUrl(documentId, employee.id);
+      const result = await PayslipPublicationService.recordDownloadAndGetUrl(documentId as string, employee.id as string);
       
       return res.status(200).json({ data: result });
     } catch (error: any) {
