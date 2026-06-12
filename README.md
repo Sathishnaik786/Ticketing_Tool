@@ -565,8 +565,6 @@ PostgreSQL / Supabase
 
 ---
 
-## © Apna Enterprises
-
 **Ticketing Management System (TMS)**
 *Enterprise Service Management Platform for Modern Organizations*
 
