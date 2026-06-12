@@ -3,7 +3,6 @@ const multer = require('multer');
 const NotificationService = require('./notification.service');
 const ProfileImageService = require('./profileImage.service');
 const CacheService = require('../services/cache.service');
-const logger = require('../lib/logger');
 
 // Configure multer for file uploads
 const storage = multer.memoryStorage(); // Store file in memory
@@ -100,56 +99,43 @@ exports.updateProfile = async (req, res, next) => {
         const body = req.body;
         console.log(`Processing profile update for user ${req.user.id}`);
 
-        const blockedFields = [
-            'role',
-            'salary',
-            'status',
-            'departmentId',
-            'department_id',
-            'managerId',
-            'manager_id',
-            'employeeCode',
-            'employee_code',
-            'permissions',
-            'isAdmin',
-            'is_admin',
-            'isSuperAdmin',
-            'is_super_admin'
-        ];
-
-        const attemptedBlockedFields = blockedFields.filter(field => body[field] !== undefined);
-        if (attemptedBlockedFields.length > 0) {
-            logger.warn('Blocked sensitive profile update attempt', {
-                userId: req.user.id,
-                employeeId: req.user.employeeId,
-                role: req.user.role,
-                fields: attemptedBlockedFields,
-                path: req.originalUrl || req.url,
-                ip: req.ip
-            });
-
-            return res.status(403).json({
-                success: false,
-                message: 'Profile update contains restricted fields'
-            });
-        }
-
-        // Strict self-service whitelist. Administrative fields are intentionally excluded.
+        // Strict mapping of frontend fields to database columns
         const fieldMap = {
             firstName: 'first_name',
             lastName: 'last_name',
+            email: 'email',
+            dateOfBirth: 'date_of_birth',
+            dateOfJoining: 'date_of_joining',
+            zipCode: 'zip_code',
+            emergencyContact: 'emergency_contact',
+            emergencyPhone: 'emergency_phone',
             phone: 'phone',
-            avatar: 'profile_image',
             address: 'address',
             city: 'city',
-            dateOfBirth: 'date_of_birth',
+            state: 'state',
+            country: 'country',
+            position: 'position',
+            departmentId: 'department_id',
+            managerId: 'manager_id',
+            salary: 'salary',
+            status: 'status',
+            role: 'role'
         };
 
         const allowedFields = {};
 
+        // Map fields that we explicitly allow users to change themselves
         Object.keys(fieldMap).forEach(key => {
             if (body[key] !== undefined) {
                 allowedFields[fieldMap[key]] = body[key];
+            }
+        });
+
+        // Also check if any snake_case fields were sent directly
+        const snakeFields = ['phone', 'address', 'city', 'state', 'country', 'position', 'department_id', 'manager_id', 'salary', 'status', 'role', 'email'];
+        snakeFields.forEach(field => {
+            if (body[field] !== undefined) {
+                allowedFields[field] = body[field];
             }
         });
 

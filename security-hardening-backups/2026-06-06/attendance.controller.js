@@ -1,22 +1,4 @@
 const { supabase } = require('@lib/supabase');
-const { hasViewAllAccess, logDeniedAccess } = require('@middlewares/ownership.middleware');
-
-const canViewAllAttendance = (user) => hasViewAllAccess(user, {
-    allowRoles: ['SUPER_ADMIN', 'ADMIN', 'HR', 'MANAGER'],
-    permissions: ['attendance.view_all']
-});
-
-const resolveWritableEmployeeId = (req, requestedEmployeeId) => {
-    if (canViewAllAttendance(req.user) && requestedEmployeeId) {
-        return requestedEmployeeId;
-    }
-
-    if (requestedEmployeeId && String(requestedEmployeeId) !== String(req.user.employeeId)) {
-        return null;
-    }
-
-    return req.user.employeeId;
-};
 
 const mapAttendance = (att) => {
     if (!att) return null;
@@ -42,14 +24,7 @@ const mapAttendance = (att) => {
 
 exports.checkIn = async (req, res, next) => {
     try {
-        const requestedEmployeeId = req.body.employeeId;
-        const employeeId = resolveWritableEmployeeId(req, requestedEmployeeId);
-
-        if (!employeeId) {
-            logDeniedAccess(req, requestedEmployeeId, 'attendance_check_in_employee_mismatch');
-            return res.status(403).json({ success: false, message: 'Access denied' });
-        }
-
+        const { employeeId } = req.body;
         const now = new Date();
         const date = now.toISOString().split('T')[0];
         const time = now.toTimeString().slice(0, 5);
@@ -99,11 +74,6 @@ exports.checkOut = async (req, res, next) => {
 
         if (!attendance) return res.status(404).json({ success: false, message: 'Record not found' });
 
-        if (!canViewAllAttendance(req.user) && String(attendance.employee_id) !== String(req.user.employeeId)) {
-            logDeniedAccess(req, attendance.employee_id, 'attendance_check_out_employee_mismatch');
-            return res.status(403).json({ success: false, message: 'Access denied' });
-        }
-
         const [checkInH, checkInM] = attendance.check_in.split(':').map(Number);
         const [checkOutH, checkOutM] = time.split(':').map(Number);
         const workHours = (checkOutH + checkOutM / 60) - (checkInH + checkInM / 60);
@@ -128,17 +98,16 @@ exports.checkOut = async (req, res, next) => {
 exports.getMyAttendance = async (req, res, next) => {
     try {
         const { employeeId } = req.query;
-        const targetEmployeeId = canViewAllAttendance(req.user) && employeeId
-            ? employeeId
-            : req.user.employeeId;
+        // Check if employeeId is provided or if we can use the authenticated user's employee ID
+        const targetEmployeeId = employeeId || req.user.employee?.id;
         
         if (!targetEmployeeId) {
             return res.status(400).json({ success: false, message: 'Employee ID not provided and user employee ID not found' });
         }
         
-        if (!canViewAllAttendance(req.user) && employeeId && String(employeeId) !== String(req.user.employeeId)) {
-            logDeniedAccess(req, employeeId, 'attendance_query_employee_mismatch');
-            return res.status(403).json({ success: false, message: 'Access denied' });
+        // For EMPLOYEE role, only allow access to their own data
+        if (req.user.role === 'EMPLOYEE' && employeeId && employeeId !== req.user.employeeId) {
+            return res.status(403).json({ success: false, message: 'Forbidden: insufficient permissions' });
         }
         
         const { data, error } = await supabase

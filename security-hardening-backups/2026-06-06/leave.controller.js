@@ -1,23 +1,5 @@
 const { supabase } = require('@lib/supabase');
 const NotificationService = require('./notification.service');
-const { hasViewAllAccess, logDeniedAccess } = require('@middlewares/ownership.middleware');
-
-const canViewAllLeaves = (user) => hasViewAllAccess(user, {
-    allowRoles: ['SUPER_ADMIN', 'ADMIN', 'HR', 'MANAGER'],
-    permissions: ['leave.view_all']
-});
-
-const resolveLeaveEmployeeId = (req, requestedEmployeeId) => {
-    if (canViewAllLeaves(req.user) && requestedEmployeeId) {
-        return requestedEmployeeId;
-    }
-
-    if (requestedEmployeeId && String(requestedEmployeeId) !== String(req.user.employeeId)) {
-        return null;
-    }
-
-    return req.user.employeeId;
-};
 
 const mapLeave = (leave) => {
     if (!leave) return null;
@@ -44,15 +26,7 @@ const mapLeave = (leave) => {
 
 exports.apply = async (req, res, next) => {
     try {
-        const { leaveTypeId, startDate, endDate, reason } = req.body;
-        const requestedEmployeeId = req.body.employeeId;
-        const employeeId = resolveLeaveEmployeeId(req, requestedEmployeeId);
-
-        if (!employeeId) {
-            logDeniedAccess(req, requestedEmployeeId, 'leave_apply_employee_mismatch');
-            return res.status(403).json({ success: false, message: 'Access denied' });
-        }
-
+        const { employeeId, leaveTypeId, startDate, endDate, reason } = req.body;
         const start = new Date(startDate);
         const end = new Date(endDate);
         const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
@@ -151,7 +125,7 @@ exports.approve = async (req, res, next) => {
             .from('leaves')
             .update({
                 status: 'APPROVED',
-                approved_by: req.user.employeeId || null,
+                approved_by: req.user.employee?.id || null,
                 comments,
                 updated_at: new Date().toISOString()
             })
@@ -178,7 +152,7 @@ exports.reject = async (req, res, next) => {
             .from('leaves')
             .update({
                 status: 'REJECTED',
-                approved_by: req.user.employeeId || null,
+                approved_by: req.user.employee?.id || null,
                 comments,
                 updated_at: new Date().toISOString()
             })

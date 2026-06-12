@@ -9,8 +9,6 @@ const config = require('@config');
 const errorMiddleware = require('@middlewares/error.middleware');
 const logger = require('./lib/logger');
 const loggingMiddleware = require('./middlewares/logger.middleware');
-const authMiddleware = require('./middlewares/auth.middleware');
-const requireRole = require('./middlewares/role.middleware');
 
 const app = express();
 
@@ -51,42 +49,28 @@ const corsOptions = {
 };
 
 // Rate limiting
-console.log('Initializing production-grade rate limiters...');
+console.log('Initializing rate limiters with high dev limits...');
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 10000, // Boosted for dev
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-const employeeLimiter = rateLimit({
+// More permissive rate limiter for profile endpoint
+const profileLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 10000,
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-const publicLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 50,
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-const adminLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 500,
-  message: 'Too many admin requests from this IP, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
+// Auth specific limiter
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 10000,
   message: 'Too many login attempts, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -117,29 +101,45 @@ const { cacheMiddleware } = require('./middlewares/cache.middleware');
 
 // Routes (to be added)
 app.use('/api/auth', authLimiter, require('./routes/auth.routes'));
+// Compatibility route for direct auth access
+app.use('/auth', authLimiter, require('./routes/auth.routes'));
 
 // Apply different rate limiting for profile endpoint
-app.use('/api/employees/profile', employeeLimiter);
+app.use('/api/employees/profile', profileLimiter);
+app.use('/employees/profile', profileLimiter);
 
 // Apply general rate limiting for other employee routes
-app.use('/api/employees', employeeLimiter, cacheMiddleware(), require('./routes/employee.routes'));
+app.use('/api/employees', generalLimiter, cacheMiddleware(), require('./routes/employee.routes'));
+app.use('/employees', generalLimiter, cacheMiddleware(), require('./routes/employee.routes'));
 
 // Apply general rate limiting to other routes
 app.use('/api/departments', generalLimiter, require('./routes/department.routes'));
+app.use('/departments', generalLimiter, require('./routes/department.routes'));
 app.use('/api/attendance', generalLimiter, require('./routes/attendance.routes'));
+app.use('/attendance', generalLimiter, require('./routes/attendance.routes'));
 app.use('/api/leaves', generalLimiter, require('./routes/leave.routes'));
+app.use('/leaves', generalLimiter, require('./routes/leave.routes'));
 app.use('/api/documents', generalLimiter, require('./routes/document.routes'));
+app.use('/documents', generalLimiter, require('./routes/document.routes'));
 app.use('/api/reports', generalLimiter, require('./routes/report.routes'));
+app.use('/reports', generalLimiter, require('./routes/report.routes'));
 app.use('/api/projects', generalLimiter, require('./routes/project.routes'));
+app.use('/projects', generalLimiter, require('./routes/project.routes'));
 
 app.use('/api/analytics', generalLimiter, require('@analytics/analytics.routes'));
+app.use('/analytics', generalLimiter, require('@analytics/analytics.routes'));
 app.use('/api/chat', generalLimiter, require('./routes/chat.routes'));
+app.use('/chat', generalLimiter, require('./routes/chat.routes'));
 app.use('/api/notifications', generalLimiter, require('./routes/notification.routes'));
+app.use('/notifications', generalLimiter, require('./routes/notification.routes'));
 app.use('/api/meetups', generalLimiter, require('./routes/meetup.routes'));
+app.use('/meetups', generalLimiter, require('./routes/meetup.routes'));
 app.use('/api/calendar-events', generalLimiter, require('./routes/calendar.routes'));
+app.use('/calendar-events', generalLimiter, require('./routes/calendar.routes'));
 
 // Phase-0: Employee Updates Module (Feature Flag: OFF by default in UI, but API is live)
 app.use('/api/updates', generalLimiter, require('./modules/updates/updates.routes'));
+app.use('/updates', generalLimiter, require('./modules/updates/updates.routes'));
 
 // Payroll Module
 console.log('📦 Mounting Payroll Module...');
@@ -147,10 +147,12 @@ const payrollRoutes = require('./modules/payroll/routes/payroll.routes');
 console.log('📦 Payroll Module keys:', Object.keys(payrollRoutes));
 console.log('📦 Payroll Module .default type:', typeof payrollRoutes.default);
 
-app.use('/api/payroll', adminLimiter, (req, res, next) => {
+app.use('/api/payroll', generalLimiter, (req, res, next) => {
   console.log(`📦 Payroll Request: ${req.method} ${req.url}`);
   next();
 }, payrollRoutes.default || payrollRoutes);
+
+app.use('/payroll', generalLimiter, payrollRoutes.default || payrollRoutes);
 
 // Phase-1: Payroll Bulk Processing Module
 try {
@@ -160,16 +162,20 @@ try {
   const payslipPublicationRoutes = require('./modules/payroll-bulk-processing/routes/payslip-publication.routes').default;
 
   // Mount bulk processing routes
-  app.use('/api/payroll-bulk', adminLimiter, bulkUploadRoutes.default || bulkUploadRoutes);
+  app.use('/api/payroll-bulk', generalLimiter, bulkUploadRoutes.default || bulkUploadRoutes);
+  app.use('/payroll-bulk', generalLimiter, bulkUploadRoutes.default || bulkUploadRoutes);
   
   // Mount employee payslip viewing routes
   app.use('/api/payroll/payslips', generalLimiter, employeePayslipRoutes.default || employeePayslipRoutes);
+  app.use('/payroll/payslips', generalLimiter, employeePayslipRoutes.default || employeePayslipRoutes);
 
   // Mount payslip publication routes
-  app.use('/api/payroll/publication', adminLimiter, payslipPublicationRoutes);
+  app.use('/api/payroll/publication', generalLimiter, payslipPublicationRoutes);
+  app.use('/payroll/publication', generalLimiter, payslipPublicationRoutes);
   
   // Employee Self-Service Payslip Access
   app.use('/api/my-payslips', generalLimiter, employeePayslipRoutes.default || employeePayslipRoutes);
+  app.use('/my-payslips', generalLimiter, employeePayslipRoutes.default || employeePayslipRoutes);
 } catch (error) {
   console.error('❌ Failed to mount Payroll Bulk Module. Missing dependencies?', error.message);
 }
@@ -179,10 +185,10 @@ try {
 
 
 // Health check routes
-app.use('/health', publicLimiter, require('./routes/health.routes'));
+app.use('/health', require('./routes/health.routes'));
 
-// Redis test endpoint (SUPER_ADMIN only)
-app.get('/redis-test', adminLimiter, authMiddleware, requireRole('SUPER_ADMIN'), async (req, res) => {
+// Redis test endpoint (for development/testing)
+app.get('/redis-test', async (req, res) => {
   try {
     const { redis } = require('@lib/redis');
     await redis.set('health', 'ok', 'EX', 10);
@@ -202,8 +208,8 @@ app.get('/redis-test', adminLimiter, authMiddleware, requireRole('SUPER_ADMIN'),
   }
 });
 
-// Cache stats endpoint (SUPER_ADMIN only)
-app.get('/cache-stats', adminLimiter, authMiddleware, requireRole('SUPER_ADMIN'), async (req, res) => {
+// Cache stats endpoint (for monitoring)
+app.get('/cache-stats', async (req, res) => {
   try {
     const CacheService = require('./services/cache.service');
     const stats = await CacheService.getStats();

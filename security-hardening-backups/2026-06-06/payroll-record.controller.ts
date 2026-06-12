@@ -1,17 +1,6 @@
 import { Request, Response } from 'express';
 import { supabaseAdmin } from '@lib/supabase';
 import { PayrollPreviewService } from '../services/payroll-processing/payroll-preview.service';
-const { hasViewAllAccess, logDeniedAccess } = require('@middlewares/ownership.middleware');
-
-const canViewAllPayroll = (user: any) => hasViewAllAccess(user, {
-  allowRoles: ['SUPER_ADMIN', 'ADMIN', 'HR'],
-  permissions: ['payroll.view_all', 'payroll.view']
-});
-
-const denyPayrollAccess = (req: Request, res: Response, employeeId: string, reason: string) => {
-  logDeniedAccess(req, employeeId, reason);
-  return res.status(403).json({ success: false, message: 'Access denied' });
-};
 
 export class PayrollRecordController {
   static async getAll(req: Request, res: Response) {
@@ -55,20 +44,13 @@ export class PayrollRecordController {
 
   static async getByEmployeeId(req: Request, res: Response) {
     try {
-      const user = (req as any).user;
-      const employeeId = req.params.employeeId;
-
-      if (!canViewAllPayroll(user) && String(employeeId) !== String(user.employeeId)) {
-        return denyPayrollAccess(req, res, employeeId, 'payroll_record_employee_mismatch');
-      }
-
       const { data, error } = await supabaseAdmin
         .from('payroll_records')
         .select(`
           *,
           cycle:payroll_cycles(id, cycle_name)
         `)
-        .eq('employee_id', employeeId)
+        .eq('employee_id', req.params.employeeId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
