@@ -58,7 +58,7 @@ const menuData: Record<string, any> = {
   },
   'Payroll': {
     left: [
-      { title: 'Payroll YVI People', desc: 'Unified disbursement core.', icon: CreditCard },
+      { title: 'Payroll Operations', desc: 'Unified disbursement core.', icon: CreditCard },
       { title: 'Tax Governance', desc: 'Localized tax compliance.', icon: Lock },
       { title: 'Salary Structures', desc: 'Flexible compensation models.', icon: Calculator },
       { title: 'Disbursements', desc: 'Bank integration & transfers.', icon: Globe },
@@ -170,7 +170,7 @@ const menuData: Record<string, any> = {
       chart: [20, 40, 60, 50, 70, 90, 80, 100, 95, 110, 105, 120]
     }
   },
-  'YVI People': {
+  'EMTS Platform': {
     left: [
       { title: 'Core Intelligence', desc: 'Central AI processing unit.', icon: Cpu },
       { title: 'Governance Hub', desc: 'Policy and compliance control center.', icon: ShieldCheck },
@@ -191,7 +191,7 @@ const menuData: Record<string, any> = {
   },
   'AI Systems': {
     left: [
-      { title: 'YVI People Core AI', desc: 'Central intelligence engine.', icon: Cpu },
+      { title: 'EMTS Core AI', desc: 'Central intelligence engine.', icon: Cpu },
       { title: 'Natural Language', desc: 'Semantic data interaction.', icon: MessageSquare },
       { title: 'Pattern Recognition', desc: 'Identify hidden variances.', icon: Zap },
       { title: 'Autonomous Agents', desc: 'Self-executing workflows.', icon: Sparkles },
@@ -240,7 +240,8 @@ const getRouteForMenuItem = (title: string, category: string): string => {
   if (cat === 'governance') return '/governance';
   if (cat === 'projects') return '/projects';
   if (cat === 'operations') return '/operations';
-  
+  if (cat === 'emts platform') return '/about';
+
   return '/';
 };
 
@@ -263,7 +264,7 @@ export const MegaMenu = ({ isOpen, onClose, activeCategory: initialCategory }: M
     'Projects': Briefcase,
     'Operations': Settings,
     'Analytics': TrendingUp,
-    'YVI People': Cpu,
+    'EMTS Platform': Cpu,
     'AI Systems': Cpu
   };
 

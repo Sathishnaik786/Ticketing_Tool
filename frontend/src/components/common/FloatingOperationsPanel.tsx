@@ -89,7 +89,7 @@ export const FloatingOperationsPanel = () => {
                   <div className="space-y-4">
                     {[
                       { name: 'Sarah J.', role: 'Lead Governor', status: 'Online' },
-                      { name: 'YVI People Support', role: 'Automated Agent', status: 'Instant' },
+                      { name: 'EMTS Support', role: 'Automated Agent', status: 'Instant' },
                     ].map(h => (
                       <div key={h.name} className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/5">
                         <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 font-black text-xs">

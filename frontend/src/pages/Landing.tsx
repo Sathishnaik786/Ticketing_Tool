@@ -49,6 +49,7 @@ import PremiumButton from '@/components/ui/PremiumButton';
 import SectionHeading from '@/components/landing/SectionHeading';
 import { AnimatedContainer } from '@/components/landing/AnimatedContainer';
 import ThemeToggle from '@/components/auth/ThemeToggle';
+import { EmtsBrandMark, EmtsWordmark } from '@/components/common/EmtsBrandMark';
 
 const MegaMenu = React.lazy(() => import('@/components/layout/MegaMenu').then(m => ({ default: m.MegaMenu })));
 
@@ -139,15 +140,8 @@ export const Navbar = () => {
               to="/"
               className="relative inline-flex items-center gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full px-2 py-1"
             >
-              <img
-                src="/logo.png"
-                alt="YVI People logo"
-                loading="lazy"
-                className="w-11 h-11 object-contain rounded-xl brightness-110 drop-shadow-sm"
-              />
-              <span className="font-display font-semibold text-[26px] xl:text-[28px] tracking-tight text-slate-900 dark:text-white whitespace-nowrap">
-                YVI <span className="text-orange-500">People</span>
-              </span>
+              <EmtsBrandMark size="lg" />
+              <EmtsWordmark className="text-[26px] xl:text-[28px] font-semibold whitespace-nowrap" />
             </Link>
           </div>
 
@@ -281,15 +275,8 @@ export const Navbar = () => {
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-lg"
                 >
-                  <img
-                    src="/logo.png"
-                    alt="YVI People logo"
-                    loading="lazy"
-                    className="w-10 h-10 object-contain rounded-xl brightness-110"
-                  />
-                  <span className="font-display font-semibold text-2xl tracking-tight text-slate-900 dark:text-white">
-                    YVI <span className="text-orange-500">People</span>
-                  </span>
+                  <EmtsBrandMark size="md" />
+                  <EmtsWordmark className="text-2xl font-semibold" />
                 </Link>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
@@ -391,7 +378,7 @@ const OperationalPreview = () => {
             <div className="w-2.5 h-2.5 rounded-full bg-amber-500/20 border border-amber-500/40" />
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/20 border border-emerald-500/40" />
           </div>
-          <div className="mx-auto text-[8px] font-sans font-medium tracking-wide text-slate-400 dark:text-slate-600">Enterprise intelligence YVI People</div>
+          <div className="mx-auto text-[8px] font-sans font-medium tracking-wide text-slate-400 dark:text-slate-600">Enterprise operations — EMTS</div>
         </div>
 
         <div className="flex h-full">
@@ -632,7 +619,8 @@ const getRouteForMenuItem = (title: string, category: string): string => {
   if (cat === 'governance') return '/governance';
   if (cat === 'projects') return '/projects';
   if (cat === 'operations') return '/operations';
-  
+  if (cat === 'emts platform') return '/about';
+
   return '/';
 };
 
@@ -677,16 +665,19 @@ export default function Landing() {
             >
               <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/[0.35] dark:bg-white/5 border border-white/30 dark:border-white/10 backdrop-blur-md">
                 <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
-                <span className="text-xs font-sans font-medium tracking-wide text-slate-700 dark:text-slate-300">Unified enterprise workforce OS</span>
+                <span className="text-xs font-sans font-medium tracking-wide text-slate-700 dark:text-slate-300">Unified Enterprise Operations Platform</span>
               </div>
 
               <div className="space-y-8">
                 <h1 className="font-display font-semibold tracking-[-0.05em] md:tracking-[-0.06em] text-[length:var(--font-size-hero)] leading-[0.95] text-slate-900 dark:text-white">
-                  Workforce <br />
-                  <span className="text-orange-500">intelligence.</span>
+                  Enterprise Management <br />
+                  <span className="text-orange-500">&amp; Ticketing System</span>
                 </h1>
                 <p className="max-w-xl text-2xl text-slate-400 font-sans font-bold leading-tight tracking-tight">
-                  Orchestrate global human capital with a premium, AI-native operating system. Built for institutional scale and operational precision.
+                  Manage employees, departments, attendance, payroll, tickets, service requests and operations from a single secure platform.
+                </p>
+                <p className="max-w-xl text-lg text-slate-500 dark:text-slate-400 font-sans font-semibold tracking-tight">
+                  Secure. Scalable. Enterprise Ready.
                 </p>
               </div>
 
@@ -738,7 +729,7 @@ export default function Landing() {
           img="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=2070"
           features={[
             { title: 'Statutory Core', desc: 'Auto-localized tax schemas for 120+ regions.' },
-            { title: 'YVI People Disbursement', desc: 'Near-instant bank transfers via unified API.' }
+            { title: 'EMTS Disbursement', desc: 'Near-instant bank transfers via unified API.' }
           ]}
           animationsDisabled={animationsDisabled}
         />
@@ -778,8 +769,8 @@ export default function Landing() {
             <div className="flex flex-col lg:flex-row justify-between items-end gap-12">
               <SectionHeading
                 label="Ecosystem Architecture"
-                title="A Unified Enterprise Node."
-                subtitle="One integrated operating system to manage the entire lifecycle of your global enterprise."
+                title="Unified Enterprise Operations."
+                subtitle="One integrated platform to manage workforce, payroll, attendance, ticketing, and enterprise service operations."
                 accentWord="Enterprise"
                 align="left"
               />
@@ -787,12 +778,12 @@ export default function Landing() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
-                { title: 'Payroll YVI People', icon: CreditCard, color: 'text-blue-500 dark:text-blue-400' },
+                { title: 'Payroll Operations', icon: CreditCard, color: 'text-blue-500 dark:text-blue-400' },
                 { title: 'Workforce Core', icon: Users, color: 'text-orange-500 dark:text-orange-400' },
                 { title: 'Intelligence Hub', icon: BarChart3, color: 'text-rose-500 dark:text-rose-400' },
                 { title: 'Governance AI', icon: Sparkles, color: 'text-amber-500 dark:text-amber-400' },
                 { title: 'Attendance Sync', icon: Clock, color: 'text-indigo-500 dark:text-indigo-400' },
-                { title: 'Project YVI People', icon: Target, color: 'text-emerald-500 dark:text-emerald-400' },
+                { title: 'Service Ticketing', icon: Target, color: 'text-emerald-500 dark:text-emerald-400' },
                 { title: 'Recruitment Intel', icon: Search, color: 'text-orange-500 dark:text-orange-400' },
                 { title: 'Performance Matrix', icon: Activity, color: 'text-purple-500 dark:text-purple-400' },
               ].map((mod, i) => (
@@ -838,10 +829,10 @@ export default function Landing() {
             <GlassCard className="p-8 md:p-12 border border-slate-200/50 dark:border-white/5 shadow-soft dark:shadow-[0_30px_100px_rgba(0,0,0,0.5)]">
               <div className="divide-y divide-slate-200/50 dark:divide-white/5 -my-8">
                 {[
-                  { q: 'How does the EMS handle multi-region compliance?', a: 'The platform integrates a dynamic governance engine that automatically updates localized tax schemas and labor protocols based on the entity jurisdiction.' },
+                  { q: 'How does EMTS handle multi-region compliance?', a: 'The platform integrates a dynamic governance engine that automatically updates localized tax schemas and labor protocols based on the entity jurisdiction.' },
                   { q: 'What is the security standard for data transit?', a: 'All data is encrypted via TLS 1.3 in transit and AES-256 at rest, with SOC2 Type II and ISO 27001 certified data center infrastructure.' },
-                  { q: 'How does the payroll automation engine work?', a: 'Our high-precision payroll YVI People evaluates gross-to-net calculations dynamically, executes micro-audits, and dispatches direct deposits instantly.' },
-                  { q: 'Can the platform integrate with existing HR systems?', a: 'Yes, YVI People offers extensive enterprise-grade REST APIs and webhooks that synchronize effortlessly with Workday, SAP, and other major platforms.' },
+                  { q: 'How does the payroll automation engine work?', a: 'The EMTS payroll engine evaluates gross-to-net calculations dynamically, executes micro-audits, and dispatches direct deposits with full audit trails.' },
+                  { q: 'Can the platform integrate with existing HR systems?', a: 'Yes, EMTS offers enterprise-grade REST APIs and webhooks that synchronize with Workday, SAP, and other major platforms.' },
                   { q: 'What support and SLA guarantees are available?', a: 'We offer round-the-clock premium technical support with guaranteed 15-minute response times for critical incidents under our Enterprise SLA.' }
                 ].map((item, i) => (
                   <FAQItem key={i} question={item.q} answer={item.a} />
@@ -860,8 +851,8 @@ export default function Landing() {
 
             <div className="relative z-10 space-y-12">
               <h2 className="font-display font-semibold tracking-[-0.05em] md:tracking-[-0.06em] text-[length:var(--font-size-hero)] leading-[0.95] text-slate-900 dark:text-white">
-                Architect your <br />
-                <span className="text-orange-500">Enterprise Node.</span>
+                Run your enterprise on <br />
+                <span className="text-orange-500">one secure platform.</span>
               </h2>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-8 font-sans">
                 <Link to="/login" className="focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-2xl focus-visible:outline-none">
@@ -888,11 +879,11 @@ export default function Landing() {
             <div className="grid grid-cols-1 md:grid-cols-6 gap-12 md:gap-20">
               <div className="md:col-span-2 space-y-6">
                 <Link to="/" className="flex items-center gap-3 focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-lg max-w-max">
-                  <img src="/logo.png" alt="YVI People enterprise logo" loading="lazy" className="w-10 h-10 object-contain brightness-110" />
-                  <span className="font-display font-semibold text-2xl tracking-tight text-slate-900 dark:text-white">YVI <span className="text-orange-550 dark:text-orange-400">People</span></span>
+                  <EmtsBrandMark size="md" />
+                  <EmtsWordmark className="text-2xl font-semibold" />
                 </Link>
                 <p className="font-sans font-normal text-sm text-slate-500 leading-relaxed max-w-sm">
-                  The world's most advanced autonomous enterprise operating system. Orchestrating global human capital with operational precision.
+                  Enterprise Management &amp; Ticketing System — orchestrating workforce, payroll, attendance, and service operations with operational precision.
                 </p>
                 {/* Premium Trust Certification Chips */}
                 <div className="flex flex-wrap gap-2 pt-2">
@@ -906,7 +897,7 @@ export default function Landing() {
 
               {[
                 {
-                  title: 'YVI People',
+                  title: 'EMTS Platform',
                   links: ['Core Intelligence', 'Governance Hub', 'Audit Console', 'System Status']
                 },
                 {

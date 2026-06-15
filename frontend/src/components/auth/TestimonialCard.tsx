@@ -4,19 +4,19 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 export const TESTIMONIALS = [
   {
-    quote: "With YVI People, our global workforce operations are perfectly synchronized. It is the gold standard for workforce management.",
+    quote: "With EMTS, our workforce, payroll, and ticketing operations run from one secure platform. It is the standard for enterprise operations management.",
     author: "Sarah Jenkins",
     role: "Chief People Officer",
     company: "Vanguard Enterprises"
   },
   {
-    quote: "The seamless payroll compliance and audit workflows saved our finance teams hundreds of operational hours each quarter.",
+    quote: "Unified attendance, payroll compliance, and service request workflows saved our operations teams hundreds of hours each quarter.",
     author: "David Chen",
     role: "VP of Global Payroll & Finance",
     company: "Horizon Logistics"
   },
   {
-    quote: "An absolute masterpiece in enterprise software design. Legibility, responsiveness, and premium UX combined into one.",
+    quote: "A modern enterprise platform with clarity, responsiveness, and secure role-based access across every module.",
     author: "Elena Rostova",
     role: "Principal Architect & Developer",
     company: "Acme Tech Labs"

@@ -78,7 +78,7 @@ export default function WorkforcePage() {
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                 {[
                   { title: 'Talent Acquisition', icon: Target, desc: 'AI-powered recruitment engine with semantic matching', step: '01' },
-                  { title: 'Onboarding YVI People', icon: Users, desc: 'Automated provisioning and document workflows', step: '02' },
+                  { title: 'Onboarding Workflows', icon: Users, desc: 'Automated provisioning and document workflows', step: '02' },
                   { title: 'Performance Loop', icon: BarChart3, desc: 'Continuous feedback and growth tracking', step: '03' },
                   { title: 'Development Engine', icon: TrendingUp, desc: 'Skills mapping and career pathing', step: '04' },
                   { title: 'Transition Flow', icon: Activity, desc: 'Graceful departure and knowledge transfer', step: '05' },
@@ -139,7 +139,7 @@ export default function WorkforcePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[
                 { title: 'Engineering Core', count: '412', icon: Cpu, color: 'text-purple-500' },
-                { title: 'Product YVI People', count: '87', icon: Target, color: 'text-blue-500' },
+                { title: 'Product Engineering', count: '87', icon: Target, color: 'text-blue-500' },
                 { title: 'Security Ops', count: '24', icon: ShieldCheck, color: 'text-emerald-500' },
                 { title: 'Infrastructure', count: '67', icon: Database, color: 'text-orange-500' },
                 { title: 'Growth Division', count: '156', icon: TrendingUp, color: 'text-rose-500' },

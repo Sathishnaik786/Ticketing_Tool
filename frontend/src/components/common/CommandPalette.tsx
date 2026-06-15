@@ -218,7 +218,7 @@ export function CommandPalette() {
                   Execute
                 </div>
               </div>
-              <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">YVI Productivity OS v1.0</p>
+              <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">EMTS Productivity OS v1.0</p>
             </div>
           </motion.div>
         </div>

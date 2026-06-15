@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { EmtsBrandMark } from '@/components/common/EmtsBrandMark';
 
 interface LoginGlassCardProps {
   children: React.ReactNode;
@@ -42,19 +43,15 @@ export default function LoginGlassCard({ children }: LoginGlassCardProps) {
  
       {/* Form Header utilizing sentence-case Space Grotesk */}
       <motion.div variants={textVariants} className="flex flex-col items-center text-center space-y-4 mb-6 w-full select-none">
-         {/* YVI Logo */}
-         <img 
-           src="/logo.png" 
-           alt="YVI Logo" 
-           className="h-10 lg:h-12 object-contain select-none pointer-events-none"
-         />
+         {/* EMTS Logo */}
+         <EmtsBrandMark size="xl" className="h-10 lg:h-12" />
          
          <div className="space-y-1">
            <h2 className="text-xl sm:text-2xl font-display font-semibold tracking-tight text-slate-800 dark:text-white leading-tight">
-             Welcome back
+             Welcome Back
            </h2>
            <p className="text-xs sm:text-sm font-normal text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
-             Please authorize your identity credentials to log in to YVI Workspace.
+             Sign in to access your enterprise workspace.
            </p>
          </div>
       </motion.div>

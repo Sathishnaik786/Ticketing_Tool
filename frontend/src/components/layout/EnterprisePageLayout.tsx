@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { EmtsBrandMark, EmtsWordmark } from '@/components/common/EmtsBrandMark';
 import ThemeToggle from '@/components/auth/ThemeToggle';
 import { GlassCard } from '@/components/ui/GlassCard';
 import PremiumButton from '@/components/ui/PremiumButton';
@@ -107,8 +108,8 @@ export function EnterprisePageLayout({ children, title, label, subtitle, accentW
           {/* LEFT: Logo */}
           <div className="flex-shrink-0 relative z-10 lg:min-w-[200px] xl:min-w-[240px]">
             <Link to="/" className="relative inline-flex items-center gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full px-2 py-1">
-              <img src="/logo.png" alt="YVI People logo" loading="lazy" className="w-11 h-11 object-contain rounded-xl brightness-110 drop-shadow-sm" />
-              <span className="font-display font-semibold text-[26px] xl:text-[28px] tracking-tight text-slate-900 dark:text-white whitespace-nowrap">YVI <span className="text-orange-500">People</span></span>
+              <EmtsBrandMark size="lg" />
+              <EmtsWordmark className="text-[26px] xl:text-[28px] font-semibold whitespace-nowrap" />
             </Link>
           </div>
 
@@ -234,15 +235,8 @@ export function EnterprisePageLayout({ children, title, label, subtitle, accentW
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-lg"
                 >
-                  <img
-                    src="/logo.png"
-                    alt="YVI People logo"
-                    loading="lazy"
-                    className="w-10 h-10 object-contain rounded-xl brightness-110"
-                  />
-                  <span className="font-display font-semibold text-2xl tracking-tight text-slate-900 dark:text-white">
-                    YVI <span className="text-orange-500">People</span>
-                  </span>
+                  <EmtsBrandMark size="md" />
+                  <EmtsWordmark className="text-2xl font-semibold" />
                 </Link>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
@@ -328,11 +322,11 @@ export function EnterprisePageLayout({ children, title, label, subtitle, accentW
             <div className="grid grid-cols-1 md:grid-cols-6 gap-12 md:gap-20">
               <div className="md:col-span-2 space-y-6">
                 <Link to="/" className="flex items-center gap-3 focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-lg max-w-max">
-                  <img src="/logo.png" alt="YVI People enterprise logo" loading="lazy" className="w-10 h-10 object-contain brightness-110" />
-                  <span className="font-display font-semibold text-2xl tracking-tight text-slate-900 dark:text-white">YVI <span className="text-orange-555 dark:text-orange-400">People</span></span>
+                  <EmtsBrandMark size="md" />
+                  <EmtsWordmark className="text-2xl font-semibold" />
                 </Link>
                 <p className="font-sans font-normal text-sm text-slate-500 leading-relaxed max-w-sm">
-                  The world's most advanced autonomous enterprise operating system. Orchestrating global human capital with operational precision.
+                  Enterprise Management &amp; Ticketing System — orchestrating workforce, payroll, attendance, and service operations with operational precision.
                 </p>
                 {/* Premium Trust Certification Chips */}
                 <div className="flex flex-wrap gap-2 pt-2">
@@ -346,7 +340,7 @@ export function EnterprisePageLayout({ children, title, label, subtitle, accentW
 
               {[
                 {
-                  title: 'YVI People',
+                  title: 'EMTS Platform',
                   links: ['Core Intelligence', 'Governance Hub', 'Audit Console', 'System Status']
                 },
                 {

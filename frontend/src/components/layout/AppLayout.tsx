@@ -16,6 +16,7 @@ import { ChatDrawer } from '@/components/common/ChatDrawer';
 import { CommandPalette } from '@/components/common/CommandPalette';
 import { QuickActionLauncher } from '@/components/common/QuickActionLauncher';
 import { useShortcuts } from '@/hooks/useShortcuts';
+import { EmtsBrandMark, EmtsWordmark } from '@/components/common/EmtsBrandMark';
 import { MegaMenu } from './MegaMenu';
 import { FloatingOperationsPanel } from '@/components/common/FloatingOperationsPanel';
 import { LayoutGrid, Sparkles } from 'lucide-react';
@@ -98,7 +99,7 @@ const navGroups: NavGroup[] = [
       { title: 'Payroll Engine', href: '/app/payroll/cycles', icon: Calendar, roles: ['ADMIN', 'HR'] },
       { title: 'Bulk Ingestion', href: '/app/payroll/bulk', icon: FileUp, roles: ['ADMIN', 'HR'] },
       { title: 'Salary Assignments', href: '/app/payroll/assignments', icon: Users2, roles: ['ADMIN', 'HR'] },
-      { title: 'Approval YVI People', href: '/app/payroll/approvals', icon: ClipboardList, roles: ['ADMIN', 'HR', 'MANAGER'] },
+      { title: 'Approval Queue', href: '/app/payroll/approvals', icon: ClipboardList, roles: ['ADMIN', 'HR', 'MANAGER'] },
     ]
   },
   {
@@ -146,7 +147,7 @@ const navGroups: NavGroup[] = [
     items: [
       { title: 'Document Vault', href: '/app/documents', icon: FileText, roles: ['ADMIN', 'HR'] },
       { title: 'Insight Reports', href: '/app/reports', icon: BarChart3, roles: ['ADMIN', 'HR', 'MANAGER'] },
-      { title: 'YVI People Settings', href: '/app/payroll/settings', icon: Settings, roles: ['ADMIN'] },
+      { title: 'Platform Settings', href: '/app/payroll/settings', icon: Settings, roles: ['ADMIN'] },
     ]
   },
   ...ticketingNavGroups,
@@ -260,15 +261,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 className="relative"
               >
                 <div className="absolute inset-[-4px] bg-blue-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                <div className="w-10 h-10 relative rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 p-[1px] shadow-2xl shadow-blue-500/20">
-                  <div className="w-full h-full bg-[#0B1220] rounded-[10px] flex items-center justify-center overflow-hidden">
-                    <img
-                      src="/logo.png"
-                      alt="Logo"
-                      className="w-7 h-7 object-contain"
-                    />
-                  </div>
-                </div>
+                <EmtsBrandMark size="lg" />
               </motion.div>
               {!collapsed && (
                 <motion.div
@@ -276,7 +269,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                   animate={{ opacity: 1, x: 0 }}
                   className="flex flex-col"
                 >
-                  <span className="font-display font-black text-xl tracking-[-0.03em] text-slate-900 dark:text-white leading-none">YVI <span className="text-cyan-600 dark:text-cyan-400">PEOPLE</span></span>
+                  <EmtsWordmark className="text-xl font-black tracking-[-0.03em]" />
                   <span className="text-[10px] font-bold text-slate-500 tracking-[0.2em] mt-1.5 uppercase">Enterprise OS</span>
                 </motion.div>
               )}
@@ -467,7 +460,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <div className="mt-4 px-2 flex items-center justify-between text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.1em]">
                 <span>v2.5.0-PF</span>
                 <Dot className="text-blue-500 animate-pulse" />
-                <span>YVI ENTERPRISE</span>
+                <span>EMTS PLATFORM</span>
               </div>
             )}
           </div>
@@ -517,15 +510,8 @@ export function AppLayout({ children }: AppLayoutProps) {
 
           {/* Logo - visible on mobile */}
           <Link to="/app/dashboard" className="flex lg:hidden items-center gap-2.5 group">
-            <div className="relative">
-              <div className="absolute inset-[-2px] bg-blue-500/20 blur-lg rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
-              <img
-                src="/logo.png"
-                alt="Logo"
-                className="w-8 h-8 object-contain rounded-lg shadow-lg relative z-10"
-              />
-            </div>
-            <span className="font-black text-xl tracking-tight text-slate-900 dark:text-white">YVI</span>
+            <EmtsBrandMark size="md" />
+            <EmtsWordmark className="text-xl font-black" />
           </Link>
 
           {/* Center: Global Search */}

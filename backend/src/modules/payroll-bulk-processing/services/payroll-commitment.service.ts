@@ -36,7 +36,7 @@ async function fetchCompanyConfig(): Promise<CompanyPayrollConfig> {
     accentColor: activeTemplate?.theme_colors?.accent || '#10b981',
     fontFamily: activeTemplate?.font_family || 'Inter',
     watermarkText: activeTemplate?.watermark_text !== undefined ? activeTemplate?.watermark_text : 'CONFIDENTIAL',
-    organizationName: activeTemplate?.organization_name || 'YVI Enterprise EMS',
+    organizationName: activeTemplate?.organization_name || 'EMTS',
     companyAddress: activeTemplate?.company_address || '123 Enterprise Corporate Boulevard, Tech Park, Suite 400',
     footerText: activeTemplate?.footer_text || 'This is a computer-generated document and does not require a physical signature.',
     logoUrl: activeTemplate?.logo_url || '',

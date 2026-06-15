@@ -54,7 +54,7 @@ export default function Unauthorized() {
             <div className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
             Unauthorized Event Logged to Security Core
           </div>
-          <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">YVI Enterprise Management OS © 2026</p>
+          <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">EMTS © 2026</p>
         </div>
       </motion.div>
     </div>

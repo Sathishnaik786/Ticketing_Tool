@@ -6,7 +6,7 @@ export class PayslipTemplateService {
       components, 
       statutory, 
       cycle,
-      company = { name: 'YVI People Corp', address: '123 Enterprise Hub, Tech City' } 
+      company = { name: 'EMTS', address: '123 Enterprise Hub, Tech City' } 
     } = data;
 
     const earnings = components.filter((c: any) => c.component_category === 'EARNING');

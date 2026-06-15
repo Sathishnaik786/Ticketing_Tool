@@ -27,7 +27,7 @@ const GovernanceExport: React.FC = () => {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(res.data, null, 2));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", `YVI_EMS_Export_${type || 'ALL'}_${filterValue || new Date().toISOString().slice(0, 10)}.json`);
+            downloadAnchorNode.setAttribute("download", `EMTS_Export_${type || 'ALL'}_${filterValue || new Date().toISOString().slice(0, 10)}.json`);
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();

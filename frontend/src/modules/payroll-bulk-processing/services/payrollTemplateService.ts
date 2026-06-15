@@ -56,6 +56,6 @@ export const PayrollTemplateService = {
 
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    saveAs(blob, `YVI_Payroll_Template_${new Date().toISOString().split('T')[0]}.xlsx`);
+    saveAs(blob, `EMTS_Payroll_Template_${new Date().toISOString().split('T')[0]}.xlsx`);
   }
 };
