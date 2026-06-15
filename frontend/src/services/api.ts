@@ -35,16 +35,29 @@ import {
   Notification,
   ProjectMemberRole
 } from '@/types';
+import { clearAuthStorage, getAccessToken, tryRefreshSession } from '@/services/authSession';
 
 // Base API URL - replace with your Express backend URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3003/api';
+
+let refreshPromise: Promise<string | null> | null = null;
+
+async function refreshAccessTokenOnce(): Promise<string | null> {
+  if (!refreshPromise) {
+    refreshPromise = tryRefreshSession().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+}
 
 // Helper function for API calls
 export async function apiCall(
   url: string,
   method: string,
   body?: any,
-  token?: string
+  token?: string,
+  retryOnUnauthorized = true
 ) {
   const isFormData = body instanceof FormData;
   
@@ -53,18 +66,29 @@ export async function apiCall(
     headers['Content-Type'] = 'application/json';
   }
 
-  // Always get the token dynamically from localStorage
-  const dynamicToken = localStorage.getItem('token') || token;
+  const dynamicToken = getAccessToken() || token;
   if (dynamicToken) {
     headers.Authorization = `Bearer ${dynamicToken}`;
   }
 
   console.log(`API [${method}] ${url} - initiating...`);
-  const res = await fetch(`${API_BASE_URL}${url}`, {
+  const executeRequest = () => fetch(`${API_BASE_URL}${url}`, {
     method,
     headers,
     body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
   });
+
+  let res = await executeRequest();
+
+  if (res.status === 401 && retryOnUnauthorized && !url.startsWith('/auth/login')) {
+    const refreshedToken = await refreshAccessTokenOnce();
+    if (refreshedToken) {
+      headers.Authorization = `Bearer ${refreshedToken}`;
+      res = await executeRequest();
+    } else {
+      clearAuthStorage();
+    }
+  }
 
   console.log(`API [${method}] ${url} - Status: ${res.status}`);
 
@@ -77,7 +101,6 @@ export async function apiCall(
   }
 
   if (!res.ok) {
-    // Create error with status code to allow frontend to handle specific cases
     const error = new Error(data.message || 'API Error');
     (error as any).status = res.status;
     (error as any).message = data.error || data.message || 'API Error';

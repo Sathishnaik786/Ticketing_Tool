@@ -21,6 +21,7 @@ import { reportsApi, analyticsApi } from '@/services/api';
 import { DashboardStats, AdminOverviewData, ManagerTeamProgressData, HRWorkforceData, EmployeeSelfData } from '@/types';
 import AnalyticsOverview from '@/components/dashboard/AnalyticsOverview';
 import { UpdatesQuickAccess } from '@/components/dashboard/UpdatesQuickAccess';
+import { TicketsQuickAccess } from '@/modules/ticketing/components/dashboard/TicketsQuickAccess';
 import { EnterpriseHeader, EnterpriseStatCard } from '@/components/payroll/EnterpriseComponents';
 
 
@@ -173,6 +174,7 @@ export default function Dashboard() {
           <div className="h-px flex-1 bg-gradient-to-r from-border/50 to-transparent ml-6" />
         </div>
         <UpdatesQuickAccess />
+        <TicketsQuickAccess />
       </motion.div>
 
       {/* Employee Quick Actions */}

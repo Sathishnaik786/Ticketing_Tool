@@ -1,4 +1,5 @@
 const { supabase, supabaseAdmin } = require('@lib/supabase');
+const { getUserRole } = require('../services/role-resolution.service');
 
 exports.checkEmailExists = async (req, res, next) => {
     try {
@@ -339,6 +340,8 @@ exports.login = async (req, res, next) => {
             });
         }
 
+        const resolvedRole = await getUserRole(supabaseAdmin, user.id);
+
         // Generate access token
         const token = data.session.access_token;
 
@@ -361,13 +364,14 @@ exports.login = async (req, res, next) => {
                 user: {
                     id: user.id,
                     email: user.email,
-                    role: employee.role,
+                    role: resolvedRole || 'EMPLOYEE',
                     profile_image: profileImageUrl, // Use the signed URL
                     firstName: employee.first_name,
                     lastName: employee.last_name,
                     employeeId: employee.id,
                 },
-                token: token
+                token: token,
+                refresh_token: data.session.refresh_token,
             },
             message: 'Login successful'
         });

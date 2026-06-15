@@ -45,6 +45,8 @@ import MyPayslips from "./pages/MyPayslips";
 import { updatesRoutes } from './modules/updates/updates.routes';
 import { payrollRoutes } from './modules/payroll/payroll.routes';
 import { bulkProcessingRoutes } from './modules/payroll-bulk-processing/bulk-processing.routes';
+import { isTicketingEnabled } from '@/config/features';
+import { ticketingRoutes } from './modules/ticketing/ticketing.routes';
 
 
 import AdminUsers from './pages/AdminUsers';
@@ -121,6 +123,9 @@ const router = createBrowserRouter([
 
       // Phase-1: Payroll Bulk Processing
       ...bulkProcessingRoutes,
+
+      // ETMS Ticketing Module
+      ...(isTicketingEnabled ? ticketingRoutes : []),
 
       { path: "*", element: <NotFound /> },
 

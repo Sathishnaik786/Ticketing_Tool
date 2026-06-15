@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -189,6 +190,10 @@ const AdminUsers: React.FC = () => {
   }, [employees, searchTerm]);
 
   if (authLoading) return <div className="p-12 flex justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
+
+  if (!user || user.role !== 'ADMIN') {
+    return <Navigate to="/app/unauthorized" replace />;
+  }
 
   return (
     <motion.div

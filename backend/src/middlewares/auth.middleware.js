@@ -1,4 +1,5 @@
 const { supabase, supabaseAdmin } = require('@lib/supabase');
+const { getUserRole } = require('../services/role-resolution.service');
 
 const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -40,10 +41,12 @@ const authMiddleware = async (req, res, next) => {
       });
     }
 
+    const resolvedRole = await getUserRole(supabaseAdmin, data.user.id);
+
     req.user = {
       id: data.user.id,
       email: data.user.email,
-      role: employee.role?.toUpperCase() || 'EMPLOYEE',
+      role: resolvedRole || 'EMPLOYEE',
       employeeId: employee.id,
       firstName: employee.first_name,
       lastName: employee.last_name,

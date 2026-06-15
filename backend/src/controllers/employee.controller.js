@@ -4,6 +4,7 @@ const NotificationService = require('./notification.service');
 const ProfileImageService = require('./profileImage.service');
 const CacheService = require('../services/cache.service');
 const logger = require('../lib/logger');
+const { syncEmployeeRoleUpdate, normalizeRole, assertAdminCanModifyRole } = require('../services/role-sync.service');
 
 // Configure multer for file uploads
 const storage = multer.memoryStorage(); // Store file in memory
@@ -335,6 +336,11 @@ exports.getById = async (req, res, next) => {
 
 exports.create = async (req, res, next) => {
     try {
+        const roleCheck = assertAdminCanModifyRole(req.user.role, req.body);
+        if (!roleCheck.allowed) {
+            return res.status(403).json({ success: false, message: roleCheck.message });
+        }
+
         const { firstName, lastName, dateOfBirth, dateOfJoining, departmentId, zipCode, emergencyContact, emergencyPhone, managerId, ...rest } = req.body;
 
         const dbData = {
@@ -379,6 +385,13 @@ exports.update = async (req, res, next) => {
         const body = req.body;
         console.log(`Processing administrative update for employee ${id}`);
 
+        const roleCheck = assertAdminCanModifyRole(req.user.role, body);
+        if (!roleCheck.allowed) {
+            return res.status(403).json({ success: false, message: roleCheck.message });
+        }
+
+        const requestedRole = body.role !== undefined ? normalizeRole(body.role) : null;
+
         // Strict mapping of frontend fields to database columns
         const fieldMap = {
             firstName: 'first_name',
@@ -391,7 +404,6 @@ exports.update = async (req, res, next) => {
             emergencyContact: 'emergency_contact',
             emergencyPhone: 'emergency_phone',
             managerId: 'manager_id',
-            role: 'role',
             status: 'status',
             salary: 'salary',
             phone: 'phone',
@@ -419,25 +431,59 @@ exports.update = async (req, res, next) => {
             }
         });
 
-        if (Object.keys(dbData).length === 0) {
+        const hasRoleChange = body.role !== undefined;
+        const hasOtherUpdates = Object.keys(dbData).length > 0;
+
+        if (!hasRoleChange && !hasOtherUpdates) {
             return res.status(400).json({ success: false, message: 'No fields provided for update' });
         }
 
-        console.log(`Updating employee ${id} with fields:`, Object.keys(dbData));
+        let data;
 
-        const { data, error } = await supabaseAdmin
-            .from('employees')
-            .update(dbData)
-            .eq('id', id)
-            .select()
-            .single();
+        if (hasOtherUpdates) {
+            console.log(`Updating employee ${id} with fields:`, Object.keys(dbData));
 
-        if (error) {
-            console.error('Supabase update error in update:', error);
-            throw error;
+            const { data: updated, error } = await supabaseAdmin
+                .from('employees')
+                .update(dbData)
+                .eq('id', id)
+                .select()
+                .single();
+
+            if (error) {
+                console.error('Supabase update error in update:', error);
+                throw error;
+            }
+
+            data = updated;
+        } else {
+            const { data: current, error: fetchError } = await supabaseAdmin
+                .from('employees')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (fetchError) {
+                console.error('Supabase fetch error in update:', fetchError);
+                throw fetchError;
+            }
+
+            data = current;
         }
 
-        // Generate signed URL if profile_image exists
+        if (hasRoleChange) {
+            const syncResult = await syncEmployeeRoleUpdate(supabaseAdmin, {
+                employeeId: id,
+                newRole: requestedRole,
+                actorUserId: req.user.id,
+            });
+            data = syncResult.employee;
+
+            if (syncResult.changed && data.user_id) {
+                await NotificationService.notifyRoleChanged(data.user_id, data.user_id);
+            }
+        }
+
         if (data.profile_image) {
             try {
                 const signedUrl = await ProfileImageService.generateSignedUrl(data.profile_image);
@@ -446,13 +492,6 @@ exports.update = async (req, res, next) => {
                 }
             } catch (urlError) {
                 console.error('Error generating signed URL in update:', urlError);
-            }
-        }
-
-        // If role was changed, notify the user
-        if (body.role !== undefined) {
-            if (data.user_id) {
-                await NotificationService.notifyRoleChanged(data.user_id, data.user_id);
             }
         }
 

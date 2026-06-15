@@ -174,6 +174,13 @@ try {
   console.error('❌ Failed to mount Payroll Bulk Module. Missing dependencies?', error.message);
 }
 
+// ETMS Ticketing Module (Feature Flag: ENABLE_TICKETING)
+if (process.env.ENABLE_TICKETING === 'true') {
+  console.log('📦 Mounting ETMS Ticketing Module...');
+  app.use('/api/ticket-categories', generalLimiter, require('./modules/ticketing/ticket-categories.routes'));
+  app.use('/api/tickets', generalLimiter, require('./modules/ticketing/ticketing.routes'));
+}
+
 
 
 

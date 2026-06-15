@@ -60,6 +60,17 @@ export const queryKeys = {
   // Notifications
   notifications: ['notifications'] as const,
   unreadNotifications: ['notifications', 'unread'] as const,
+
+  // Ticketing (ETMS)
+  tickets: (filters?: Record<string, unknown>) => ['tickets', filters] as const,
+  ticket: (id: string) => ['ticket', id] as const,
+  ticketComments: (ticketId: string, includeInternal?: boolean) =>
+    ['ticketComments', ticketId, includeInternal] as const,
+  ticketAttachments: (ticketId: string) => ['ticketAttachments', ticketId] as const,
+  ticketTimeline: (ticketId: string) => ['ticketTimeline', ticketId] as const,
+  ticketSla: (ticketId: string) => ['ticketSla', ticketId] as const,
+  ticketWatchers: (ticketId: string) => ['ticketWatchers', ticketId] as const,
+  ticketCategories: ['ticketCategories'] as const,
 };
 
 

@@ -60,6 +60,8 @@ import {
   FileUp
 } from 'lucide-react';
 
+import { ticketingNavGroups } from '@/modules/ticketing/ticketing.nav';
+
 
 interface NavItem {
   title: string;
@@ -146,7 +148,8 @@ const navGroups: NavGroup[] = [
       { title: 'Insight Reports', href: '/app/reports', icon: BarChart3, roles: ['ADMIN', 'HR', 'MANAGER'] },
       { title: 'YVI People Settings', href: '/app/payroll/settings', icon: Settings, roles: ['ADMIN'] },
     ]
-  }
+  },
+  ...ticketingNavGroups,
 ];
 
 interface AppLayoutProps {
@@ -174,7 +177,8 @@ export function AppLayout({ children }: AppLayoutProps) {
       'Predictive Analytics': true,
       'Personalized Portal': true,
       'Human Capital Management': true,
-      'Strategic Assets': true
+      'Strategic Assets': true,
+      'Service Management': true
     };
   });
 

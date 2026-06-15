@@ -1,7 +1,12 @@
 import React, { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
-import { User as SupabaseUser } from '@supabase/supabase-js';
 import { useQueryClient } from '@tanstack/react-query';
 import { authApi } from '@/services/api';
+import {
+  clearAuthStorage,
+  performLogout,
+  setAuthTokens,
+  tryRefreshSession,
+} from '@/services/authSession';
 import { Role } from '@/types';
 
 interface AuthUser {
@@ -17,7 +22,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<any>;
-  logout: () => void;
+  logout: () => Promise<void>;
   hasRole: (role: string | string[]) => boolean;
   updateProfileImage: (image: string) => void;
   refreshProfileImage: () => Promise<void>;
@@ -55,18 +60,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const requestPromise = (async () => {
       try {
         setIsLoading(true);
-        // Use the me() endpoint to get user profile
         const response = await authApi.me();
         if (response.success && response.data?.user) {
           setUser(response.data.user);
         } else {
-          // If me() endpoint doesn't exist or fails, clear token
-          localStorage.removeItem('token');
+          clearAuthStorage();
         }
-      } catch (error) {
+      } catch (error: any) {
+        if (error?.status === 401) {
+          const refreshedToken = await tryRefreshSession();
+          if (refreshedToken) {
+            try {
+              const retryResponse = await authApi.me();
+              if (retryResponse.success && retryResponse.data?.user) {
+                setUser(retryResponse.data.user);
+                return;
+              }
+            } catch (retryError) {
+              console.error('Error fetching user profile after refresh:', retryError);
+            }
+          }
+        }
+
         console.error('Error fetching user profile:', error);
-        // Clear token if there's an error
-        localStorage.removeItem('token');
+        clearAuthStorage();
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -86,7 +103,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await authApi.login({ email, password });
 
       if (response.success && response.data?.token) {
-        localStorage.setItem('token', response.data.token);
+        setAuthTokens(response.data.token, response.data.refresh_token);
         await fetchUserProfile();
         return response;
       } else {
@@ -98,9 +115,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
+  const logout = async () => {
     setUser(null);
+    await performLogout(queryClient);
   };
 
   const updateProfileImage = (image: string) => {
