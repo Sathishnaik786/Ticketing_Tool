@@ -62,6 +62,9 @@ import {
 } from 'lucide-react';
 
 import { ticketingNavGroups } from '@/modules/ticketing/ticketing.nav';
+import { ticketFeedbackNavGroups } from '@/modules/ticket-feedback/ticket-feedback.nav';
+import { ticketAssignmentNavGroups } from '@/modules/ticket-assignment/ticket-assignment.nav';
+import { communicationTrackingNavGroups } from '@/modules/communication-tracking/communication-tracking.nav';
 
 
 interface NavItem {
@@ -151,6 +154,9 @@ const navGroups: NavGroup[] = [
     ]
   },
   ...ticketingNavGroups,
+  ...ticketFeedbackNavGroups,
+  ...ticketAssignmentNavGroups,
+  ...communicationTrackingNavGroups,
 ];
 
 interface AppLayoutProps {

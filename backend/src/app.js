@@ -181,6 +181,24 @@ if (process.env.ENABLE_TICKETING === 'true') {
   app.use('/api/tickets', generalLimiter, require('./modules/ticketing/ticketing.routes'));
 }
 
+// Phase 7.1: CSAT Ticket Feedback Module (Feature Flag: ENABLE_TICKET_FEEDBACK)
+if (process.env.ENABLE_TICKET_FEEDBACK === 'true') {
+  console.log('📦 Mounting CSAT Ticket Feedback Module...');
+  app.use('/api/ticket-feedback', generalLimiter, require('./modules/ticket-feedback/routes/ticket-feedback.routes'));
+}
+
+// Phase 7.2: Ticket Assignment & Work Queue (Feature Flag: ENABLE_TICKET_ASSIGNMENTS)
+if (process.env.ENABLE_TICKET_ASSIGNMENTS === 'true') {
+  console.log('📦 Mounting Ticket Assignment & Work Queue Module...');
+  app.use('/api/ticket-assignments', generalLimiter, require('./modules/ticket-assignment/ticket-assignment.routes'));
+}
+
+// Phase 7.4: Communication & Activity Tracking (Feature Flag: ENABLE_COMMUNICATION_TRACKING)
+if (process.env.ENABLE_COMMUNICATION_TRACKING === 'true') {
+  console.log('📦 Mounting Communication & Activity Tracking Module...');
+  app.use('/api/communications', generalLimiter, require('./modules/communication-tracking/routes/communication-tracking.routes'));
+}
+
 
 
 

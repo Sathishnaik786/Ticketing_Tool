@@ -29,6 +29,13 @@ import { TicketAttachmentUpload } from '../components/TicketAttachmentUpload';
 import { TicketTimeline } from '../components/TicketTimeline';
 import { TicketSlaCard } from '../components/TicketSlaCard';
 import { TicketAssignments } from '../components/TicketAssignments';
+import { TicketFeedbackTabTrigger, TicketFeedbackTabContent } from '@/modules/ticket-feedback/components/TicketFeedbackTab';
+import { TicketAssignmentActions } from '@/modules/ticket-assignment/components/TicketAssignmentActions';
+import {
+  TicketCommunicationTabTrigger,
+  TicketActivityTimelineTabTrigger,
+  TicketCommunicationTabContent,
+} from '@/modules/communication-tracking/components/TicketCommunicationTab';
 
 function formatPerson(
   person?: { first_name?: string; last_name?: string; firstName?: string; lastName?: string; email?: string } | null
@@ -112,6 +119,7 @@ export default function TicketDetailPage() {
             Back
           </Link>
         </Button>
+        <TicketAssignmentActions ticket={ticket} />
       </PageHeader>
 
       <Tabs defaultValue="overview" className="space-y-6">
@@ -122,6 +130,9 @@ export default function TicketDetailPage() {
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
           <TabsTrigger value="sla">SLA</TabsTrigger>
           <TabsTrigger value="assignments">Assignments</TabsTrigger>
+          <TicketCommunicationTabTrigger />
+          <TicketActivityTimelineTabTrigger />
+          <TicketFeedbackTabTrigger ticket={ticket} />
         </TabsList>
 
         <TabsContent value="overview" className="enterprise-panel space-y-6">
@@ -218,6 +229,9 @@ export default function TicketDetailPage() {
             />
           )}
         </TabsContent>
+
+        <TicketFeedbackTabContent ticket={ticket} ticketId={ticketId} />
+        <TicketCommunicationTabContent ticketId={ticketId} />
       </Tabs>
     </div>
   );

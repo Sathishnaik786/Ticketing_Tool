@@ -71,6 +71,18 @@ export const queryKeys = {
   ticketSla: (ticketId: string) => ['ticketSla', ticketId] as const,
   ticketWatchers: (ticketId: string) => ['ticketWatchers', ticketId] as const,
   ticketCategories: ['ticketCategories'] as const,
+
+  // Ticket Feedback (CSAT)
+  ticketFeedback: (ticketId: string) => ['ticketFeedback', ticketId] as const,
+  feedbackMetrics: (params?: Record<string, string>) => ['feedbackMetrics', params] as const,
+  myFeedbackCount: () => ['myFeedbackCount'] as const,
+
+  // Ticket Assignment (Phase 7.2)
+  myAssignmentQueue: (params?: Record<string, unknown>) => ['assignmentQueue', 'my', params] as const,
+  teamAssignmentQueue: (params?: Record<string, unknown>) => ['assignmentQueue', 'team', params] as const,
+  unassignedQueue: (params?: Record<string, unknown>) => ['assignmentQueue', 'unassigned', params] as const,
+  assignmentAnalytics: () => ['assignmentAnalytics'] as const,
+  ticketAssignmentHistory: (ticketId: string) => ['ticketAssignmentHistory', ticketId] as const,
 };
 
 

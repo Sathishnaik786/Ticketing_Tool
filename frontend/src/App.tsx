@@ -47,6 +47,9 @@ import { payrollRoutes } from './modules/payroll/payroll.routes';
 import { bulkProcessingRoutes } from './modules/payroll-bulk-processing/bulk-processing.routes';
 import { isTicketingEnabled } from '@/config/features';
 import { ticketingRoutes } from './modules/ticketing/ticketing.routes';
+import { ticketFeedbackRoutes } from './modules/ticket-feedback/ticket-feedback.routes';
+import { ticketAssignmentRoutes } from './modules/ticket-assignment/ticket-assignment.routes';
+import { communicationTrackingRoutes } from './modules/communication-tracking/communication-tracking.routes';
 
 
 import AdminUsers from './pages/AdminUsers';
@@ -126,6 +129,15 @@ const router = createBrowserRouter([
 
       // ETMS Ticketing Module
       ...(isTicketingEnabled ? ticketingRoutes : []),
+
+      // Phase 7.1: CSAT Ticket Feedback
+      ...ticketFeedbackRoutes,
+
+      // Phase 7.2: Ticket Assignment & Work Queues
+      ...ticketAssignmentRoutes,
+
+      // Phase 7.4: Communication & Activity Tracking
+      ...communicationTrackingRoutes,
 
       { path: "*", element: <NotFound /> },
 

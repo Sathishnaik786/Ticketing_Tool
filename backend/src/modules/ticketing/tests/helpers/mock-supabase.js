@@ -50,7 +50,20 @@ function createQueryBuilder(state = {}) {
       builder.filters.push({ type: 'or', expression });
       return builder;
     },
-    ilike() {
+    gte(column, value) {
+      builder.filters.push({ type: 'gte', column, value });
+      return builder;
+    },
+    lte(column, value) {
+      builder.filters.push({ type: 'lte', column, value });
+      return builder;
+    },
+    in(column, values) {
+      builder.filters.push({ type: 'in', column, values });
+      return builder;
+    },
+    limit(count) {
+      builder.limit = count;
       return builder;
     },
     order(column, options) {

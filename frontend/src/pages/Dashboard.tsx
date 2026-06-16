@@ -22,6 +22,8 @@ import { DashboardStats, AdminOverviewData, ManagerTeamProgressData, HRWorkforce
 import AnalyticsOverview from '@/components/dashboard/AnalyticsOverview';
 import { UpdatesQuickAccess } from '@/components/dashboard/UpdatesQuickAccess';
 import { TicketsQuickAccess } from '@/modules/ticketing/components/dashboard/TicketsQuickAccess';
+import { TicketFeedbackDashboardWidgets } from '@/modules/ticket-feedback/components/dashboard/TicketFeedbackDashboardWidgets';
+import { CommunicationDashboardWidgets } from '@/modules/communication-tracking/components/dashboard/CommunicationDashboardWidgets';
 import { EnterpriseHeader, EnterpriseStatCard } from '@/components/payroll/EnterpriseComponents';
 
 
@@ -175,6 +177,8 @@ export default function Dashboard() {
         </div>
         <UpdatesQuickAccess />
         <TicketsQuickAccess />
+        <TicketFeedbackDashboardWidgets />
+        <CommunicationDashboardWidgets />
       </motion.div>
 
       {/* Employee Quick Actions */}
