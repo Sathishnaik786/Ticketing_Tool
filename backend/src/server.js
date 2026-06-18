@@ -77,8 +77,18 @@ console.log('Attempting to start server...');
 const server = http.createServer(app);
 
 // CORS origins configuration - should match Express CORS configuration
+const productionCorsOrigins = [...new Set([
+  config.FRONTEND_URL,
+  'https://ticketra.netlify.app',
+  'https://yviems.netlify.app',
+  ...(process.env.CORS_ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+].filter(Boolean))];
+
 const corsOrigins = config.NODE_ENV === 'production'
-  ? [config.FRONTEND_URL, 'https://yviems.netlify.app'].filter(Boolean)
+  ? productionCorsOrigins
   : [
       'http://localhost:8080',
       'http://127.0.0.1:8080',

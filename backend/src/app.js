@@ -14,28 +14,46 @@ const requireRole = require('./middlewares/role.middleware');
 
 const app = express();
 
+// Render (and other reverse proxies) set X-Forwarded-For — required for express-rate-limit v8
+app.set('trust proxy', 1);
+
+function getAllowedOrigins() {
+  if (config.NODE_ENV !== 'production') {
+    return [
+      'http://localhost:8080',
+      'http://127.0.0.1:8080',
+      'http://localhost:8081',
+      'http://127.0.0.1:8081',
+      'http://localhost:8082',
+      'http://127.0.0.1:8082',
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'http://localhost:3003',
+      'http://127.0.0.1:3003',
+      'http://localhost:3002',
+      'http://127.0.0.1:3002',
+      'http://localhost:5174',
+      'http://127.0.0.1:5174',
+    ];
+  }
+
+  const extra = (process.env.CORS_ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  return [...new Set([
+    config.FRONTEND_URL,
+    'https://ticketra.netlify.app',
+    'https://yviems.netlify.app',
+    ...extra,
+  ].filter(Boolean))];
+}
+
 // CORS configuration
 const corsOptions = {
   origin: function (origin, callback) {
-    // Production-safe allowlist for CORS
-    const allowedOrigins = config.NODE_ENV === 'production'
-      ? ['https://yviems.netlify.app', config.FRONTEND_URL]
-      : [
-        'http://localhost:8080',
-        'http://127.0.0.1:8080',
-        'http://localhost:8081',
-        'http://127.0.0.1:8081',
-        'http://localhost:8082',
-        'http://127.0.0.1:8082',
-        'http://localhost:5173',
-        'http://127.0.0.1:5173',
-        'http://localhost:3003',
-        'http://127.0.0.1:3003',
-        'http://localhost:3002',
-        'http://127.0.0.1:3002',
-        'http://localhost:5174',
-        'http://127.0.0.1:5174'
-      ];
+    const allowedOrigins = getAllowedOrigins();
 
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
