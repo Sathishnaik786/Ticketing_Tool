@@ -1,0 +1,61 @@
+# Render Blueprint — Enterprise Ticketing System (Backend)
+# Docs: https://render.com/docs/blueprint-spec
+#
+# Deploy: connect this repo in Render → New → Blueprint → select render.yaml
+# Or create a Web Service manually and set rootDir = backend
+
+services:
+  # ── Backend API ──────────────────────────────────────────────
+  - type: web
+    name: etms-api
+    runtime: node
+    region: oregon
+    plan: starter
+    rootDir: backend
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /health/ping
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      # ── Required secrets (set values in Render Dashboard) ──
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+      # ── Ticketing feature flags (match Netlify VITE_ENABLE_*) ──
+      - key: ENABLE_TICKETING
+        value: "true"
+      - key: ENABLE_TICKET_FEEDBACK
+        value: "true"
+      - key: ENABLE_TICKET_ASSIGNMENTS
+        value: "true"
+      - key: ENABLE_COMMUNICATION_TRACKING
+        value: "true"
+      # ── Redis / Socket.IO (optional — enable when scaling) ──
+      - key: ENABLE_REDIS
+        value: "false"
+      - key: ENABLE_SOCKET_REDIS
+        value: "false"
+      - key: ENABLE_CACHE
+        value: "false"
+      - key: LOG_LEVEL
+        value: warn
+      - key: ENABLE_DEBUG_ROUTES
+        value: "false"
+
+  # ── Redis (optional — uncomment when you need multi-instance Socket.IO) ──
+  # - type: redis
+  #   name: etms-redis
+  #   plan: starter
+  #   maxmemoryPolicy: allkeys-lru
+  #   ipAllowList: []

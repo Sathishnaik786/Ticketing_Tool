@@ -169,8 +169,7 @@ config/credentials.yml.enc
 *.sln
 *.sw?
 
-# Lock files
-package-lock.json
+# Lock files (package-lock.json is committed for reproducible Netlify/Render builds)
 yarn.lock
 pnpm-lock.yaml
 bun.lockb
