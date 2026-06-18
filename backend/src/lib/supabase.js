@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const ws = require('ws');
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
@@ -19,9 +20,14 @@ console.log('[BOOT] Initializing Supabase client...');
 let supabase;
 let supabaseAdmin;
 
+// Node.js < 22 has no native WebSocket; required by @supabase/realtime-js on Render
+const supabaseClientOptions = {
+    realtime: { transport: ws },
+};
+
 try {
-    supabase = createClient(supabaseUrl, supabaseAnonKey);
-    supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
+    supabase = createClient(supabaseUrl, supabaseAnonKey, supabaseClientOptions);
+    supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole, supabaseClientOptions);
     console.log('[BOOT] Supabase client initialized successfully.');
 } catch (err) {
     console.error('[CRITICAL] Failed to create Supabase client:', err.message);
