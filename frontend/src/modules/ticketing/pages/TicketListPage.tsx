@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useMemo, useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Plus, ChevronLeft, ChevronRight, Ticket as TicketIcon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -21,7 +21,13 @@ import { useTickets } from '../hooks/useTicketing';
 import { TicketFiltersBar } from '../components/TicketFilters';
 import { TicketStatusBadge } from '../components/TicketStatusBadge';
 import { TicketPriorityBadge } from '../components/TicketPriorityBadge';
+import { useAuth } from '@/contexts/AuthContext';
 import type { TicketFilters } from '../types/ticketing.types';
+import {
+  resolveEffectiveTicketScope,
+  buildTicketFiltersForScope,
+  getTicketScopePageTitle,
+} from '../utils/ticketScope.utils';
 
 function formatPerson(
   person?: { first_name?: string; last_name?: string; firstName?: string; lastName?: string; email?: string } | null
@@ -34,6 +40,10 @@ function formatPerson(
 
 export default function TicketListPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const rawScope = searchParams.get('scope');
+  const { user } = useAuth();
+  const effectiveScope = resolveEffectiveTicketScope(rawScope, user?.role);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
@@ -41,20 +51,49 @@ export default function TicketListPage() {
   const [departmentId, setDepartmentId] = useState('all');
   const [assigneeId, setAssigneeId] = useState('all');
 
-  const filters: TicketFilters = useMemo(
-    () => ({
-      page,
-      limit: 20,
-      search: search || undefined,
-      status: status === 'all' ? undefined : (status as TicketFilters['status']),
-      priority: priority === 'all' ? undefined : (priority as TicketFilters['priority']),
-      department_id: departmentId === 'all' ? undefined : departmentId,
-      assignee_id: assigneeId === 'all' ? undefined : assigneeId,
-      sort_by: 'created_at',
-      sort_order: 'desc',
-    }),
-    [page, search, status, priority, departmentId, assigneeId]
-  );
+  useEffect(() => {
+    if (rawScope && rawScope !== effectiveScope) {
+      navigate(`/app/tickets?scope=${effectiveScope}`, { replace: true });
+    }
+  }, [rawScope, effectiveScope, navigate]);
+
+  const filters: TicketFilters = useMemo(() => {
+    const scoped = buildTicketFiltersForScope(
+      effectiveScope,
+      user,
+      {
+        page,
+        limit: 20,
+        search: search || undefined,
+        status: status === 'all' ? undefined : (status as TicketFilters['status']),
+        priority: priority === 'all' ? undefined : (priority as TicketFilters['priority']),
+        sort_by: 'created_at',
+        sort_order: 'desc',
+      }
+    );
+
+    if (effectiveScope === 'all' || effectiveScope === 'team') {
+      if (departmentId !== 'all') scoped.department_id = departmentId;
+      if (assigneeId !== 'all') scoped.assignee_id = assigneeId;
+    }
+
+    return scoped;
+  }, [
+    page,
+    search,
+    status,
+    priority,
+    departmentId,
+    assigneeId,
+    effectiveScope,
+    user,
+  ]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [effectiveScope]);
+
+  const pageTitle = getTicketScopePageTitle(effectiveScope);
 
   const { data, isLoading, isError, error, refetch } = useTickets(filters);
 
@@ -76,7 +115,7 @@ export default function TicketListPage() {
   return (
     <div className="p-6 lg:p-8 space-y-8">
       <PageHeader
-        title="Tickets"
+        title={pageTitle}
         description="Track and manage service requests across your organization."
         className="enterprise-panel mb-0"
       >

@@ -1,6 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 
-vi.mock('@/config/features', () => ({ isTicketFeedbackEnabled: true }));
+vi.mock('@/config/features', () => ({
+  isTicketFeedbackEnabled: true,
+  isFeatureFlagEnabled: () => true,
+}));
 
 describe('ticketFeedbackRoutes', () => {
   it('exports feedback analytics route', async () => {

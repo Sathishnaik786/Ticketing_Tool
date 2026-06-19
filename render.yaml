@@ -41,6 +41,14 @@ services:
         value: "true"
       - key: ENABLE_COMMUNICATION_TRACKING
         value: "true"
+      - key: ENABLE_APPROVAL_ENGINE
+        value: "true"
+      - key: ENABLE_KNOWLEDGE_BASE
+        value: "true"
+      - key: ENABLE_EXECUTIVE_ANALYTICS
+        value: "true"
+      - key: ENABLE_NOTIFICATION_CENTER
+        value: "true"
       # ── Redis / Socket.IO (optional — enable when scaling) ──
       - key: ENABLE_REDIS
         value: "false"

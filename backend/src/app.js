@@ -217,6 +217,30 @@ if (process.env.ENABLE_COMMUNICATION_TRACKING === 'true') {
   app.use('/api/communications', generalLimiter, require('./modules/communication-tracking/routes/communication-tracking.routes'));
 }
 
+// Phase 7.5: Approval Workflow & Service Catalog (Feature Flag: ENABLE_APPROVAL_ENGINE)
+if (process.env.ENABLE_APPROVAL_ENGINE === 'true') {
+  console.log('📦 Mounting Approval Workflow & Service Catalog Module...');
+  app.use('/api/approvals', generalLimiter, require('./modules/approval-management/routes/approval-management.routes'));
+}
+
+// Phase 7.6: Knowledge Base & Self-Service Portal (Feature Flag: ENABLE_KNOWLEDGE_BASE)
+if (process.env.ENABLE_KNOWLEDGE_BASE === 'true') {
+  console.log('📦 Mounting Knowledge Base & Self-Service Portal Module...');
+  app.use('/api/knowledge', generalLimiter, require('./modules/knowledge-management/routes/knowledge-management.routes'));
+}
+
+// Phase 7.7: Executive Analytics & BI (Feature Flag: ENABLE_EXECUTIVE_ANALYTICS)
+if (process.env.ENABLE_EXECUTIVE_ANALYTICS === 'true') {
+  console.log('📦 Mounting Executive Analytics & BI Module...');
+  app.use('/api/analytics', generalLimiter, require('./modules/executive-analytics/routes/executive-analytics.routes'));
+}
+
+// Phase 7.8: Enterprise Notification & Alert Center (Feature Flag: ENABLE_NOTIFICATION_CENTER)
+if (process.env.ENABLE_NOTIFICATION_CENTER === 'true') {
+  console.log('📦 Mounting Enterprise Notification & Alert Center Module...');
+  app.use('/api/notification-center', generalLimiter, require('./modules/notification-center/routes/notification-center.routes'));
+}
+
 
 
 

@@ -18,6 +18,7 @@ import { departmentsApi } from '@/services/api';
 import { queryKeys } from '@/utils/queryKeys';
 import { createTicketSchema, type CreateTicketFormValues } from '../schemas/ticket.schema';
 import { useCreateTicket, useTicketCategories } from '../hooks/useTicketing';
+import { KnowledgeSuggestionsPanel } from '@/modules/knowledge-management/components/KnowledgeSuggestionsPanel';
 
 const PRIORITY_OPTIONS = [
   { value: 'LOW', label: 'Low' },
@@ -57,6 +58,9 @@ export default function TicketCreatePage() {
   const priority = watch('priority');
   const categoryId = watch('category_id');
   const departmentId = watch('department_id');
+  const title = watch('title');
+  const description = watch('description');
+  const suggestionQuery = `${title} ${description}`.trim();
 
   const onSubmit = async (values: CreateTicketFormValues) => {
     const response = await createTicket.mutateAsync({
@@ -71,12 +75,14 @@ export default function TicketCreatePage() {
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-8 max-w-3xl">
+    <div className="p-6 lg:p-8 space-y-8 max-w-5xl">
       <PageHeader
         title="Create Ticket"
         description="Submit a new service request for your team to resolve."
         className="enterprise-panel mb-0"
       />
+
+      <KnowledgeSuggestionsPanel searchQuery={suggestionQuery} />
 
       <div aria-live="polite" className="sr-only">
         {createTicket.isError ? 'Ticket creation failed. Please review the form and try again.' : ''}

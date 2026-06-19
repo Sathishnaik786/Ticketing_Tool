@@ -24,15 +24,18 @@ describe('ticket assignment feature flag', () => {
 
   it('returns no nav when flag is off', async () => {
     vi.stubEnv('VITE_ENABLE_TICKET_ASSIGNMENTS', 'false');
-    const { ticketAssignmentNavGroups } = await import('../ticket-assignment.nav');
-    expect(ticketAssignmentNavGroups).toEqual([]);
+    const { filterNavItem } = await import('@/config/navigation.utils');
+    const { NAV_ITEMS } = await import('@/config/navigation');
+    const items = NAV_ITEMS.filter((i) => i.featureFlag === 'VITE_ENABLE_TICKET_ASSIGNMENTS');
+    expect(items.every((item) => !filterNavItem(item, { role: 'ADMIN' }))).toBe(true);
   });
 
   it('returns nav groups when flag is on', async () => {
     vi.stubEnv('VITE_ENABLE_TICKET_ASSIGNMENTS', 'true');
-    const { ticketAssignmentNavGroups } = await import('../ticket-assignment.nav');
-    expect(ticketAssignmentNavGroups[0]?.label).toBe('Work Queues');
-    expect(ticketAssignmentNavGroups[0]?.items?.length).toBe(3);
+    const { buildEtmsNavGroups } = await import('@/config/navigation.utils');
+    const group = buildEtmsNavGroups().find((g) => g.id === 'assignments');
+    expect(group?.label).toBe('Assignments');
+    expect(group?.items.length).toBeGreaterThan(0);
   });
 
   it('uses strict true comparison', async () => {
@@ -43,8 +46,8 @@ describe('ticket assignment feature flag', () => {
 
   it('restricts team queue nav to manager roles', async () => {
     vi.stubEnv('VITE_ENABLE_TICKET_ASSIGNMENTS', 'true');
-    const { ticketAssignmentNavGroups } = await import('../ticket-assignment.nav');
-    const teamItem = ticketAssignmentNavGroups[0]?.items?.find((i) => i.title === 'Team Queue');
+    const { NAV_ITEMS } = await import('@/config/navigation');
+    const teamItem = NAV_ITEMS.find((i) => i.id === 'assignments-team');
     expect(teamItem?.roles).toEqual(['ADMIN', 'HR', 'MANAGER']);
   });
 

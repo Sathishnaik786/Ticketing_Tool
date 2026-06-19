@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { RouteObject } from 'react-router-dom';
 import { RouteErrorBoundary } from '@/components/common/RouteErrorBoundary';
 import { DataTableSkeleton } from '@/components/common/Skeletons';
+import { guardFromMetadata } from '@/config/routeMetadata.utils';
 import { isTicketingEnabled } from '@/config/features';
 
 const TicketListPage = lazy(() => import('./pages/TicketListPage'));
@@ -22,27 +23,21 @@ export const ticketingRoutes: RouteObject[] = isTicketingEnabled
         children: [
           {
             index: true,
-            element: (
-              <SuspenseLoader>
-                <TicketListPage />
-              </SuspenseLoader>
-            ),
+            element: guardFromMetadata('/app/tickets', (
+              <SuspenseLoader><TicketListPage /></SuspenseLoader>
+            )),
           },
           {
             path: 'new',
-            element: (
-              <SuspenseLoader>
-                <TicketCreatePage />
-              </SuspenseLoader>
-            ),
+            element: guardFromMetadata('/app/tickets/new', (
+              <SuspenseLoader><TicketCreatePage /></SuspenseLoader>
+            )),
           },
           {
             path: ':ticketId',
-            element: (
-              <SuspenseLoader>
-                <TicketDetailPage />
-              </SuspenseLoader>
-            ),
+            element: guardFromMetadata('/app/tickets/:ticketId', (
+              <SuspenseLoader><TicketDetailPage /></SuspenseLoader>
+            )),
           },
         ],
       },

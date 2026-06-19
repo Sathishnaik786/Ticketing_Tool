@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { RouteObject } from 'react-router-dom';
 import { RouteErrorBoundary } from '@/components/common/RouteErrorBoundary';
 import { PayrollDashboardSkeleton } from '@/components/payroll/PayrollSkeletons';
+import { guardFromMetadata } from '@/config/routeMetadata.utils';
 
 // Core Pages
 const PayrollDashboard = lazy(() => import('./pages/PayrollDashboard'));
@@ -36,108 +37,47 @@ const SuspenseLoader = ({ children }: { children: React.ReactNode }) => (
   </Suspense>
 );
 
+const g = (path: string, node: React.ReactNode) => guardFromMetadata(path, node);
+
 export const payrollRoutes: RouteObject[] = [
   {
     path: 'payroll',
     errorElement: <RouteErrorBoundary />,
     children: [
-      {
-        index: true,
-        element: <SuspenseLoader><PayrollDashboard /></SuspenseLoader>,
-      },
-      {
-        path: 'analytics',
-        element: <SuspenseLoader><PayrollAnalytics /></SuspenseLoader>,
-      },
-      {
-        path: 'variance',
-        element: <SuspenseLoader><PayrollVariance /></SuspenseLoader>,
-      },
-      {
-        path: 'deductions',
-        element: <SuspenseLoader><PayrollDeductions /></SuspenseLoader>,
-      },
-      {
-        path: 'components',
-        element: <SuspenseLoader><SalaryComponents /></SuspenseLoader>,
-      },
-      {
-        path: 'structures',
-        element: <SuspenseLoader><SalaryStructures /></SuspenseLoader>,
-      },
-      {
-        path: 'assignments',
-        element: <SuspenseLoader><SalaryAssignments /></SuspenseLoader>,
-      },
-      {
-        path: 'settings',
-        element: <SuspenseLoader><PayrollSettings /></SuspenseLoader>,
-      },
-      {
-        path: 'cycles',
-        element: <SuspenseLoader><PayrollCycles /></SuspenseLoader>,
-      },
-      {
-        path: 'cycles/:id',
-        element: <SuspenseLoader><PayrollCycleDetail /></SuspenseLoader>,
-      },
-      {
-        path: 'records/:id',
-        element: <SuspenseLoader><PayrollRecordDetail /></SuspenseLoader>,
-      },
+      { index: true, element: g('/app/payroll', <SuspenseLoader><PayrollDashboard /></SuspenseLoader>) },
+      { path: 'analytics', element: g('/app/payroll/analytics', <SuspenseLoader><PayrollAnalytics /></SuspenseLoader>) },
+      { path: 'variance', element: g('/app/payroll/variance', <SuspenseLoader><PayrollVariance /></SuspenseLoader>) },
+      { path: 'deductions', element: g('/app/payroll/deductions', <SuspenseLoader><PayrollDeductions /></SuspenseLoader>) },
+      { path: 'components', element: g('/app/payroll/components', <SuspenseLoader><SalaryComponents /></SuspenseLoader>) },
+      { path: 'structures', element: g('/app/payroll/structures', <SuspenseLoader><SalaryStructures /></SuspenseLoader>) },
+      { path: 'assignments', element: g('/app/payroll/assignments', <SuspenseLoader><SalaryAssignments /></SuspenseLoader>) },
+      { path: 'settings', element: g('/app/payroll/settings', <SuspenseLoader><PayrollSettings /></SuspenseLoader>) },
+      { path: 'cycles', element: g('/app/payroll/cycles', <SuspenseLoader><PayrollCycles /></SuspenseLoader>) },
+      { path: 'cycles/:id', element: g('/app/payroll/cycles/:id', <SuspenseLoader><PayrollCycleDetail /></SuspenseLoader>) },
+      { path: 'records/:id', element: g('/app/payroll/records/:id', <SuspenseLoader><PayrollRecordDetail /></SuspenseLoader>) },
       {
         path: 'compliance',
         children: [
-          {
-            index: true,
-            element: <SuspenseLoader><ComplianceRules /></SuspenseLoader>,
-          },
-          {
-            path: 'pf',
-            element: <SuspenseLoader><PFCompliance /></SuspenseLoader>,
-          },
+          { index: true, element: g('/app/payroll/compliance', <SuspenseLoader><ComplianceRules /></SuspenseLoader>) },
+          { path: 'pf', element: g('/app/payroll/compliance/pf', <SuspenseLoader><PFCompliance /></SuspenseLoader>) },
         ],
       },
-      {
-        path: 'tax-slabs',
-        element: <SuspenseLoader><TaxSlabs /></SuspenseLoader>,
-      },
-      {
-        path: 'my-payslips',
-        element: <SuspenseLoader><EmployeePayslips /></SuspenseLoader>,
-      },
+      { path: 'tax-slabs', element: g('/app/payroll/tax-slabs', <SuspenseLoader><TaxSlabs /></SuspenseLoader>) },
+      { path: 'my-payslips', element: g('/app/payroll/my-payslips', <SuspenseLoader><EmployeePayslips /></SuspenseLoader>) },
       {
         path: 'governance',
         children: [
-          {
-            index: true,
-            element: <SuspenseLoader><GovernanceDashboard /></SuspenseLoader>,
-          },
-          {
-            path: 'approvals',
-            element: <SuspenseLoader><ApprovalQueue /></SuspenseLoader>,
-          },
-          {
-            path: 'variances',
-            element: <SuspenseLoader><VarianceDashboard /></SuspenseLoader>,
-          },
+          { index: true, element: g('/app/payroll/governance', <SuspenseLoader><GovernanceDashboard /></SuspenseLoader>) },
+          { path: 'approvals', element: g('/app/payroll/governance/approvals', <SuspenseLoader><ApprovalQueue /></SuspenseLoader>) },
+          { path: 'variances', element: g('/app/payroll/governance/variances', <SuspenseLoader><VarianceDashboard /></SuspenseLoader>) },
         ],
       },
       {
         path: 'finance',
         children: [
-          {
-            path: 'journals',
-            element: <SuspenseLoader><JournalEntries /></SuspenseLoader>,
-          },
-          {
-            path: 'disbursements',
-            element: <SuspenseLoader><DisbursementDashboard /></SuspenseLoader>,
-          },
-          {
-            path: 'erp-export',
-            element: <SuspenseLoader><ErpExportCenter /></SuspenseLoader>,
-          },
+          { path: 'journals', element: g('/app/payroll/finance/journals', <SuspenseLoader><JournalEntries /></SuspenseLoader>) },
+          { path: 'disbursements', element: g('/app/payroll/finance/disbursements', <SuspenseLoader><DisbursementDashboard /></SuspenseLoader>) },
+          { path: 'erp-export', element: g('/app/payroll/finance/erp-export', <SuspenseLoader><ErpExportCenter /></SuspenseLoader>) },
         ],
       },
     ],

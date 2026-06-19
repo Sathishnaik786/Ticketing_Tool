@@ -20,15 +20,17 @@ describe('ticket feedback feature flag', () => {
 
   it('returns no nav groups when flag is off', async () => {
     vi.stubEnv('VITE_ENABLE_TICKET_FEEDBACK', 'false');
-    const { ticketFeedbackNavGroups } = await import('../ticket-feedback.nav');
-    expect(ticketFeedbackNavGroups).toEqual([]);
+    const { filterNavItem } = await import('@/config/navigation.utils');
+    const { NAV_ITEMS } = await import('@/config/navigation');
+    const items = NAV_ITEMS.filter((i) => i.featureFlag === 'VITE_ENABLE_TICKET_FEEDBACK');
+    expect(items.every((item) => !filterNavItem(item, { role: 'ADMIN' }))).toBe(true);
   });
 
   it('returns nav groups when flag is on', async () => {
     vi.stubEnv('VITE_ENABLE_TICKET_FEEDBACK', 'true');
-    const { ticketFeedbackNavGroups } = await import('../ticket-feedback.nav');
-    expect(ticketFeedbackNavGroups).toHaveLength(1);
-    expect(ticketFeedbackNavGroups[0]?.items?.[0]?.title).toBe('Feedback Analytics');
+    const { buildEtmsNavGroups } = await import('@/config/navigation.utils');
+    const group = buildEtmsNavGroups().find((g) => g.id === 'feedback');
+    expect(group?.items?.[0]?.title).toBe('Feedback Analytics');
   });
 
   it('uses strict true comparison in features config', async () => {

@@ -3,6 +3,7 @@ import { ticketingRoutes } from '../ticketing.routes';
 
 vi.mock('@/config/features', () => ({
   isTicketingEnabled: true,
+  isFeatureFlagEnabled: () => true,
 }));
 
 describe('ticketing.routes', () => {

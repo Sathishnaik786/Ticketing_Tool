@@ -1,166 +1,164 @@
+import React, { Suspense, lazy } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createBrowserRouter, RouterProvider, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+import { AuthProvider } from '@/contexts/AuthContext';
 import { SidebarProvider } from '@/contexts/SidebarContext';
 import { OnlineStatusProvider } from '@/contexts/OnlineStatusContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { AppLayout } from "@/components/layout/AppLayout";
-import { AppLoader } from '@/components/common/AppLoader';
 import { AppBootstrap } from '@/components/common/AppBootstrap';
 import { RouteErrorBoundary } from '@/components/common/RouteErrorBoundary';
 import { CommandProvider } from '@/contexts/CommandContext';
-import { CommandPalette } from '@/components/common/CommandPalette';
-import { QuickActionLauncher } from '@/components/common/QuickActionLauncher';
 import { ThemeProvider } from "next-themes";
-
-import Login from "./pages/Login";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import Dashboard from "./pages/Dashboard";
-import Employees from "./pages/Employees";
-import Departments from "./pages/Departments";
-import AttendancePage from "./pages/Attendance";
-import Leaves from "./pages/Leaves";
-import Documents from "./pages/Documents";
-import Reports from "./pages/Reports";
-import Profile from "./pages/Profile";
-import CalendarPage from "./pages/Calendar";
-import MeetupsPage from "./pages/Meetups";
-import NotFound from "./pages/NotFound";
-import Unauthorized from "./pages/Unauthorized";
-import Landing from "./pages/Landing";
-import WorkforcePage from "./pages/Workforce";
-import PayrollPage from "./pages/Payroll";
-import IntelligencePage from "./pages/Intelligence";
-import GovernancePage from "./pages/Governance";
-import OperationsPage from "./pages/Operations";
-import AboutPage from "./pages/About";
-import SecurityStandardsPage from "./pages/SecurityStandards";
-import EnterpriseSLAPage from "./pages/EnterpriseSLA";
-import ContactSalesPage from "./pages/ContactSales";
-import MyPayslips from "./pages/MyPayslips";
+import { guardFromMetadata } from '@/config/routeMetadata.utils';
+import { lazyPage, withPageSuspense } from '@/components/routing/LazyPage';
+import { observability } from '@/services/observability';
+import {
+  isEtmsDashboardEnabled,
+  isExecutiveAnalyticsEnabled,
+  isTicketingEnabled,
+} from '@/config/features';
 import { updatesRoutes } from './modules/updates/updates.routes';
 import { payrollRoutes } from './modules/payroll/payroll.routes';
 import { bulkProcessingRoutes } from './modules/payroll-bulk-processing/bulk-processing.routes';
-import { isTicketingEnabled } from '@/config/features';
 import { ticketingRoutes } from './modules/ticketing/ticketing.routes';
 import { ticketFeedbackRoutes } from './modules/ticket-feedback/ticket-feedback.routes';
 import { ticketAssignmentRoutes } from './modules/ticket-assignment/ticket-assignment.routes';
 import { communicationTrackingRoutes } from './modules/communication-tracking/communication-tracking.routes';
+import { approvalManagementRoutes } from './modules/approval-management/approval-management.routes';
+import { knowledgeManagementRoutes } from './modules/knowledge-management/knowledge-management.routes';
+import { executiveAnalyticsRoutes } from './modules/executive-analytics/executive-analytics.routes';
+import { notificationCenterRoutes } from './modules/notification-center/notification-center.routes';
 
+const Login = lazyPage(() => import("./pages/Login"));
+const ForgotPassword = lazyPage(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazyPage(() => import("./pages/ResetPassword"));
+const Dashboard = lazyPage(() => import("./pages/Dashboard"));
+const Employees = lazyPage(() => import("./pages/Employees"));
+const Departments = lazyPage(() => import("./pages/Departments"));
+const AttendancePage = lazyPage(() => import("./pages/Attendance"));
+const Leaves = lazyPage(() => import("./pages/Leaves"));
+const Documents = lazyPage(() => import("./pages/Documents"));
+const Reports = lazyPage(() => import("./pages/Reports"));
+const Profile = lazyPage(() => import("./pages/Profile"));
+const CalendarPage = lazyPage(() => import("./pages/Calendar"));
+const MeetupsPage = lazyPage(() => import("./pages/Meetups"));
+const NotFound = lazyPage(() => import("./pages/NotFound"));
+const Unauthorized = lazyPage(() => import("./pages/Unauthorized"));
+const Landing = lazyPage(() => import("./pages/Landing"));
+const WorkforcePage = lazyPage(() => import("./pages/Workforce"));
+const PayrollPage = lazyPage(() => import("./pages/Payroll"));
+const IntelligencePage = lazyPage(() => import("./pages/Intelligence"));
+const GovernancePage = lazyPage(() => import("./pages/Governance"));
+const OperationsPage = lazyPage(() => import("./pages/Operations"));
+const AboutPage = lazyPage(() => import("./pages/About"));
+const SecurityStandardsPage = lazyPage(() => import("./pages/SecurityStandards"));
+const EnterpriseSLAPage = lazyPage(() => import("./pages/EnterpriseSLA"));
+const ContactSalesPage = lazyPage(() => import("./pages/ContactSales"));
+const MyPayslips = lazyPage(() => import("./pages/MyPayslips"));
+const AdminUsers = lazyPage(() => import('./pages/AdminUsers'));
+const Projects = lazyPage(() => import('./pages/Projects'));
+const MyProjects = lazyPage(() => import('./pages/MyProjects'));
+const ProjectDetail = lazyPage(() => import('./pages/ProjectDetail'));
+const OperatorDashboardPage = lazyPage(() => import('./modules/dashboard/pages/OperatorDashboardPage'));
+const SlaDashboardPage = lazyPage(() => import('./modules/dashboard/pages/SlaDashboardPage'));
 
-import AdminUsers from './pages/AdminUsers';
-import Projects from './pages/Projects';
-import MyProjects from './pages/MyProjects';
-import ProjectDetail from './pages/ProjectDetail';
+function L({ Page }: { Page: React.LazyExoticComponent<React.ComponentType<object>> }) {
+  return withPageSuspense(<Page />);
+}
 
-// Optimized QueryClient configuration for better performance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes - garbage collection time (replaces cacheTime in v5)
-      refetchOnWindowFocus: false, // Don't refetch on window focus
-      refetchOnMount: false, // Don't refetch on mount if data exists
-      refetchOnReconnect: true, // Refetch on reconnect
-      retry: 1, // Retry failed requests once
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: true,
+      retry: 1,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
     mutations: {
-      retry: false, // Don't retry mutations
+      retry: false,
       onError: (error) => {
-        console.error('Mutation error:', error);
+        observability.captureException(error, { tags: { source: 'react-query-mutation' } });
       },
     },
   },
 });
 
 const router = createBrowserRouter([
-  { path: "/", element: <Landing /> }, // New Enterprise Landing Page
-  { path: "/workforce", element: <WorkforcePage /> },
-  { path: "/payroll", element: <PayrollPage /> },
-  { path: "/intelligence", element: <IntelligencePage /> },
-  { path: "/governance", element: <GovernancePage /> },
-  { path: "/operations", element: <OperationsPage /> },
-  { path: "/about", element: <AboutPage /> },
-  { path: "/security-standards", element: <SecurityStandardsPage /> },
-  { path: "/enterprise-sla", element: <EnterpriseSLAPage /> },
-  { path: "/contact-sales", element: <ContactSalesPage /> },
-  { path: "/login", element: <Login /> },
-  { path: "/forgot-password", element: <ForgotPassword /> },
-  { path: "/reset-password", element: <ResetPassword /> },
+  { path: "/", element: guardFromMetadata('/', <L Page={Landing} />) },
+  { path: "/workforce", element: guardFromMetadata('/workforce', <L Page={WorkforcePage} />) },
+  { path: "/payroll", element: guardFromMetadata('/payroll', <L Page={PayrollPage} />) },
+  { path: "/intelligence", element: guardFromMetadata('/intelligence', <L Page={IntelligencePage} />) },
+  { path: "/governance", element: guardFromMetadata('/governance', <L Page={GovernancePage} />) },
+  { path: "/operations", element: guardFromMetadata('/operations', <L Page={OperationsPage} />) },
+  { path: "/about", element: guardFromMetadata('/about', <L Page={AboutPage} />) },
+  { path: "/security-standards", element: guardFromMetadata('/security-standards', <L Page={SecurityStandardsPage} />) },
+  { path: "/enterprise-sla", element: guardFromMetadata('/enterprise-sla', <L Page={EnterpriseSLAPage} />) },
+  { path: "/contact-sales", element: guardFromMetadata('/contact-sales', <L Page={ContactSalesPage} />) },
+  { path: "/login", element: guardFromMetadata('/login', <L Page={Login} />) },
+  { path: "/forgot-password", element: guardFromMetadata('/forgot-password', <L Page={ForgotPassword} />) },
+  { path: "/reset-password", element: guardFromMetadata('/reset-password', <L Page={ResetPassword} />) },
   {
-    path: "/app", // Protected routes under /app path
-    element: <ProtectedRoute allowedRoles={['ADMIN', 'HR', 'MANAGER', 'EMPLOYEE']}>/* AppLayout is handled by ProtectedRoute */</ProtectedRoute>,
+    path: "/app",
+    element: <ProtectedRoute allowedRoles={['ADMIN', 'HR', 'MANAGER', 'EMPLOYEE']}>/* AppLayout */</ProtectedRoute>,
     errorElement: <RouteErrorBoundary />,
     children: [
       { index: true, element: <Navigate to="/app/dashboard" replace /> },
-      { path: "dashboard", element: <Dashboard /> },
-      { path: "employees", element: <Employees /> },
-      { path: "departments", element: <Departments /> },
-      { path: "attendance", element: <AttendancePage /> },
-      { path: "leaves", element: <Leaves /> },
-      { path: "calendar", element: <CalendarPage /> },
-      { path: "meetups", element: <MeetupsPage /> },
-      { path: "documents", element: <Documents /> },
-      { path: "payroll/my-payslips", element: <MyPayslips /> },
-      { path: "reports", element: <Reports /> },
-
-      { path: "admin/users", element: <AdminUsers /> },
-      { path: "projects", element: <Projects /> },
-      { path: "my-projects", element: <MyProjects /> },
-      { path: "projects/:id", element: <ProjectDetail /> },
-
-
-      { path: "profile", element: <Profile /> },
-      { path: "unauthorized", element: <Unauthorized /> },
-
-      // Phase-1: Employee Updates
+      { path: "dashboard", element: guardFromMetadata('/app/dashboard', <L Page={Dashboard} />) },
+      ...(isEtmsDashboardEnabled
+        ? [{ path: 'operator-dashboard', element: guardFromMetadata('/app/operator-dashboard', <L Page={OperatorDashboardPage} />) }]
+        : []),
+      ...(isExecutiveAnalyticsEnabled || isEtmsDashboardEnabled
+        ? [{ path: 'sla-dashboard', element: guardFromMetadata('/app/sla-dashboard', <L Page={SlaDashboardPage} />) }]
+        : []),
+      { path: "employees", element: guardFromMetadata('/app/employees', <L Page={Employees} />) },
+      { path: "departments", element: guardFromMetadata('/app/departments', <L Page={Departments} />) },
+      { path: "attendance", element: guardFromMetadata('/app/attendance', <L Page={AttendancePage} />) },
+      { path: "leaves", element: guardFromMetadata('/app/leaves', <L Page={Leaves} />) },
+      { path: "calendar", element: guardFromMetadata('/app/calendar', <L Page={CalendarPage} />) },
+      { path: "meetups", element: guardFromMetadata('/app/meetups', <L Page={MeetupsPage} />) },
+      { path: "documents", element: guardFromMetadata('/app/documents', <L Page={Documents} />) },
+      { path: "payroll/my-payslips", element: guardFromMetadata('/app/payroll/my-payslips', <L Page={MyPayslips} />) },
+      { path: "reports", element: guardFromMetadata('/app/reports', <L Page={Reports} />) },
+      { path: "admin/users", element: guardFromMetadata('/app/admin/users', <L Page={AdminUsers} />) },
+      { path: "projects", element: guardFromMetadata('/app/projects', <L Page={Projects} />) },
+      { path: "my-projects", element: guardFromMetadata('/app/my-projects', <L Page={MyProjects} />) },
+      { path: "projects/:id", element: guardFromMetadata('/app/projects/:id', <L Page={ProjectDetail} />) },
+      { path: "profile", element: guardFromMetadata('/app/profile', <L Page={Profile} />) },
+      { path: "unauthorized", element: guardFromMetadata('/app/unauthorized', <L Page={Unauthorized} />) },
       ...updatesRoutes,
-
-      // Phase-1: Payroll Module
       ...payrollRoutes,
-
-      // Phase-1: Payroll Bulk Processing
       ...bulkProcessingRoutes,
-
-      // ETMS Ticketing Module
       ...(isTicketingEnabled ? ticketingRoutes : []),
-
-      // Phase 7.1: CSAT Ticket Feedback
       ...ticketFeedbackRoutes,
-
-      // Phase 7.2: Ticket Assignment & Work Queues
       ...ticketAssignmentRoutes,
-
-      // Phase 7.4: Communication & Activity Tracking
       ...communicationTrackingRoutes,
-
-      { path: "*", element: <NotFound /> },
-
+      ...approvalManagementRoutes,
+      ...knowledgeManagementRoutes,
+      ...executiveAnalyticsRoutes,
+      ...notificationCenterRoutes,
+      { path: "*", element: <L Page={NotFound} /> },
     ],
   },
-  { path: "*", element: <NotFound /> }
+  { path: "*", element: <L Page={NotFound} /> },
 ], {
-  future: {
-    v7_relativeSplatPath: true,
-  },
+  future: { v7_relativeSplatPath: true },
 });
 
-const AppContent = () => {
-  return (
-    <AppBootstrap>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <RouterProvider router={router} />
-      </TooltipProvider>
-    </AppBootstrap>
-  );
-};
+const AppContent = () => (
+  <AppBootstrap>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <RouterProvider router={router} />
+    </TooltipProvider>
+  </AppBootstrap>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

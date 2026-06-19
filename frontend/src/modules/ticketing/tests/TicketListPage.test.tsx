@@ -8,6 +8,13 @@ vi.mock('@/config/features', () => ({
   isTicketingEnabled: true,
 }));
 
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: vi.fn(() => ({
+    user: { id: 'user-1', role: 'MANAGER', department_id: 'dept-1' },
+    isLoading: false,
+  })),
+}));
+
 const listTicketsMock = vi.fn();
 
 vi.mock('../hooks/useTicketing', () => ({
@@ -43,7 +50,7 @@ function renderPage() {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
+      <MemoryRouter initialEntries={['/app/tickets?scope=mine']}>
         <TicketListPage />
       </MemoryRouter>
     </QueryClientProvider>
@@ -65,7 +72,7 @@ describe('TicketListPage', () => {
     });
 
     renderPage();
-    expect(screen.getByText('Tickets')).toBeInTheDocument();
+    expect(screen.getByText('My Tickets')).toBeInTheDocument();
   });
 
   it('renders ticket rows when data is available', async () => {

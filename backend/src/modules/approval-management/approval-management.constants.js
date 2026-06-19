@@ -1,0 +1,47 @@
+const APPROVAL_STATUSES = Object.freeze([
+  'PENDING',
+  'APPROVED',
+  'REJECTED',
+  'CANCELLED',
+  'ESCALATED',
+]);
+
+const APPROVAL_TYPES = Object.freeze(['SINGLE', 'MULTI']);
+
+const HISTORY_ACTIONS = Object.freeze([
+  'SUBMITTED',
+  'APPROVED',
+  'REJECTED',
+  'CANCELLED',
+  'ESCALATED',
+  'COMMENT',
+]);
+
+const CATALOG_CATEGORIES = Object.freeze([
+  'IT',
+  'HR',
+  'FINANCE',
+  'PROCUREMENT',
+  'FACILITY',
+  'ADMINISTRATION',
+]);
+
+const WORKFLOW_ADMIN_ROLES = Object.freeze(['ADMIN', 'SUPER_ADMIN']);
+
+const APPROVER_ROLES = Object.freeze([
+  'MANAGER',
+  'HR',
+  'FINANCE',
+  'ADMIN',
+  'SUPER_ADMIN',
+  'EMPLOYEE',
+]);
+
+module.exports = {
+  APPROVAL_STATUSES,
+  APPROVAL_TYPES,
+  HISTORY_ACTIONS,
+  CATALOG_CATEGORIES,
+  WORKFLOW_ADMIN_ROLES,
+  APPROVER_ROLES,
+};

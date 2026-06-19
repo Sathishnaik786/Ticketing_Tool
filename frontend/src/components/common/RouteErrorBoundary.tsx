@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouteError, isRouteErrorResponse, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { observability } from '@/services/observability';
 import { 
   AlertCircle, 
   RefreshCcw, 
@@ -16,7 +17,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 export const RouteErrorBoundary: React.FC = () => {
   const error = useRouteError();
   const navigate = useNavigate();
-  console.error('Route error:', error);
+
+  useEffect(() => {
+    observability.captureException(error, {
+      tags: { source: 'route-error-boundary' },
+      level: 'error',
+    });
+  }, [error]);
 
   let errorMessage = 'An unexpected architectural failure occurred while loading this module.';
   let errorStatus = 500;

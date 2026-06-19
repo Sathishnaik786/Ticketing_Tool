@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { RouteObject } from 'react-router-dom';
 import { RouteErrorBoundary } from '@/components/common/RouteErrorBoundary';
 import { DataTableSkeleton } from '@/components/common/Skeletons';
+import { guardFromMetadata } from '@/config/routeMetadata.utils';
 import { isCommunicationTrackingEnabled } from '@/config/features';
 
 const CommunicationsPage = lazy(() => import('./pages/CommunicationsPage'));
@@ -19,29 +20,23 @@ export const communicationTrackingRoutes: RouteObject[] = isCommunicationTrackin
       {
         path: 'communications',
         errorElement: <RouteErrorBoundary />,
-        element: (
-          <SuspenseLoader>
-            <CommunicationsPage />
-          </SuspenseLoader>
-        ),
+        element: guardFromMetadata('/app/communications', (
+          <SuspenseLoader><CommunicationsPage /></SuspenseLoader>
+        )),
       },
       {
         path: 'activity-timeline',
         errorElement: <RouteErrorBoundary />,
-        element: (
-          <SuspenseLoader>
-            <ActivityTimelinePage />
-          </SuspenseLoader>
-        ),
+        element: guardFromMetadata('/app/activity-timeline', (
+          <SuspenseLoader><ActivityTimelinePage /></SuspenseLoader>
+        )),
       },
       {
         path: 'communication-analytics',
         errorElement: <RouteErrorBoundary />,
-        element: (
-          <SuspenseLoader>
-            <CommunicationAnalyticsPage />
-          </SuspenseLoader>
-        ),
+        element: guardFromMetadata('/app/communication-analytics', (
+          <SuspenseLoader><CommunicationAnalyticsPage /></SuspenseLoader>
+        )),
       },
     ]
   : [];

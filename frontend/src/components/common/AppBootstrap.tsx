@@ -4,6 +4,9 @@ import { AppLoader } from './AppLoader';
 import { chatService } from '@/services/chatService';
 import { notificationService } from '@/services/notificationService';
 import { useQueryInvalidation } from '@/hooks/useQueryInvalidation';
+import { useWebVitals } from '@/hooks/useWebVitals';
+import { trackFeatureFlags } from '@/services/featureFlagTelemetry.service';
+import { observability } from '@/services/observability';
 
 interface AppBootstrapProps {
   children: React.ReactNode;
@@ -12,9 +15,19 @@ interface AppBootstrapProps {
 export const AppBootstrap: React.FC<AppBootstrapProps> = ({ children }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [isReady, setIsReady] = useState(false);
-  
-  // Enable real-time query invalidation
+
+  useWebVitals();
   useQueryInvalidation();
+
+  useEffect(() => {
+    trackFeatureFlags();
+  }, []);
+
+  useEffect(() => {
+    if (user?.id) {
+      observability.identifyUser(user.id, { role: user.role });
+    }
+  }, [user?.id, user?.role]);
 
   useEffect(() => {
     if (!isLoading) {

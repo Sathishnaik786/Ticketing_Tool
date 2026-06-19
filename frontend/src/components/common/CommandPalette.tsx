@@ -1,68 +1,65 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, 
-  Command, 
-  ChevronRight, 
-  History, 
-  Star, 
-  Navigation, 
-  Zap, 
+import {
+  Search,
+  Command,
+  ChevronRight,
+  History,
+  Star,
+  Navigation,
   LayoutDashboard,
-  Users,
-  Clock,
-  Calendar,
-  ShieldCheck,
-  CreditCard,
-  Settings,
   X
 } from 'lucide-react';
 import { useCommand } from '@/contexts/CommandContext';
 import { useNavigate } from 'react-router-dom';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
+import { useAuth } from '@/contexts/AuthContext';
+import { buildCommandRegistry, filterCommandRegistry } from '@/config/navigation.utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
 export function CommandPalette() {
   const { isOpen, setIsOpen, query, setQuery, commands } = useCommand();
   const { history } = useNavigationHistory();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Default internal commands
-  const internalCommands = useMemo(() => [
-    { id: 'nav-dashboard', title: 'Go to Dashboard', category: 'Navigation', icon: LayoutDashboard, action: () => navigate('/app/dashboard') },
-    { id: 'nav-employees', title: 'Team Directory', category: 'Navigation', icon: Users, action: () => navigate('/app/employees') },
-    { id: 'nav-attendance', title: 'Attendance Workspace', category: 'Navigation', icon: Clock, action: () => navigate('/app/attendance') },
-    { id: 'nav-leaves', title: 'Time-Off Requests', category: 'Navigation', icon: Calendar, action: () => navigate('/app/leaves') },
-    { id: 'nav-payroll', title: 'Payroll Engine', category: 'Navigation', icon: CreditCard, action: () => navigate('/app/payroll') },
-    { id: 'action-payroll', title: 'Run Payroll Cycle', category: 'Actions', icon: Zap, action: () => navigate('/app/payroll/cycles') },
-    { id: 'action-report', title: 'Generate Reports', category: 'Actions', icon: History, action: () => navigate('/app/reports') },
-    { id: 'sys-settings', title: 'Platform Settings', category: 'System', icon: Settings, action: () => navigate('/app/payroll/settings') },
-  ], [navigate]);
+  const registryCommands = useMemo(() => {
+    return filterCommandRegistry(buildCommandRegistry(), user, query).map((item) => ({
+      id: item.id,
+      title: item.title,
+      category: item.category,
+      icon: item.icon || Navigation,
+      action: () => navigate(item.href),
+    }));
+  }, [user, query, navigate]);
 
-  const historyCommands = useMemo(() => 
+  const historyCommands = useMemo(() =>
     history.map(item => ({
       id: `history-${item.path}`,
       title: item.title,
       description: `Visited ${new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
-      category: 'Recent Activity' as any,
+      category: 'Recent Activity' as const,
       icon: History,
       action: () => navigate(item.path)
     })), [history, navigate]
   );
 
-  const allCommands = useMemo(() => [...internalCommands, ...historyCommands, ...commands], [internalCommands, historyCommands, commands]);
+  const legacyFallbackCommands = useMemo(() => [
+    { id: 'nav-dashboard', title: 'Go to Dashboard', category: 'Navigation', icon: LayoutDashboard, action: () => navigate('/app/dashboard') },
+  ], [navigate]);
 
-  const filteredCommands = useMemo(() => {
-    if (!query) return allCommands;
-    const s = query.toLowerCase();
-    return allCommands.filter(c => 
-      c.title.toLowerCase().includes(s) || 
-      c.category.toLowerCase().includes(s)
-    );
-  }, [allCommands, query]);
+  const allCommands = useMemo(() => {
+    const merged = [...registryCommands, ...historyCommands, ...commands];
+    if (merged.length === 0 && !query) {
+      return legacyFallbackCommands;
+    }
+    return merged;
+  }, [registryCommands, historyCommands, commands, legacyFallbackCommands, query]);
+
+  const filteredCommands = useMemo(() => allCommands, [allCommands]);
 
   useEffect(() => {
     if (isOpen) {

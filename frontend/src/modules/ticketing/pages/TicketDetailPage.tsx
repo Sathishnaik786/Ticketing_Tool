@@ -36,6 +36,10 @@ import {
   TicketActivityTimelineTabTrigger,
   TicketCommunicationTabContent,
 } from '@/modules/communication-tracking/components/TicketCommunicationTab';
+import {
+  TicketApprovalTabTrigger,
+  TicketApprovalTabContent,
+} from '@/modules/approval-management/components/TicketApprovalTab';
 
 function formatPerson(
   person?: { first_name?: string; last_name?: string; firstName?: string; lastName?: string; email?: string } | null
@@ -133,6 +137,7 @@ export default function TicketDetailPage() {
           <TicketCommunicationTabTrigger />
           <TicketActivityTimelineTabTrigger />
           <TicketFeedbackTabTrigger ticket={ticket} />
+          <TicketApprovalTabTrigger />
         </TabsList>
 
         <TabsContent value="overview" className="enterprise-panel space-y-6">
@@ -232,6 +237,7 @@ export default function TicketDetailPage() {
 
         <TicketFeedbackTabContent ticket={ticket} ticketId={ticketId} />
         <TicketCommunicationTabContent ticketId={ticketId} />
+        <TicketApprovalTabContent ticketId={ticketId} />
       </Tabs>
     </div>
   );

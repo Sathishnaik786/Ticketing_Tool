@@ -80,6 +80,19 @@
   --accent-orange: #ea580c;
 
   /* -------------------------------------------------------------------------- */
+  /* ETMS SEMANTIC TOKENS (Phase 8.1)                                           */
+  /* -------------------------------------------------------------------------- */
+  --color-primary: #2563EB;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-background: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-border: #E2E8F0;
+  --radius-etms: 12px;
+  --space-grid: 8px;
+
+  /* -------------------------------------------------------------------------- */
   /* MESH BACKGROUNDS                                                           */
   /* -------------------------------------------------------------------------- */
   /* Light-theme mesh for Landing Page */
@@ -93,6 +106,9 @@
   --shadow-premium: 0 12px 24px rgba(0, 0, 0, 0.4), 0 32px 64px rgba(0, 0, 0, 0.4);
   --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.3);
   --shadow-medium: 0 12px 24px rgba(0, 0, 0, 0.4);
+  --color-background: #0F172A;
+  --color-surface: #1E293B;
+  --color-border: #334155;
 
   /* Cinematic Atmosphere */
   --glow-primary: rgba(20, 184, 166, 0.15);

@@ -25,6 +25,8 @@ import { TicketsQuickAccess } from '@/modules/ticketing/components/dashboard/Tic
 import { TicketFeedbackDashboardWidgets } from '@/modules/ticket-feedback/components/dashboard/TicketFeedbackDashboardWidgets';
 import { CommunicationDashboardWidgets } from '@/modules/communication-tracking/components/dashboard/CommunicationDashboardWidgets';
 import { EnterpriseHeader, EnterpriseStatCard } from '@/components/payroll/EnterpriseComponents';
+import { isEtmsDashboardEnabled } from '@/config/features';
+import { EtmsCommandDashboard } from '@/modules/dashboard/components/EtmsCommandDashboard';
 
 
 
@@ -140,6 +142,10 @@ export default function Dashboard() {
         <Button className="mt-6" variant="outlinePremium">Go to Sign In</Button>
       </div>
     );
+  }
+
+  if (isEtmsDashboardEnabled) {
+    return <EtmsCommandDashboard />;
   }
 
   return (
