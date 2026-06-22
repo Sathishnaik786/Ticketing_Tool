@@ -21,6 +21,7 @@ vi.mock('@/config/features', () => ({
 describe('GlobalSearch', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
   it('shows registry results instead of mock data', async () => {
@@ -31,7 +32,7 @@ describe('GlobalSearch', () => {
       </MemoryRouter>
     );
 
-    const input = screen.getByRole('searchbox');
+    const input = screen.getByRole('combobox');
     fireEvent.focus(input);
     fireEvent.change(input, { target: { value: 'my tickets' } });
 
@@ -50,9 +51,39 @@ describe('GlobalSearch', () => {
       </MemoryRouter>
     );
 
-    const input = screen.getByRole('searchbox');
+    const input = screen.getByRole('combobox');
     fireEvent.focus(input);
     fireEvent.change(input, { target: { value: 'team tickets' } });
     expect(screen.queryByText('Team Tickets')).not.toBeInTheDocument();
+  });
+
+  it('shows suggestions when focused with empty query', async () => {
+    const { GlobalSearch } = await import('./GlobalSearch');
+    render(
+      <MemoryRouter>
+        <GlobalSearch />
+      </MemoryRouter>
+    );
+
+    fireEvent.focus(screen.getByRole('combobox'));
+    expect(await screen.findByText('my tickets')).toBeInTheDocument();
+  });
+
+  it('supports keyboard navigation', async () => {
+    const { GlobalSearch } = await import('./GlobalSearch');
+    render(
+      <MemoryRouter>
+        <GlobalSearch />
+      </MemoryRouter>
+    );
+
+    const input = screen.getByRole('combobox');
+    fireEvent.focus(input);
+    const options = await screen.findAllByRole('option');
+    expect(options[0]).toHaveAttribute('aria-selected', 'true');
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    const updatedOptions = screen.getAllByRole('option');
+    expect(updatedOptions[1]).toHaveAttribute('aria-selected', 'true');
   });
 });

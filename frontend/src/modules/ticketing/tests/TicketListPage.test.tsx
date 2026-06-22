@@ -6,6 +6,7 @@ import TicketListPage from '../pages/TicketListPage';
 
 vi.mock('@/config/features', () => ({
   isTicketingEnabled: true,
+  isEtmsUiV2Enabled: false,
 }));
 
 vi.mock('@/contexts/AuthContext', () => ({
@@ -72,7 +73,7 @@ describe('TicketListPage', () => {
     });
 
     renderPage();
-    expect(screen.getByText('My Tickets')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'My Tickets' })).toBeInTheDocument();
   });
 
   it('renders ticket rows when data is available', async () => {

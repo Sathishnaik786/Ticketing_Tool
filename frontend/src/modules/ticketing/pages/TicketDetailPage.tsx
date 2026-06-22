@@ -3,10 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { PageHeader } from '@/components/layout/PageHeader';
+import { PageHeader, ErrorState, LoadingState } from '@/components/design-system';
+import { isEtmsUiV2Enabled } from '@/config/features';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DataTableSkeleton } from '@/components/common/Skeletons';
 import { employeesApi } from '@/services/api';
 import { queryKeys } from '@/utils/queryKeys';
 import {
@@ -29,6 +29,7 @@ import { TicketAttachmentUpload } from '../components/TicketAttachmentUpload';
 import { TicketTimeline } from '../components/TicketTimeline';
 import { TicketSlaCard } from '../components/TicketSlaCard';
 import { TicketAssignments } from '../components/TicketAssignments';
+import { TicketDetailEnterprise } from '../components/TicketDetailEnterprise';
 import { TicketFeedbackTabTrigger, TicketFeedbackTabContent } from '@/modules/ticket-feedback/components/TicketFeedbackTab';
 import { TicketAssignmentActions } from '@/modules/ticket-assignment/components/TicketAssignmentActions';
 import {
@@ -88,24 +89,55 @@ export default function TicketDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="p-8" aria-busy="true" aria-live="polite">
-        <p className="sr-only">Loading ticket details</p>
-        <DataTableSkeleton />
+      <div className="p-4 md:p-8">
+        <LoadingState label="Loading ticket details" />
       </div>
     );
   }
 
   if (isError || !ticket) {
     return (
-      <div className="p-8">
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6" role="alert">
-          <p className="text-sm text-destructive">
-            {(error as Error)?.message ?? 'Unable to load ticket details.'}
-          </p>
-          <Button variant="outline" className="mt-4" asChild>
-            <Link to="/app/tickets">Back to tickets</Link>
-          </Button>
-        </div>
+      <div className="p-4 md:p-8">
+        <ErrorState
+          title="Unable to load ticket"
+          message={(error as Error)?.message ?? 'Ticket details could not be loaded.'}
+          variant="default"
+        />
+        <Button variant="outline" className="mt-4" asChild>
+          <Link to="/app/tickets">Back to tickets</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  if (isEtmsUiV2Enabled) {
+    return (
+      <div className="p-4 md:p-6 lg:p-8">
+        <TicketDetailEnterprise
+          ticket={ticket}
+          ticketId={ticketId}
+          comments={comments}
+          attachments={attachments}
+          timeline={timeline}
+          sla={sla}
+          assignments={assignments}
+          employees={employees}
+          commentsLoading={commentsLoading}
+          attachmentsLoading={attachmentsLoading}
+          timelineLoading={timelineLoading}
+          slaLoading={slaLoading}
+          assignmentsLoading={assignmentsLoading}
+          canPostInternal={includeInternal}
+          canAssign={canAssign(user?.role)}
+          canManageSla={canManageSla(user?.role)}
+          onCreateComment={(values) => createComment.mutate(values)}
+          isCreatingComment={createComment.isPending}
+          onUploadAttachment={(file) => uploadAttachment.mutateAsync(file)}
+          isUploading={uploadAttachment.isPending}
+          onAssign={(assigneeId) => assignTicket.mutate({ assignee_id: assigneeId, assignment_type: 'MANUAL' })}
+          onReassign={(assigneeId) => reassignTicket.mutate({ assignee_id: assigneeId, assignment_type: 'MANUAL' })}
+          isAssigning={assignTicket.isPending || reassignTicket.isPending}
+        />
       </div>
     );
   }
@@ -115,16 +147,18 @@ export default function TicketDetailPage() {
       <PageHeader
         title={ticket.title}
         description={`Ticket ${ticket.ticket_number}`}
-        className="enterprise-panel mb-0"
-      >
-        <Button variant="outline" size="sm" asChild>
-          <Link to="/app/tickets">
-            <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
-            Back
-          </Link>
-        </Button>
-        <TicketAssignmentActions ticket={ticket} />
-      </PageHeader>
+        actions={
+          <>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/app/tickets">
+                <ArrowLeft className="mr-2 h-4 w-4" aria-hidden />
+                Back
+              </Link>
+            </Button>
+            <TicketAssignmentActions ticket={ticket} />
+          </>
+        }
+      />
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList aria-label="Ticket detail sections">
@@ -193,7 +227,7 @@ export default function TicketDetailPage() {
 
         <TabsContent value="attachments" className="enterprise-panel">
           {attachmentsLoading ? (
-            <DataTableSkeleton />
+            <LoadingState variant="inline" label="Loading attachments" />
           ) : (
             <TicketAttachmentUpload
               ticketId={ticketId}
@@ -218,7 +252,7 @@ export default function TicketDetailPage() {
 
         <TabsContent value="assignments" className="enterprise-panel">
           {assignmentsLoading ? (
-            <DataTableSkeleton />
+            <LoadingState variant="inline" label="Loading assignments" />
           ) : (
             <TicketAssignments
               assignments={assignments}

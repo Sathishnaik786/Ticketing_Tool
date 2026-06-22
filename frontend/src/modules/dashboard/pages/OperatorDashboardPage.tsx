@@ -1,46 +1,130 @@
 import { Link } from 'react-router-dom';
-import { PageHeader } from '@/components/layout/PageHeader';
+import { PageHeader, MetricCard, ActivityTimeline, LoadingState, ErrorState } from '@/components/design-system';
 import { Button } from '@/components/ui/button';
-import { Inbox, AlertTriangle, Clock } from 'lucide-react';
+import { Inbox, AlertTriangle, Clock, CheckCircle2 } from 'lucide-react';
 import { isTicketingEnabled, isTicketAssignmentsEnabled } from '@/config/features';
+import { useEtmsDashboard } from '../hooks/useEtmsDashboard';
 
 export default function OperatorDashboardPage() {
+  const { data: stats, isLoading, isError } = useEtmsDashboard();
+
+  if (isLoading) {
+    return (
+      <div className="p-4 md:p-6 space-y-6">
+        <LoadingState label="Loading operator dashboard" variant="skeleton" rows={3} />
+      </div>
+    );
+  }
+
+  const assignedCount = stats?.openTickets ?? '—';
+  const overdueCount = stats?.overdueTickets ?? '—';
+  const pendingCount = stats?.pendingApprovals ?? '—';
+
+  const activityItems = (stats?.recentActivity ?? []).map((item) => ({
+    id: item.id,
+    title: item.message,
+    timestamp: item.timestamp,
+    tone: item.type === 'escalated' ? ('danger' as const) : item.type === 'resolved' ? ('success' as const) : ('default' as const),
+  }));
+
   return (
-    <div className="space-y-8">
+    <div className="p-4 md:p-6 lg:p-8 space-y-6">
       <PageHeader
-        title="Operator Dashboard"
+        title="Operator Command Center"
         description="Your daily work surface — assigned tickets, overdue items, and pending actions."
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/app/dashboard' },
+          { label: 'Operator' },
+        ]}
+        badge={
+          stats?.isDemoData ? (
+            <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200">
+              Demo Data
+            </span>
+          ) : undefined
+        }
+        actions={
+          <div className="flex flex-wrap gap-2">
+            {isTicketAssignmentsEnabled && (
+              <Button asChild variant="outline" size="sm">
+                <Link to="/app/my-queue">Open My Queue</Link>
+              </Button>
+            )}
+            {isTicketingEnabled && (
+              <Button asChild size="sm">
+                <Link to="/app/tickets/new">Create Ticket</Link>
+              </Button>
+            )}
+          </div>
+        }
       />
 
+      {isError && (
+        <ErrorState title="Dashboard unavailable" message="Unable to load operator metrics." variant="compact" />
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[
-          { label: 'Assigned To Me', value: '—', icon: Inbox, href: '/app/my-queue' },
-          { label: 'Overdue', value: '—', icon: AlertTriangle, href: '/app/my-queue' },
-          { label: 'Pending Actions', value: '—', icon: Clock, href: '/app/my-approvals' },
-        ].map((card) => (
-          <Link
-            key={card.label}
-            to={card.href}
-            className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
-          >
-            <card.icon className="h-5 w-5 text-blue-600 mb-3" aria-hidden />
-            <p className="text-xs uppercase tracking-wide text-slate-500">{card.label}</p>
-            <p className="text-2xl font-bold mt-1">{card.value}</p>
-          </Link>
-        ))}
+        <MetricCard
+          label="Assigned To Me"
+          value={assignedCount}
+          icon={Inbox}
+          tone="primary"
+          href="/app/my-queue"
+        />
+        <MetricCard
+          label="Overdue"
+          value={overdueCount}
+          icon={AlertTriangle}
+          tone="danger"
+          href="/app/my-queue"
+          trend={typeof overdueCount === 'number' && overdueCount > 0 ? { value: 'Needs attention', direction: 'up' } : undefined}
+        />
+        <MetricCard
+          label="Pending Actions"
+          value={pendingCount}
+          icon={Clock}
+          tone="warning"
+          href="/app/my-approvals"
+        />
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        {isTicketAssignmentsEnabled && (
-          <Button asChild variant="outline" className="rounded-xl">
-            <Link to="/app/my-queue">Open My Queue</Link>
-          </Button>
-        )}
-        {isTicketingEnabled && (
-          <Button asChild className="rounded-xl">
-            <Link to="/app/tickets/new">Create Ticket</Link>
-          </Button>
-        )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section className="rounded-xl border border-border bg-card p-4" aria-label="Recent activity">
+          <h2 className="text-sm font-semibold mb-4">Recent Activity</h2>
+          <ActivityTimeline
+            items={activityItems}
+            emptyMessage="No recent activity."
+            compact
+          />
+        </section>
+
+        <section className="rounded-xl border border-border bg-card p-4" aria-label="Quick actions">
+          <h2 className="text-sm font-semibold mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {isTicketAssignmentsEnabled && (
+              <Button asChild variant="outline" className="justify-start h-auto py-3">
+                <Link to="/app/my-queue">
+                  <Inbox className="h-4 w-4 mr-2" aria-hidden />
+                  My Queue
+                </Link>
+              </Button>
+            )}
+            {isTicketingEnabled && (
+              <Button asChild variant="outline" className="justify-start h-auto py-3">
+                <Link to="/app/tickets?scope=mine">
+                  <CheckCircle2 className="h-4 w-4 mr-2" aria-hidden />
+                  My Tickets
+                </Link>
+              </Button>
+            )}
+            <Button asChild variant="outline" className="justify-start h-auto py-3">
+              <Link to="/app/my-approvals">
+                <Clock className="h-4 w-4 mr-2" aria-hidden />
+                My Approvals
+              </Link>
+            </Button>
+          </div>
+        </section>
       </div>
     </div>
   );

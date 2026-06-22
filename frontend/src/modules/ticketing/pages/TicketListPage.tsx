@@ -1,26 +1,15 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { format } from 'date-fns';
 import { Plus, ChevronLeft, ChevronRight, Ticket as TicketIcon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { PageHeader } from '@/components/layout/PageHeader';
+import { PageHeader, DataGrid, ErrorState, ActionToolbar } from '@/components/design-system';
 import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { DataTableSkeleton } from '@/components/common/Skeletons';
-import { EnterpriseEmptyState } from '@/components/common/EnterpriseEmptyState';
 import { departmentsApi, employeesApi } from '@/services/api';
 import { queryKeys } from '@/utils/queryKeys';
+import { isEtmsUiV2Enabled } from '@/config/features';
 import { useTickets } from '../hooks/useTicketing';
 import { TicketFiltersBar } from '../components/TicketFilters';
-import { TicketStatusBadge } from '../components/TicketStatusBadge';
-import { TicketPriorityBadge } from '../components/TicketPriorityBadge';
+import { ticketGridColumns } from '../components/ticketGridColumns';
 import { useAuth } from '@/contexts/AuthContext';
 import type { TicketFilters } from '../types/ticketing.types';
 import {
@@ -28,15 +17,6 @@ import {
   buildTicketFiltersForScope,
   getTicketScopePageTitle,
 } from '../utils/ticketScope.utils';
-
-function formatPerson(
-  person?: { first_name?: string; last_name?: string; firstName?: string; lastName?: string; email?: string } | null
-): string {
-  const first = person?.firstName ?? person?.first_name ?? '';
-  const last = person?.lastName ?? person?.last_name ?? '';
-  const name = `${first} ${last}`.trim();
-  return name || person?.email || '—';
-}
 
 export default function TicketListPage() {
   const navigate = useNavigate();
@@ -112,20 +92,26 @@ export default function TicketListPage() {
   const meta = data?.meta;
   const totalPages = meta?.pages ?? 1;
 
+  const columns = useMemo(() => ticketGridColumns, []);
+
   return (
-    <div className="p-6 lg:p-8 space-y-8">
+    <div className="p-4 md:p-6 lg:p-8 space-y-6">
       <PageHeader
         title={pageTitle}
         description="Track and manage service requests across your organization."
-        className="enterprise-panel mb-0"
-      >
-        <Button variant="premium" size="sm" asChild>
-          <Link to="/app/tickets/new">
-            <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-            Create Ticket
-          </Link>
-        </Button>
-      </PageHeader>
+        breadcrumbs={[
+          { label: 'Tickets', href: '/app/tickets' },
+          { label: pageTitle },
+        ]}
+        actions={
+          <Button variant={isEtmsUiV2Enabled ? 'default' : 'premium'} size="sm" asChild>
+            <Link to="/app/tickets/new">
+              <Plus className="mr-2 h-4 w-4" aria-hidden />
+              Create Ticket
+            </Link>
+          </Button>
+        }
+      />
 
       <TicketFiltersBar
         search={search}
@@ -157,114 +143,67 @@ export default function TicketListPage() {
         employees={employees}
       />
 
-      {isLoading && (
-        <div aria-busy="true" aria-live="polite" className="sr-only">
-          Loading tickets
-        </div>
-      )}
-      {isLoading && <DataTableSkeleton />}
-
       {isError && (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6" role="alert">
-          <p className="text-sm text-destructive mb-3">
-            {(error as Error)?.message ?? 'Failed to load tickets.'}
-          </p>
-          <Button variant="outline" onClick={() => refetch()}>
-            Retry
-          </Button>
-        </div>
+        <ErrorState
+          title="Failed to load tickets"
+          message={(error as Error)?.message ?? 'An unexpected error occurred.'}
+          onRetry={() => refetch()}
+          variant="compact"
+        />
       )}
 
-      {!isLoading && !isError && tickets.length === 0 && (
-        <EnterpriseEmptyState
-          title="No tickets found"
-          description="Try adjusting your filters or create a new ticket."
-          icon={TicketIcon}
-          action={{
-            label: 'Create Ticket',
-            onClick: () => navigate('/app/tickets/new'),
-          }}
+      {!isError && (
+        <DataGrid
+          data={tickets}
+          columns={columns}
+          isLoading={isLoading}
+          loadingLabel="Loading tickets"
+          emptyTitle="No tickets found"
+          emptyDescription="Try adjusting your filters or create a new ticket."
+          caption="Service tickets with number, title, status, priority, department, assignee, requester, and created date"
+          onRowClick={(row) => navigate(`/app/tickets/${row.id}`)}
+          stickyHeader
+          compact={!isEtmsUiV2Enabled}
         />
       )}
 
       {!isLoading && !isError && tickets.length > 0 && (
-        <>
-          <div className="enterprise-panel overflow-x-auto">
-            <Table aria-label="Tickets list">
-              <caption className="sr-only">
-                Service tickets with number, title, status, priority, department, assignee, requester, and created date
-              </caption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead scope="col">Ticket Number</TableHead>
-                  <TableHead scope="col">Title</TableHead>
-                  <TableHead scope="col">Status</TableHead>
-                  <TableHead scope="col">Priority</TableHead>
-                  <TableHead scope="col">Department</TableHead>
-                  <TableHead scope="col">Assignee</TableHead>
-                  <TableHead scope="col">Created By</TableHead>
-                  <TableHead scope="col">Created Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tickets.map((ticket) => (
-                  <TableRow key={ticket.id}>
-                    <TableCell>
-                      <Link
-                        to={`/app/tickets/${ticket.id}`}
-                        className="font-mono text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
-                        aria-label={`View ticket ${ticket.ticket_number}: ${ticket.title}`}
-                      >
-                        {ticket.ticket_number}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="max-w-[240px] truncate">{ticket.title}</TableCell>
-                    <TableCell>
-                      <TicketStatusBadge status={ticket.status} />
-                    </TableCell>
-                    <TableCell>
-                      <TicketPriorityBadge priority={ticket.priority} />
-                    </TableCell>
-                    <TableCell>{ticket.department?.name ?? '—'}</TableCell>
-                    <TableCell>{formatPerson(ticket.assignee)}</TableCell>
-                    <TableCell>{formatPerson(ticket.requester)}</TableCell>
-                    <TableCell>
-                      <time dateTime={ticket.created_at}>
-                        {format(new Date(ticket.created_at), 'PP')}
-                      </time>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+        <ActionToolbar align="between" className="border-t border-border pt-4">
+          <p className="text-sm text-muted-foreground" aria-live="polite">
+            Page {meta?.page ?? page} of {totalPages} · {meta?.total ?? 0} tickets
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={page <= 1}
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+              disabled={page >= totalPages}
+              aria-label="Next page"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
+        </ActionToolbar>
+      )}
 
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground" aria-live="polite">
-              Page {meta?.page ?? page} of {totalPages} • {meta?.total ?? 0} tickets
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((current) => Math.max(1, current - 1))}
-                disabled={page <= 1}
-                aria-label="Previous page"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                disabled={page >= totalPages}
-                aria-label="Next page"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </>
+      {!isLoading && !isError && tickets.length === 0 && (
+        <div className="text-center">
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/app/tickets/new">
+              <TicketIcon className="mr-2 h-4 w-4" aria-hidden />
+              Create Ticket
+            </Link>
+          </Button>
+        </div>
       )}
     </div>
   );
