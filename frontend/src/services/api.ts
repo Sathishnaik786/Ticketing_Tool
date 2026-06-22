@@ -600,22 +600,22 @@ export const projectsApi = {
 export const analyticsApi = {
   getAdminOverview: async (): Promise<ApiResponse<any>> => {
     const token = localStorage.getItem('token') || undefined;
-    return apiCall('/analytics/admin/overview', 'GET', undefined, token);
+    return apiCall('/hr-analytics/admin/overview', 'GET', undefined, token);
   },
 
   getManagerTeamProgress: async (): Promise<ApiResponse<any>> => {
     const token = localStorage.getItem('token') || undefined;
-    return apiCall('/analytics/manager/team-progress', 'GET', undefined, token);
+    return apiCall('/hr-analytics/manager/team-progress', 'GET', undefined, token);
   },
 
   getHRWorkforce: async (): Promise<ApiResponse<any>> => {
     const token = localStorage.getItem('token') || undefined;
-    return apiCall('/analytics/hr/workforce', 'GET', undefined, token);
+    return apiCall('/hr-analytics/hr/workforce', 'GET', undefined, token);
   },
 
   getEmployeeSelf: async (): Promise<ApiResponse<any>> => {
     const token = localStorage.getItem('token') || undefined;
-    return apiCall('/analytics/employee/self', 'GET', undefined, token);
+    return apiCall('/hr-analytics/employee/self', 'GET', undefined, token);
   },
 };
 
@@ -727,3 +727,40 @@ export const calendarApi = {
     }
   },
 };
+
+// =====================
+// AUDIT LOGS API (Phase 9.2)
+// =====================
+export const auditApi = {
+  getLogs: async (params?: {
+    actorId?: string;
+    entityType?: string;
+    entityId?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<{
+    logs: any[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    }
+  }>> => {
+    const queryParams = new URLSearchParams();
+    if (params?.actorId) queryParams.append('actorId', params.actorId);
+    if (params?.entityType) queryParams.append('entityType', params.entityType);
+    if (params?.entityId) queryParams.append('entityId', params.entityId);
+    if (params?.startDate) queryParams.append('startDate', params.startDate);
+    if (params?.endDate) queryParams.append('endDate', params.endDate);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+
+    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    const token = localStorage.getItem('token') || undefined;
+    return apiCall(`/v1/audit${queryString}`, 'GET', undefined, token);
+  }
+};
+

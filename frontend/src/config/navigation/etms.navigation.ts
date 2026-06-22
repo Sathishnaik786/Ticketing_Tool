@@ -1,6 +1,6 @@
 import type { NavItem } from './types';
 import {
-  LayoutDashboard, Ticket, PlusCircle, Inbox, Users, BarChart3, CheckSquare, ClipboardCheck, BookOpen, FileEdit, MessageSquare, Activity, Bell, Settings, Building2, ShieldCheck, CreditCard, Calendar, Clock, FileText, FolderKanban, Users2, Sparkles, Archive, User, LayoutTemplate, ClipboardList, Calculator, Database, FileUp, Layers, FileSpreadsheet, Star,
+  LayoutDashboard, Ticket, PlusCircle, Inbox, Users, BarChart3, CheckSquare, ClipboardCheck, BookOpen, FileEdit, MessageSquare, Activity, Bell, Settings, Building2, ShieldCheck, CreditCard, Calendar, Clock, FileText, FolderKanban, Users2, Sparkles, Archive, User, LayoutTemplate, ClipboardList, Calculator, Database, FileUp, Layers, FileSpreadsheet, Star, Search,
 } from './icons';
 
 export const etmsNavItems: NavItem[] = [
@@ -176,6 +176,26 @@ export const etmsNavItems: NavItem[] = [
     legacyGroup: 'Knowledge Base',
   },
   {
+    id: 'kb-categories',
+    title: 'Categories',
+    href: '/app/knowledge-base?tab=categories',
+    icon: Layers,
+    featureFlag: 'VITE_ENABLE_KNOWLEDGE_BASE',
+    keywords: ['categories', 'knowledge', 'kb'],
+    searchPriority: 6,
+    legacyGroup: 'Knowledge Base',
+  },
+  {
+    id: 'kb-search',
+    title: 'Search',
+    href: '/app/knowledge-base?search=true',
+    icon: Search,
+    featureFlag: 'VITE_ENABLE_KNOWLEDGE_BASE',
+    keywords: ['search', 'kb', 'articles', 'lookup'],
+    searchPriority: 7,
+    legacyGroup: 'Knowledge Base',
+  },
+  {
     id: 'kb-legacy-home',
     title: 'Knowledge Base',
     href: '/app/knowledge-base',
@@ -211,6 +231,26 @@ export const etmsNavItems: NavItem[] = [
     featureFlag: 'VITE_ENABLE_COMMUNICATION_TRACKING',
     keywords: ['chat', 'communications', 'messages'],
     searchPriority: 20,
+    legacyGroup: 'Communications',
+  },
+  {
+    id: 'comms-announcements',
+    title: 'Announcements',
+    href: '/app/meetups',
+    icon: Users2,
+    featureFlag: 'VITE_ENABLE_COMMUNICATION_TRACKING',
+    keywords: ['announcements', 'meetups', 'broadcasts'],
+    searchPriority: 21,
+    legacyGroup: 'Communications',
+  },
+  {
+    id: 'comms-discussions',
+    title: 'Discussions',
+    href: '/app/updates/daily',
+    icon: Sparkles,
+    featureFlag: 'VITE_ENABLE_COMMUNICATION_TRACKING',
+    keywords: ['discussions', 'forum', 'updates', 'chat'],
+    searchPriority: 22,
     legacyGroup: 'Communications',
   },
   {

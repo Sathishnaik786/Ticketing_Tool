@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { RouteObject } from 'react-router-dom';
 import { RouteErrorBoundary } from '@/components/common/RouteErrorBoundary';
 import { PayrollDashboardSkeleton } from '@/components/payroll/PayrollSkeletons';
+import { guardFromMetadata } from '@/config/routeMetadata.utils';
 
 const PayrollUploadCenter = lazy(() => import('./pages/PayrollUploadCenter'));
 const PayrollUploadPreview = lazy(() => import('./pages/PayrollUploadPreview'));
@@ -29,49 +30,49 @@ export const bulkProcessingRoutes: RouteObject[] = [
     children: [
       {
         index: true,
-        element: withSuspense(PayrollUploadCenter),
+        element: guardFromMetadata('/app/payroll/bulk', withSuspense(PayrollUploadCenter)),
       },
       {
         path: 'preview/:uploadId',
-        element: withSuspense(PayrollUploadPreview),
+        element: guardFromMetadata('/app/payroll/bulk/preview/:uploadId', withSuspense(PayrollUploadPreview)),
       },
       {
         path: 'review/:uploadId/:rowId',
-        element: withSuspense(PayrollMappingReview),
+        element: guardFromMetadata('/app/payroll/bulk/review/:uploadId/:rowId', withSuspense(PayrollMappingReview)),
       },
       {
         path: 'commitments',
-        element: withSuspense(PayrollCommitmentCenter),
+        element: guardFromMetadata('/app/payroll/bulk/commitments', withSuspense(PayrollCommitmentCenter)),
       },
       {
         path: 'reconciliation',
-        element: withSuspense(PayrollReconciliationDashboard),
+        element: guardFromMetadata('/app/payroll/bulk/reconciliation', withSuspense(PayrollReconciliationDashboard)),
       },
       {
         path: 'treasury',
-        element: withSuspense(TreasuryDashboard),
+        element: guardFromMetadata('/app/payroll/bulk/treasury', withSuspense(TreasuryDashboard)),
       },
       {
         path: 'executive-intelligence',
-        element: withSuspense(ExecutiveFinanceCommandCenter),
+        element: guardFromMetadata('/app/payroll/bulk/executive-intelligence', withSuspense(ExecutiveFinanceCommandCenter)),
       },
       {
         path: 'template-governance',
-        element: withSuspense(PayslipTemplateGovernance),
+        element: guardFromMetadata('/app/payroll/bulk/template-governance', withSuspense(PayslipTemplateGovernance)),
       },
     ],
   },
   {
     path: 'my-statements',
-    element: withSuspense(EmployeePayslipsPage),
+    element: guardFromMetadata('/app/my-statements', withSuspense(EmployeePayslipsPage)),
   },
   {
     path: 'tax-declarations',
-    element: withSuspense(InvestmentDeclarations),
+    element: guardFromMetadata('/app/tax-declarations', withSuspense(InvestmentDeclarations)),
   },
   {
     path: 'payroll/payslip-governance',
-    element: withSuspense(PayslipTemplateGovernance),
+    element: guardFromMetadata('/app/payroll/payslip-governance', withSuspense(PayslipTemplateGovernance)),
   }
 ];
 

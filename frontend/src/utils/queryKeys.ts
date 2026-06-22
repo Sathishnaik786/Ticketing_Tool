@@ -10,7 +10,7 @@ export const queryKeys = {
   me: ['me'] as const,
 
   // Employees
-  employees: (filters?: { page?: number; search?: string; departmentId?: string }) => 
+  employees: (filters?: { page?: number; search?: string; departmentId?: string; limit?: number }) => 
     ['employees', filters] as const,
   employee: (id: string) => ['employee', id] as const,
   employeeProfile: ['employee', 'profile'] as const,
