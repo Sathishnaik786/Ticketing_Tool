@@ -5,6 +5,7 @@ import MonthlyUpdatePage from './monthly/MonthlyUpdatePage';
 import AnalyticsPage from './analytics/AnalyticsPage';
 import AutomationPage from './automation/AutomationPage';
 import EmployeeUpdatesPage from './EmployeeUpdatesPage';
+import { guardFromMetadata } from '@/config/routeMetadata.utils';
 
 // Feature Flag Checks
 // Feature Flag Checks - Enabled by default if not explicitly disabled
@@ -22,41 +23,41 @@ const routes: RouteObject[] = [];
 if (isDailyUpdatesEnabled) {
     routes.push({
         path: 'updates/daily',
-        element: <DailyStandupPage />,
+        element: guardFromMetadata('/app/updates/daily', <DailyStandupPage />),
     });
 }
 
 if (isWeeklyUpdatesEnabled) {
     routes.push({
         path: 'updates/weekly',
-        element: <WeeklyStandoutPage />,
+        element: guardFromMetadata('/app/updates/weekly', <WeeklyStandoutPage />),
     });
 }
 
 if (isMonthlyUpdatesEnabled) {
     routes.push({
         path: 'updates/monthly',
-        element: <MonthlyUpdatePage />,
+        element: guardFromMetadata('/app/updates/monthly', <MonthlyUpdatePage />),
     });
 }
 
 if (isAnalyticsEnabled) {
     routes.push({
         path: 'updates/analytics',
-        element: <AnalyticsPage />,
+        element: guardFromMetadata('/app/updates/analytics', <AnalyticsPage />),
     });
 }
 
 if (isAutomationEnabled) {
     routes.push({
         path: 'updates/automation',
-        element: <AutomationPage />,
+        element: guardFromMetadata('/app/updates/automation', <AutomationPage />),
     });
 }
 
 routes.push({
     path: 'updates/employee/:employeeId',
-    element: <EmployeeUpdatesPage />,
+    element: guardFromMetadata('/app/updates/employee/:employeeId', <EmployeeUpdatesPage />),
 });
 
 export const updatesRoutes: RouteObject[] = routes;

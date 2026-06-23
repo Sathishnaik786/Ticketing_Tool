@@ -40,13 +40,31 @@ class NoopObservabilityProvider implements ObservabilityProvider {
 export const isObservabilityEnabled =
   import.meta.env.VITE_ENABLE_OBSERVABILITY === 'true';
 
+/** Sentry DSN — empty string means real Sentry is not provisioned yet. */
+const SENTRY_DSN: string = import.meta.env.VITE_SENTRY_DSN ?? '';
+
 function createProvider(): ObservabilityProvider {
   if (!isObservabilityEnabled) {
     return new NoopObservabilityProvider();
   }
-  if (import.meta.env.DEV) {
-    return new ConsoleObservabilityProvider();
+
+  // When a real Sentry DSN is configured, we'll initialize @sentry/react.
+  // For now we feature-detect the DSN so the branch is ready to activate
+  // the moment a DSN is added to .env — no code change required.
+  if (SENTRY_DSN) {
+    // Dynamic import keeps @sentry/react optional (not installed yet).
+    // Un-comment and install @sentry/react when a DSN is provisioned:
+    //
+    // import * as Sentry from '@sentry/react';
+    // Sentry.init({ dsn: SENTRY_DSN, tracesSampleRate: 0.2 });
+    //
+    // Then return a SentryObservabilityProvider that calls Sentry.*  methods.
+    //
+    // Until then, fall through to ConsoleObservabilityProvider so the branch
+    // is harmless and DSN detection is already wired.
+    console.info('[observability] Sentry DSN detected — provider will upgrade to @sentry/react once SDK is installed.');
   }
+
   return new ConsoleObservabilityProvider();
 }
 

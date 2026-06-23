@@ -138,14 +138,19 @@ exports.createUser = async (req, res, next) => {
             return res.status(403).json({ success: false, message: 'Only admins can create users' });
         }
 
-        const { email, role, departmentId, managerId } = req.body;
+        let { email, role, departmentId, managerId } = req.body;
 
         // Validate required fields
-        if (!email || !role) {
+        if (!email) {
             return res.status(400).json({
                 success: false,
-                message: 'Email and role are required'
+                message: 'Email is required'
             });
+        }
+
+        // Default role to EMPLOYEE if not specified
+        if (!role) {
+            role = 'EMPLOYEE';
         }
 
         // Validate role
@@ -160,7 +165,7 @@ exports.createUser = async (req, res, next) => {
         // Check if user already exists in Supabase Auth
         const { data: { users }, error: searchError } = await supabase.auth.admin.listUsers();
         if (searchError) {
-            console.error('Error searching users:', searchError);
+            console.error('Error searching users:', searchError.message);
         }
 
         const existingUser = users?.find(user => user.email === email);
@@ -179,7 +184,7 @@ exports.createUser = async (req, res, next) => {
         });
 
         if (authError) {
-            console.error('Error creating auth user:', authError);
+            console.error('Error creating auth user:', authError.message);
             return res.status(400).json({
                 success: false,
                 message: authError.message
@@ -200,7 +205,7 @@ exports.createUser = async (req, res, next) => {
             .single();
 
         if (userError) {
-            console.error('Error inserting user record:', userError);
+            console.error('Error inserting user record:', userError.message);
             // Rollback: delete the auth user since DB insert failed
             await supabaseAdmin.auth.admin.deleteUser(userId);
             return res.status(500).json({
@@ -258,7 +263,7 @@ exports.createUser = async (req, res, next) => {
         }
 
         if (employeeError) {
-            console.error('Error inserting/updating employee record:', employeeError);
+            console.error('Error inserting/updating employee record:', employeeError.message);
             // Rollback: delete the auth user and user record since employee operation failed
             await supabaseAdmin.auth.admin.deleteUser(userId);
             await supabase.from('users').delete().eq('id', userId);
@@ -268,7 +273,57 @@ exports.createUser = async (req, res, next) => {
             });
         }
 
-        // Return created user summary
+        // Insert into user_roles table for access mapping
+        // 1. Resolve role ID from roles table
+        const { data: roleRecord, error: roleResolveError } = await supabase
+            .from('roles')
+            .select('id')
+            .eq('role_code', role)
+            .maybeSingle();
+
+        if (roleResolveError || !roleRecord) {
+            console.error('Error resolving role:', roleResolveError?.message || 'Role not found');
+            // Rollback: delete employee, user, and auth user
+            if (!existingEmployee) {
+                await supabase.from('employees').delete().eq('user_id', userId);
+            }
+            await supabase.from('users').delete().eq('id', userId);
+            await supabaseAdmin.auth.admin.deleteUser(userId);
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to assign role (invalid configuration)'
+            });
+        }
+
+        // 2. Clear existing role mappings for this user in user_roles (if any)
+        await supabase
+            .from('user_roles')
+            .delete()
+            .eq('user_id', userId);
+
+        // 3. Insert into user_roles
+        const { error: userRoleError } = await supabase
+            .from('user_roles')
+            .insert([{
+                user_id: userId,
+                role_id: roleRecord.id
+            }]);
+
+        if (userRoleError) {
+            console.error('Error inserting user_roles record:', userRoleError.message);
+            // Rollback: delete employee, user, and auth user
+            if (!existingEmployee) {
+                await supabase.from('employees').delete().eq('user_id', userId);
+            }
+            await supabase.from('users').delete().eq('id', userId);
+            await supabaseAdmin.auth.admin.deleteUser(userId);
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to assign user role'
+            });
+        }
+
+        // Return created user summary (no sensitive passwords or credentials returned)
         res.status(201).json({
             success: true,
             data: {
@@ -279,10 +334,10 @@ exports.createUser = async (req, res, next) => {
                 departmentId: departmentId || null,
                 managerId: managerId || null
             },
-            message: 'User created successfully. Default password is TempPassword123!'
+            message: 'User created successfully.'
         });
     } catch (err) {
-        console.error('Create user error:', err);
+        console.error('Create user error:', err.message);
         next(err);
     }
 };

@@ -27,7 +27,7 @@ Existing hooks in dashboard module use `fetchEtmsDashboardStats()` — no UI cha
 
 ## Backend Status
 
-Endpoints are **frontend-ready**. Backend routes not yet implemented — graceful fallback ensures no regression.
+Endpoints are **fully implemented** at `/api/dashboard/kpis`, `/api/dashboard/sla`, and `/api/dashboard/activity`. They query the PostgreSQL/Supabase database tables (`tickets`, `ticket_activities`, `departments`, `ticket_feedback`, `ticket_approvals`), utilize rate-limiting, and implement cache middleware to optimize performance. A graceful fallback to mock data is still maintained if any query fails or tables are empty.
 
 ## Testing
 

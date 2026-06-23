@@ -32,4 +32,5 @@ export {
   Layers,
   FileSpreadsheet,
   Star,
+  Search,
 } from 'lucide-react';

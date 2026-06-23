@@ -1,5 +1,5 @@
 const express = require('express');
-const authMiddleware = require('../../middlewares/auth.middleware');
+const authMiddleware = require('@middlewares/auth.middleware');
 const ticketAssignmentFeatureFlag = require('./middleware/ticket-assignment-feature-flag.middleware');
 const ticketAssignmentController = require('./ticket-assignment.controller');
 

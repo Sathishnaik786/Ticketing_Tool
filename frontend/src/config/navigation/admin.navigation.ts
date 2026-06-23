@@ -45,6 +45,15 @@ export const adminNavItems: NavItem[] = [
     legacyGroup: 'Human Capital Management',
   },
   {
+    id: 'admin-roles',
+    title: 'Roles',
+    href: '/app/admin/users?tab=roles',
+    icon: ShieldCheck,
+    roles: ['ADMIN'],
+    keywords: ['admin', 'roles', 'permissions'],
+    searchPriority: 42,
+  },
+  {
     id: 'admin-settings',
     title: 'Settings',
     href: '/app/payroll/settings',

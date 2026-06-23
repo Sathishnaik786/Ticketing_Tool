@@ -9,8 +9,13 @@ const config = require('@config');
 const errorMiddleware = require('@middlewares/error.middleware');
 const logger = require('./lib/logger');
 const loggingMiddleware = require('./middlewares/logger.middleware');
+const telemetryMiddleware = require('./middlewares/telemetry.middleware');
+const telemetry = require('./services/telemetry/telemetry.service');
 const authMiddleware = require('./middlewares/auth.middleware');
 const requireRole = require('./middlewares/role.middleware');
+const auditMiddleware = require('./middlewares/audit.middleware');
+const v1Router = require('./routes/v1');
+
 
 const app = express();
 
@@ -121,6 +126,9 @@ app.use(compression());
 // Structured logging middleware (before routes)
 app.use(loggingMiddleware);
 
+// Telemetry middleware — tracks request latency & status codes per route
+app.use(telemetryMiddleware);
+
 // HTTP request logging (morgan - for compatibility)
 if (config.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -130,120 +138,44 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Audit middleware — captures all mutating database requests (POST/PUT/PATCH/DELETE)
+app.use(auditMiddleware);
+
+
 // Cache middleware (optional - can be applied per route)
 const { cacheMiddleware } = require('./middlewares/cache.middleware');
 
-// Routes (to be added)
-app.use('/api/auth', authLimiter, require('./routes/auth.routes'));
+// API Routes
+// Mount versioned routes under /api/v1
+app.use('/api/v1', v1Router);
 
-// Apply different rate limiting for profile endpoint
-app.use('/api/employees/profile', employeeLimiter);
+// Forward legacy endpoints internally to v1 handlers
+app.use('/api', v1Router);
 
-// Apply general rate limiting for other employee routes
-app.use('/api/employees', employeeLimiter, cacheMiddleware(), require('./routes/employee.routes'));
 
-// Apply general rate limiting to other routes
-app.use('/api/departments', generalLimiter, require('./routes/department.routes'));
-app.use('/api/attendance', generalLimiter, require('./routes/attendance.routes'));
-app.use('/api/leaves', generalLimiter, require('./routes/leave.routes'));
-app.use('/api/documents', generalLimiter, require('./routes/document.routes'));
-app.use('/api/reports', generalLimiter, require('./routes/report.routes'));
-app.use('/api/projects', generalLimiter, require('./routes/project.routes'));
 
-app.use('/api/analytics', generalLimiter, require('@analytics/analytics.routes'));
-app.use('/api/chat', generalLimiter, require('./routes/chat.routes'));
-app.use('/api/notifications', generalLimiter, require('./routes/notification.routes'));
-app.use('/api/meetups', generalLimiter, require('./routes/meetup.routes'));
-app.use('/api/calendar-events', generalLimiter, require('./routes/calendar.routes'));
 
-// Phase-0: Employee Updates Module (Feature Flag: OFF by default in UI, but API is live)
-app.use('/api/updates', generalLimiter, require('./modules/updates/updates.routes'));
 
-// Payroll Module
-console.log('📦 Mounting Payroll Module...');
-const payrollRoutes = require('./modules/payroll/routes/payroll.routes');
-console.log('📦 Payroll Module keys:', Object.keys(payrollRoutes));
-console.log('📦 Payroll Module .default type:', typeof payrollRoutes.default);
 
-app.use('/api/payroll', adminLimiter, (req, res, next) => {
-  console.log(`📦 Payroll Request: ${req.method} ${req.url}`);
+// Debug and health route protection middleware
+app.use((req, res, next) => {
+  const path = req.path;
+  const isDebugRoute = 
+    path === '/redis-test' ||
+    path === '/cache-stats' ||
+    path === '/debug' ||
+    path.startsWith('/debug/') ||
+    path === '/health' ||
+    path.startsWith('/health/');
+
+  if (isDebugRoute) {
+    const enableDebug = process.env.ENABLE_DEBUG_ROUTES === 'true' && process.env.NODE_ENV === 'development';
+    if (!enableDebug) {
+      return res.status(404).json({ success: false, message: 'API Route not found' });
+    }
+  }
   next();
-}, payrollRoutes.default || payrollRoutes);
-
-// Phase-1: Payroll Bulk Processing Module
-try {
-  console.log('📦 Mounting Payroll Bulk Module...');
-  const bulkUploadRoutes = require('./modules/payroll-bulk-processing/routes/bulk-upload.routes');
-  const employeePayslipRoutes = require('./modules/payroll-bulk-processing/routes/employee-payslip.routes');
-  const payslipPublicationRoutes = require('./modules/payroll-bulk-processing/routes/payslip-publication.routes').default;
-
-  // Mount bulk processing routes
-  app.use('/api/payroll-bulk', adminLimiter, bulkUploadRoutes.default || bulkUploadRoutes);
-  
-  // Mount employee payslip viewing routes
-  app.use('/api/payroll/payslips', generalLimiter, employeePayslipRoutes.default || employeePayslipRoutes);
-
-  // Mount payslip publication routes
-  app.use('/api/payroll/publication', adminLimiter, payslipPublicationRoutes);
-  
-  // Employee Self-Service Payslip Access
-  app.use('/api/my-payslips', generalLimiter, employeePayslipRoutes.default || employeePayslipRoutes);
-} catch (error) {
-  console.error('❌ Failed to mount Payroll Bulk Module. Missing dependencies?', error.message);
-}
-
-// ETMS Ticketing Module (Feature Flag: ENABLE_TICKETING)
-if (process.env.ENABLE_TICKETING === 'true') {
-  console.log('📦 Mounting ETMS Ticketing Module...');
-  app.use('/api/ticket-categories', generalLimiter, require('./modules/ticketing/ticket-categories.routes'));
-  app.use('/api/tickets', generalLimiter, require('./modules/ticketing/ticketing.routes'));
-}
-
-// Phase 7.1: CSAT Ticket Feedback Module (Feature Flag: ENABLE_TICKET_FEEDBACK)
-if (process.env.ENABLE_TICKET_FEEDBACK === 'true') {
-  console.log('📦 Mounting CSAT Ticket Feedback Module...');
-  app.use('/api/ticket-feedback', generalLimiter, require('./modules/ticket-feedback/routes/ticket-feedback.routes'));
-}
-
-// Phase 7.2: Ticket Assignment & Work Queue (Feature Flag: ENABLE_TICKET_ASSIGNMENTS)
-if (process.env.ENABLE_TICKET_ASSIGNMENTS === 'true') {
-  console.log('📦 Mounting Ticket Assignment & Work Queue Module...');
-  app.use('/api/ticket-assignments', generalLimiter, require('./modules/ticket-assignment/ticket-assignment.routes'));
-}
-
-// Phase 7.4: Communication & Activity Tracking (Feature Flag: ENABLE_COMMUNICATION_TRACKING)
-if (process.env.ENABLE_COMMUNICATION_TRACKING === 'true') {
-  console.log('📦 Mounting Communication & Activity Tracking Module...');
-  app.use('/api/communications', generalLimiter, require('./modules/communication-tracking/routes/communication-tracking.routes'));
-}
-
-// Phase 7.5: Approval Workflow & Service Catalog (Feature Flag: ENABLE_APPROVAL_ENGINE)
-if (process.env.ENABLE_APPROVAL_ENGINE === 'true') {
-  console.log('📦 Mounting Approval Workflow & Service Catalog Module...');
-  app.use('/api/approvals', generalLimiter, require('./modules/approval-management/routes/approval-management.routes'));
-}
-
-// Phase 7.6: Knowledge Base & Self-Service Portal (Feature Flag: ENABLE_KNOWLEDGE_BASE)
-if (process.env.ENABLE_KNOWLEDGE_BASE === 'true') {
-  console.log('📦 Mounting Knowledge Base & Self-Service Portal Module...');
-  app.use('/api/knowledge', generalLimiter, require('./modules/knowledge-management/routes/knowledge-management.routes'));
-}
-
-// Phase 7.7: Executive Analytics & BI (Feature Flag: ENABLE_EXECUTIVE_ANALYTICS)
-if (process.env.ENABLE_EXECUTIVE_ANALYTICS === 'true') {
-  console.log('📦 Mounting Executive Analytics & BI Module...');
-  app.use('/api/analytics', generalLimiter, require('./modules/executive-analytics/routes/executive-analytics.routes'));
-}
-
-// Phase 7.8: Enterprise Notification & Alert Center (Feature Flag: ENABLE_NOTIFICATION_CENTER)
-if (process.env.ENABLE_NOTIFICATION_CENTER === 'true') {
-  console.log('📦 Mounting Enterprise Notification & Alert Center Module...');
-  app.use('/api/notification-center', generalLimiter, require('./modules/notification-center/routes/notification-center.routes'));
-}
-
-
-
-
+});
 
 // Health check routes
 app.use('/health', publicLimiter, require('./routes/health.routes'));
@@ -304,6 +236,14 @@ app.use((err, req, res, next) => {
     userId: req.user?.id,
     role: req.user?.role,
     ip: req.ip
+  });
+
+  // Track error in telemetry service
+  telemetry.trackError(err, {
+    url: req.originalUrl,
+    method: req.method,
+    userId: req.user?.id,
+    role: req.user?.role,
   });
 
   // Use existing error middleware

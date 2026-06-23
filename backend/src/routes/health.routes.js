@@ -3,7 +3,10 @@ const router = express.Router();
 const { redis } = require('@lib/redis');
 const { supabase } = require('@lib/supabase');
 const CacheService = require('../services/cache.service');
+const TelemetryService = require('../services/telemetry/telemetry.service');
+const AuditService = require('../services/audit/audit.service');
 const config = require('@config');
+
 
 /**
  * Comprehensive health check endpoint
@@ -73,14 +76,53 @@ router.get('/', async (req, res) => {
     };
   }
 
+  // Check Telemetry status
+  try {
+    const telemetryStatus = TelemetryService.getStatus();
+    health.services.telemetry = {
+      status: 'ok',
+      ...telemetryStatus,
+    };
+  } catch (error) {
+    health.services.telemetry = {
+      status: 'error',
+      error: error.message
+    };
+  }
+
+  // Check Audit status (Phase 9.2)
+  try {
+    const auditEnabled = AuditService.isEnabled();
+    const queueDepth = AuditService.getQueueDepth();
+    health.services.audit = {
+      status: auditEnabled ? 'enabled' : 'disabled',
+      enabled: auditEnabled,
+      queueDepth
+    };
+    health.audit = {
+      enabled: auditEnabled,
+      queueDepth
+    };
+  } catch (error) {
+    health.services.audit = {
+      status: 'error',
+      error: error.message
+    };
+    health.audit = {
+      enabled: false,
+      error: error.message
+    };
+  }
+
   // Determine overall status
   const allHealthy = Object.values(health.services).every(
-    service => service.status === 'healthy' || service.status === 'enabled' || service.status === 'disabled'
+    service => service.status === 'healthy' || service.status === 'enabled' || service.status === 'disabled' || service.status === 'ok'
   );
 
   const statusCode = health.status === 'ok' && allHealthy ? 200 : 503;
   
   res.status(statusCode).json(health);
+
 });
 
 /**

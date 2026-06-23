@@ -1,5 +1,5 @@
 const express = require('express');
-const authMiddleware = require('../../middlewares/auth.middleware');
+const authMiddleware = require('@middlewares/auth.middleware');
 const communicationTrackingFeatureFlag = require('../middleware/communication-tracking-feature-flag.middleware');
 const communicationTrackingController = require('../controllers/communication-tracking.controller');
 

@@ -47,7 +47,7 @@
 | `/api/payroll-bulk` | bulk processing | **LEGACY EMS ACTIVE** |
 | `/api/payroll/payslips`, `/api/my-payslips` | payslip routes | **LEGACY EMS ACTIVE** |
 | `/api/payroll/publication` | publication | **LEGACY EMS ACTIVE** |
-| `/api/analytics` | `@analytics/analytics.routes` | **LEGACY EMS / DEPRECATED** |
+| `/api/hr-analytics` | `@analytics/analytics.routes` | **LEGACY EMS / DEPRECATED** |
 
 ### ETMS Routes (Feature-Flag Gated)
 
