@@ -84,7 +84,7 @@ export function Sidebar() {
           'fixed lg:sticky top-0 left-0 z-50 h-screen flex flex-col overflow-hidden',
           etmsShell
             ? 'bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 lg:h-[calc(100vh-1.5rem)] lg:rounded-xl lg:shadow-sm'
-            : 'lg:h-[calc(100vh-1.5rem)] rounded-[2.5rem] bg-white/90 dark:bg-[#030B17]/90 backdrop-blur-3xl lg:liquid-recessed lg:!bg-black/5 dark:lg:!bg-white/5 lg:border-transparent',
+            : 'lg:h-[calc(100vh-1.5rem)] rounded-[2.5rem] bg-white/90 dark:bg-slate-950/90 backdrop-blur-3xl lg:liquid-recessed lg:!bg-black/5 dark:lg:!bg-white/5 lg:border-transparent',
           collapsed ? 'w-16' : 'w-[260px]',
           mobileOpen
             ? 'translate-x-0 m-0 h-screen rounded-none top-0 left-0'

@@ -1,46 +1,91 @@
-import type { EtmsDashboardStats } from '../services/etmsDashboardService';
-
-const STATUS_COLORS = {
-  open: '#2563EB',
-  inProgress: '#F59E0B',
-  resolved: '#10B981',
-  closed: '#64748B',
-};
+import React, { memo, useMemo } from 'react';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+import type { TicketStatusData } from '../types/dashboard.types';
 
 interface TicketStatusChartProps {
-  stats: EtmsDashboardStats;
+  stats?: TicketStatusData;
+  loading?: boolean;
 }
 
-export function TicketStatusChart({ stats }: TicketStatusChartProps) {
-  const segments = [
-    { key: 'open', label: 'Open', value: stats.ticketsByStatus.open, color: STATUS_COLORS.open },
-    { key: 'inProgress', label: 'In Progress', value: stats.ticketsByStatus.inProgress, color: STATUS_COLORS.inProgress },
-    { key: 'resolved', label: 'Resolved', value: stats.ticketsByStatus.resolved, color: STATUS_COLORS.resolved },
-    { key: 'closed', label: 'Closed', value: stats.ticketsByStatus.closed, color: STATUS_COLORS.closed },
-  ];
-  const total = segments.reduce((sum, s) => sum + s.value, 0) || 1;
+const COLORS = {
+  open: '#2563EB',
+  inProgress: '#3B82F6',
+  waiting: '#F59E0B',
+  resolved: '#10B981',
+  closed: '#64748B'
+};
+
+export const TicketStatusChart = memo(function TicketStatusChart({ stats, loading = false }: TicketStatusChartProps) {
+  if (loading) {
+    return (
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 min-h-[320px] flex items-center justify-center animate-pulse">
+        <div className="h-40 w-40 rounded-full border-4 border-slate-200 dark:border-slate-800 border-t-blue-500 animate-spin" />
+      </div>
+    );
+  }
+
+  const data = useMemo(() => {
+    return stats
+      ? [
+          { name: 'Open', value: stats.open, color: COLORS.open },
+          { name: 'In Progress', value: stats.inProgress, color: COLORS.inProgress },
+          { name: 'Waiting', value: stats.waiting, color: COLORS.waiting },
+          { name: 'Resolved', value: stats.resolved, color: COLORS.resolved },
+          { name: 'Closed', value: stats.closed, color: COLORS.closed }
+        ].filter(item => item.value > 0)
+      : [];
+  }, [stats]);
+
+  const isEmpty = data.length === 0;
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
-      <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Ticket Status</h3>
-      <div className="flex h-3 rounded-full overflow-hidden mb-4" role="img" aria-label="Ticket status distribution">
-        {segments.map((s) => (
-          <div
-            key={s.key}
-            style={{ width: `${(s.value / total) * 100}%`, backgroundColor: s.color }}
-            title={`${s.label}: ${s.value}`}
-          />
-        ))}
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 min-h-[320px] flex flex-col justify-between">
+      <div>
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Ticket Status Distribution</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">Real-time load split across operational categories</p>
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        {segments.map((s) => (
-          <div key={s.key} className="flex items-center gap-2 text-sm">
-            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }} aria-hidden />
-            <span className="text-slate-600 dark:text-slate-400">{s.label}</span>
-            <span className="ml-auto font-semibold text-slate-900 dark:text-white">{s.value}</span>
-          </div>
-        ))}
-      </div>
+
+      {isEmpty ? (
+        <div className="flex-1 flex flex-col items-center justify-center py-8 text-center" role="status">
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Everything looks good.</p>
+          <p className="text-xs text-muted-foreground mt-1">No tickets match this layout filter.</p>
+        </div>
+      ) : (
+        <div className="flex-1 min-h-[220px] w-full mt-4">
+          <ResponsiveContainer width="100%" height={220}>
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="45%"
+                innerRadius={60}
+                outerRadius={80}
+                paddingAngle={4}
+                dataKey="value"
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'var(--color-surface, #fff)',
+                  borderColor: 'var(--color-border, #e2e8f0)',
+                  borderRadius: '12px',
+                  color: 'inherit'
+                }}
+              />
+              <Legend
+                verticalAlign="bottom"
+                height={36}
+                iconType="circle"
+                iconSize={8}
+                wrapperStyle={{ fontSize: '12px' }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
-}
+});

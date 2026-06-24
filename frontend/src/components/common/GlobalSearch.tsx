@@ -1,18 +1,17 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, X, Navigation, Clock, Sparkles } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { cn } from '@/lib/utils';
-import {
-  buildSearchRegistry,
-  filterSearchRegistry,
-  type SearchRegistryItem,
-} from '@/config/navigation.utils';
+import { useQuery } from '@tanstack/react-query';
+import { queryKeys } from '@/utils/queryKeys';
+import { departmentsApi, employeesApi } from '@/services/api';
+import { useTickets } from '@/modules/ticketing/hooks/useTicketing';
+import { useKnowledgeArticles } from '@/modules/knowledge-management/hooks/useKnowledgeManagement';
 import {
   getRecentSearches,
   addRecentSearch,
@@ -20,65 +19,133 @@ import {
   getSearchSuggestions,
   type SearchHistoryEntry,
 } from '@/utils/searchHistory.utils';
+import { SearchCategoryTabs } from './search/SearchCategoryTabs';
+import { SearchRecentHistory } from './search/SearchRecentHistory';
+import { SearchSuggestions } from './search/SearchSuggestions';
+import { SearchResultsPanel, type SearchResult } from './search/SearchResultsPanel';
 
 interface GlobalSearchProps {
   isMobile?: boolean;
 }
 
-type SearchResultItem = SearchRegistryItem & { section: 'results' };
-type DisplayItem =
-  | SearchResultItem
-  | { id: string; title: string; href?: string; section: 'recent' | 'suggestion'; query?: string };
-
 export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('all');
   const [activeIndex, setActiveIndex] = useState(-1);
   const [recentSearches, setRecentSearches] = useState<SearchHistoryEntry[]>([]);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 180);
+    return () => clearTimeout(handler);
+  }, [query]);
+  
   const { user } = useAuth();
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
   const isMobileView = useIsMobile();
 
-  const registry = useMemo(() => buildSearchRegistry(), []);
+  // Queries to load data for search indexing
+  const { data: ticketsResponse } = useTickets();
+  const tickets = ticketsResponse?.data || [];
 
-  const suggestions = useMemo(
-    () => getSearchSuggestions(registry.map((r) => r.title)),
-    [registry]
-  );
+  const { data: articles = [] } = useKnowledgeArticles();
 
-  const results = useMemo(() => {
-    if (!query.trim()) return [];
-    return filterSearchRegistry(registry, user, query)
-      .slice(0, 12)
-      .map((item) => ({ ...item, section: 'results' as const }));
-  }, [query, user, registry]);
+  const { data: employeesResponse } = useQuery({
+    queryKey: queryKeys.employees({ limit: 100 }),
+    queryFn: () => employeesApi.getAll({ limit: 100 }),
+  });
+  const employees = employeesResponse?.data || [];
 
-  const displayItems: DisplayItem[] = useMemo(() => {
-    if (query.trim()) return results;
+  const announcements = useMemo(() => [
+    { id: 'ann-1', title: 'Phase 4 operational workspace rollout', category: 'announcements' as const, href: '/app/communications/announcements', description: 'Enterprise alert features guide' },
+    { id: 'ann-2', title: 'Scheduled system backup window - Saturday', category: 'announcements' as const, href: '/app/communications/announcements', description: 'System ops announcements' },
+  ], []);
 
-    const recent: DisplayItem[] = recentSearches.map((entry) => ({
-      id: `recent-${entry.query}`,
-      title: entry.query,
-      href: entry.href,
-      section: 'recent' as const,
-      query: entry.query,
-    }));
+  // Map database elements into unified SearchResult nodes
+  const searchResultsList = useMemo((): SearchResult[] => {
+    if (!debouncedQuery.trim()) return [];
 
-    const suggested: DisplayItem[] = suggestions
-      .filter((s) => !recentSearches.some((r) => r.query.toLowerCase() === s.toLowerCase()))
-      .slice(0, 6)
-      .map((s) => ({
-        id: `suggestion-${s}`,
-        title: s,
-        section: 'suggestion' as const,
-        query: s,
-      }));
+    const q = debouncedQuery.toLowerCase();
+    const results: SearchResult[] = [];
 
-    return [...recent, ...suggested];
-  }, [query, results, recentSearches, suggestions]);
+    // Tickets
+    tickets.filter((t: any) =>
+      t.title.toLowerCase().includes(q) ||
+      (t.ticket_number && t.ticket_number.toLowerCase().includes(q)) ||
+      (t.description && t.description.toLowerCase().includes(q))
+    ).forEach((t: any) => {
+      results.push({
+        id: `ticket-${t.id}`,
+        title: `${t.ticket_number || 'TKT'}: ${t.title}`,
+        description: `Status: ${t.status} • Priority: ${t.priority}`,
+        category: 'tickets',
+        href: `/app/tickets/${t.id}`
+      });
+    });
+
+    // KB Articles
+    articles.filter((art: any) =>
+      art.title.toLowerCase().includes(q) ||
+      (art.summary && art.summary.toLowerCase().includes(q))
+    ).forEach((art: any) => {
+      results.push({
+        id: `article-${art.id}`,
+        title: art.title,
+        description: art.summary || 'Knowledge base article documentation',
+        category: 'kb',
+        href: `/app/articles/${art.id}`
+      });
+    });
+
+    // People
+    employees.filter((emp: any) => {
+      const first = emp.first_name || emp.firstName || '';
+      const last = emp.last_name || emp.lastName || '';
+      const fullName = `${first} ${last}`.trim() || emp.email || 'Employee';
+      return fullName.toLowerCase().includes(q) || (emp.email && emp.email.toLowerCase().includes(q));
+    }).forEach((emp: any) => {
+      const first = emp.first_name || emp.firstName || '';
+      const last = emp.last_name || emp.lastName || '';
+      const fullName = `${first} ${last}`.trim() || emp.email || 'Employee';
+      results.push({
+        id: `person-${emp.id}`,
+        title: fullName,
+        description: `${emp.position || 'Employee'} • ${emp.email || 'No Email'}`,
+        category: 'people',
+        href: `/app/employees?search=${first || emp.email || ''}`
+      });
+    });
+
+    // Announcements
+    announcements.filter((ann) =>
+      ann.title.toLowerCase().includes(q)
+    ).forEach((ann) => {
+      results.push({
+        id: ann.id,
+        title: ann.title,
+        description: ann.description,
+        category: 'announcements',
+        href: ann.href
+      });
+    });
+
+    return results;
+  }, [debouncedQuery, tickets, articles, employees, announcements]);
+
+  const activeFilteredResults = useMemo(() => {
+    if (activeCategory === 'all') return searchResultsList;
+    return searchResultsList.filter((r) => r.category === activeCategory);
+  }, [searchResultsList, activeCategory]);
+
+  const popularSuggestions = useMemo(() => {
+    const list = ['my tickets', 'create ticket', 'approvals', 'knowledge base', 'payroll status'];
+    return getSearchSuggestions(list);
+  }, []);
 
   const refreshRecent = useCallback(() => {
     setRecentSearches(getRecentSearches());
@@ -89,8 +156,8 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
   }, [refreshRecent, isOpen]);
 
   useEffect(() => {
-    setActiveIndex(displayItems.length > 0 ? 0 : -1);
-  }, [displayItems.length, query]);
+    setActiveIndex(activeFilteredResults.length > 0 ? 0 : -1);
+  }, [activeFilteredResults.length, query]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -119,128 +186,75 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  const handleSelect = (item: DisplayItem) => {
-    if ('href' in item && item.href) {
-      addRecentSearch(item.title, item.href);
+  const handleSelect = (item: SearchResult | SearchHistoryEntry) => {
+    addRecentSearch(item.query || item.title, item.href);
+    if (item.href) {
       navigate(item.href);
       setIsOpen(false);
       setQuery('');
       refreshRecent();
-      return;
     }
+  };
 
-    const searchQuery = 'query' in item && item.query ? item.query : item.title;
-    setQuery(searchQuery);
-    addRecentSearch(searchQuery);
+  const handleSuggestionSelect = (val: string) => {
+    setQuery(val);
+    addRecentSearch(val);
     refreshRecent();
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen || displayItems.length === 0) return;
+    if (!isOpen || activeFilteredResults.length === 0) return;
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setActiveIndex((i) => (i + 1) % displayItems.length);
+      setActiveIndex((i) => (i + 1) % activeFilteredResults.length);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setActiveIndex((i) => (i <= 0 ? displayItems.length - 1 : i - 1));
+      setActiveIndex((i) => (i <= 0 ? activeFilteredResults.length - 1 : i - 1));
     } else if (e.key === 'Enter' && activeIndex >= 0) {
       e.preventDefault();
-      handleSelect(displayItems[activeIndex]);
+      handleSelect(activeFilteredResults[activeIndex]);
     }
   };
 
-  const resultList = (
-    <div ref={listRef} role="listbox" aria-label="Search results">
-      {!query.trim() && recentSearches.length > 0 && (
-        <div className="flex items-center justify-between px-2 py-1.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Recent</span>
-          <button
-            type="button"
-            className="text-[10px] text-muted-foreground hover:text-foreground"
-            onClick={() => {
+  const searchBodyContent = (
+    <div className="p-4 space-y-6">
+      {/* Category Tabs */}
+      {query && (
+        <SearchCategoryTabs
+          activeCategory={activeCategory}
+          onCategoryChange={setActiveCategory}
+        />
+      )}
+
+      {/* Main Results or suggestions/recent history */}
+      {query.trim() ? (
+        <SearchResultsPanel
+          results={searchResultsList}
+          activeCategory={activeCategory}
+          onItemSelect={handleSelect}
+          activeIndex={activeIndex}
+        />
+      ) : (
+        <div className="space-y-6">
+          <SearchRecentHistory
+            history={recentSearches}
+            onSelect={handleSelect}
+            onClear={() => {
               clearRecentSearches();
               refreshRecent();
             }}
-          >
-            Clear
-          </button>
+          />
+          <SearchSuggestions
+            suggestions={popularSuggestions}
+            onSelect={handleSuggestionSelect}
+          />
         </div>
-      )}
-      {!query.trim() && suggestions.length > 0 && recentSearches.length === 0 && (
-        <p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Suggestions
-        </p>
-      )}
-
-      <div className="space-y-0.5">
-        {displayItems.map((item, index) => {
-          const isActive = index === activeIndex;
-          const Icon =
-            item.section === 'recent' ? Clock : item.section === 'suggestion' ? Sparkles : Navigation;
-
-          if ('href' in item && item.href && item.section === 'results') {
-            return (
-              <Link
-                key={item.id}
-                to={item.href}
-                role="option"
-                aria-selected={isActive}
-                onClick={() => {
-                  addRecentSearch(item.title, item.href);
-                  setIsOpen(false);
-                  setQuery('');
-                  refreshRecent();
-                }}
-                className={cn(
-                  'flex items-center gap-3 p-2.5 rounded-lg transition-colors group',
-                  isActive ? 'bg-primary/10' : 'hover:bg-muted/60'
-                )}
-              >
-                <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground group-hover:text-primary">
-                  <Icon className="h-4 w-4" aria-hidden />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium text-sm truncate">{item.title}</div>
-                  <div className="text-[10px] text-muted-foreground truncate">{item.href}</div>
-                </div>
-              </Link>
-            );
-          }
-
-          return (
-            <button
-              key={item.id}
-              type="button"
-              role="option"
-              aria-selected={isActive}
-              onClick={() => handleSelect(item)}
-              className={cn(
-                'w-full flex items-center gap-3 p-2.5 rounded-lg transition-colors text-left',
-                isActive ? 'bg-primary/10' : 'hover:bg-muted/60'
-              )}
-            >
-              <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
-                <Icon className="h-4 w-4" aria-hidden />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="font-medium text-sm truncate">{item.title}</div>
-                {item.section === 'suggestion' && (
-                  <div className="text-[10px] text-muted-foreground">Suggested search</div>
-                )}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {query && results.length === 0 && (
-        <p className="py-8 text-center text-sm text-muted-foreground">No matching destinations.</p>
       )}
     </div>
   );
 
-  const searchInput = (
+  const searchInputNode = (
     <>
       <Search className="h-5 w-5 text-primary flex-shrink-0" aria-hidden />
       <Input
@@ -253,8 +267,8 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
         }}
         onFocus={() => setIsOpen(true)}
         onKeyDown={handleInputKeyDown}
-        placeholder="Search tickets, pages, actions..."
-        className="border-0 focus-visible:ring-0 flex-1"
+        placeholder="Search tickets, articles, personnel... (Press '/' to search)"
+        className="border-0 focus-visible:ring-0 flex-1 h-9 text-xs"
         aria-label="Global search"
         aria-controls={isOpen ? 'global-search-results' : undefined}
         aria-expanded={isOpen}
@@ -270,8 +284,8 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="p-2.5 rounded-xl bg-muted text-muted-foreground"
-          aria-label="Open search"
+          className="p-2 rounded-xl bg-muted text-muted-foreground"
+          aria-label="Open search drawer"
         >
           <Search className="h-5 w-5" />
         </button>
@@ -285,15 +299,15 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
               role="dialog"
               aria-label="Search navigation"
             >
-              <div className="w-full max-w-2xl mx-auto bg-card rounded-xl border shadow-lg overflow-hidden flex flex-col max-h-[85vh]">
-                <div className="p-3 border-b flex items-center gap-2">
-                  {searchInput}
+              <div className="w-full max-w-2xl mx-auto bg-card rounded-[2rem] border shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+                <div className="p-4 border-b flex items-center gap-2">
+                  {searchInputNode}
                   <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} aria-label="Close search">
                     <X className="h-5 w-5" />
                   </Button>
                 </div>
-                <ScrollArea className="flex-1 p-2" id="global-search-results">
-                  {resultList}
+                <ScrollArea className="flex-1" id="global-search-results">
+                  {searchBodyContent}
                 </ScrollArea>
               </div>
             </motion.div>
@@ -304,26 +318,36 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
   }
 
   return (
-    <div className="relative" ref={searchRef}>
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" aria-hidden />
-      <Input
-        ref={inputRef}
-        type="search"
-        value={query}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          setIsOpen(true);
-        }}
-        onFocus={() => setIsOpen(true)}
-        onKeyDown={handleInputKeyDown}
-        placeholder="Search tickets, pages, actions..."
-        className="pl-10 h-10 rounded-xl"
-        aria-label="Global search"
-        aria-controls={isOpen ? 'global-search-results' : undefined}
-        aria-expanded={isOpen}
-        aria-autocomplete="list"
-        role="combobox"
-      />
+    <div className="relative w-full" ref={searchRef}>
+      <div className="relative flex items-center bg-muted/40 rounded-xl border border-border/40 px-3 py-1">
+        <Search className="h-4 w-4 text-muted-foreground pointer-events-none" aria-hidden />
+        <Input
+          ref={inputRef}
+          type="search"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setIsOpen(true);
+          }}
+          onFocus={() => setIsOpen(true)}
+          onKeyDown={handleInputKeyDown}
+          placeholder="Search tickets, articles, personnel... (Press '/' to search)"
+          className="border-0 bg-transparent focus-visible:ring-0 pl-2 pr-6 h-9 text-xs flex-1 shadow-none"
+          aria-label="Global search"
+          role="combobox"
+          aria-expanded={isOpen}
+        />
+        {query && (
+          <button
+            onClick={() => setQuery('')}
+            className="absolute right-2.5 p-0.5 rounded-full hover:bg-muted text-muted-foreground"
+            aria-label="Clear search"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
+      </div>
+
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -331,12 +355,13 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
-            className="absolute top-full left-0 w-full mt-2 rounded-xl border bg-card shadow-lg z-50 max-h-80 overflow-hidden"
+            className="absolute top-full left-0 w-full mt-2 rounded-[2rem] border bg-card shadow-2xl z-50 max-h-[75vh] overflow-hidden"
           >
-            <ScrollArea className="p-2">{resultList}</ScrollArea>
+            <ScrollArea className="max-h-[70vh]">{searchBodyContent}</ScrollArea>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
 }
+export default GlobalSearch;

@@ -35,7 +35,7 @@ export function OnlineIndicator({ firstName, lastName, email, profileImage, posi
         </div>
         <div 
           className={cn(
-            "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-[#0B1220] transition-all duration-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]",
+            "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-950 transition-all duration-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]",
             isOnline ? "bg-emerald-500 scale-105 shadow-[0_0_10px_rgba(16,185,129,0.6)]" : "bg-slate-400"
           )}
         />

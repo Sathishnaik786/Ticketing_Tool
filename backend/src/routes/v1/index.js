@@ -127,4 +127,15 @@ if (process.env.ENABLE_NOTIFICATION_CENTER === 'true') {
 const { auditRouter } = require('./audit.routes');
 router.use('/audit', auditRouter);
 
+// Phase 5.1: Enterprise Service Management (ESM) Core Platform
+const checkFeatureFlag = require('../../middlewares/featureFlag.middleware');
+
+router.use('/esm/catalog', generalLimiter, checkFeatureFlag('esm.catalog'), require('../../modules/catalog-engine/catalog.routes'));
+router.use('/esm/workflows', generalLimiter, checkFeatureFlag('esm.workflow'), require('../../modules/workflow-engine/workflow.routes'));
+router.use('/esm/approvals', generalLimiter, checkFeatureFlag('esm.approvals'), require('../../modules/approval-engine/approval.routes'));
+router.use('/esm/notifications', generalLimiter, require('../../modules/notification-engine/notification.routes'));
+router.use('/esm/sla', generalLimiter, checkFeatureFlag('esm.sla'), require('../../modules/sla-engine/sla.routes'));
+router.use('/esm/settings', generalLimiter, require('../../modules/settings-engine/settings.routes'));
+router.use('/esm/events', adminLimiter, require('../../modules/event-store/eventStore.routes'));
+
 module.exports = router;

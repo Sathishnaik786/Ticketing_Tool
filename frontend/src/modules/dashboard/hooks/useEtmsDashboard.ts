@@ -1,12 +1,24 @@
 import { useQuery } from '@tanstack/react-query';
 import { isEtmsDashboardEnabled } from '@/config/features';
-import { fetchEtmsDashboardStats } from '../services/etmsDashboardService';
+import { dashboardService } from '../services/dashboard.service';
+import type { EtmsDashboardStats } from '../types/dashboard.types';
 
 export function useEtmsDashboard() {
-  return useQuery({
-    queryKey: ['etms-dashboard-stats'],
-    queryFn: fetchEtmsDashboardStats,
+  const { data, isLoading, error } = useQuery<EtmsDashboardStats>({
+    queryKey: ['etms-dashboard-stats-combined'],
+    queryFn: dashboardService.getCombinedDashboardData,
     enabled: isEtmsDashboardEnabled,
-    staleTime: 60_000,
+    staleTime: 30_000,
   });
+
+  return {
+    kpis: data?.kpis,
+    ticketStatus: data?.ticketStatus,
+    departmentPerformance: data?.departmentPerformance || [],
+    activities: data?.activities || [],
+    pendingApprovals: data?.pendingApprovals || [],
+    knowledgeStats: data?.knowledgeStats,
+    loading: isLoading,
+    error,
+  };
 }

@@ -8,7 +8,15 @@ import {
   Star,
   Navigation,
   LayoutDashboard,
-  X
+  X,
+  FileText,
+  User,
+  Users,
+  Megaphone,
+  BookOpen,
+  Plus,
+  Bell,
+  Eye
 } from 'lucide-react';
 import { useCommand } from '@/contexts/CommandContext';
 import { useNavigate } from 'react-router-dom';
@@ -17,49 +25,213 @@ import { useAuth } from '@/contexts/AuthContext';
 import { buildCommandRegistry, filterCommandRegistry } from '@/config/navigation.utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { useTheme } from 'next-themes';
+import { useQuery } from '@tanstack/react-query';
+import { queryKeys } from '@/utils/queryKeys';
+import { departmentsApi, employeesApi } from '@/services/api';
+import { useTickets } from '@/modules/ticketing/hooks/useTicketing';
+import { useKnowledgeArticles } from '@/modules/knowledge-management/hooks/useKnowledgeManagement';
+import { toast } from 'sonner';
 
 export function CommandPalette() {
   const { isOpen, setIsOpen, query, setQuery, commands } = useCommand();
   const { history } = useNavigationHistory();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Queries to support search resources
+  const { data: ticketsResponse } = useTickets();
+  const tickets = ticketsResponse?.data || [];
+
+  const { data: articles = [] } = useKnowledgeArticles();
+
+  const { data: departments = [] } = useQuery({
+    queryKey: queryKeys.departments,
+    queryFn: departmentsApi.getAll,
+  });
+
+  const { data: employeesResponse } = useQuery({
+    queryKey: queryKeys.employees({ limit: 100 }),
+    queryFn: () => employeesApi.getAll({ limit: 100 }),
+  });
+  const employees = employeesResponse?.data || [];
+
+  // Announcements mock list (to prevent undefined checks)
+  const announcements = useMemo(() => [
+    { id: 'ann-1', title: 'Phase 4 operational workspace rollout', category: 'Announcements', href: '/app/communications/announcements' },
+    { id: 'ann-2', title: 'Scheduled system backup window - Saturday', category: 'Announcements', href: '/app/communications/announcements' },
+  ], []);
+
+  // Standard static navigation registry commands
   const registryCommands = useMemo(() => {
     return filterCommandRegistry(buildCommandRegistry(), user, query).map((item) => ({
       id: item.id,
       title: item.title,
-      category: item.category,
+      category: 'Navigation' as const,
       icon: item.icon || Navigation,
       action: () => navigate(item.href),
     }));
   }, [user, query, navigate]);
 
+  // Historic pages visited
   const historyCommands = useMemo(() =>
     history.map(item => ({
       id: `history-${item.path}`,
       title: item.title,
-      description: `Visited ${new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
       category: 'Recent Activity' as const,
       icon: History,
       action: () => navigate(item.path)
     })), [history, navigate]
   );
 
-  const legacyFallbackCommands = useMemo(() => [
-    { id: 'nav-dashboard', title: 'Go to Dashboard', category: 'Navigation', icon: LayoutDashboard, action: () => navigate('/app/dashboard') },
-  ], [navigate]);
-
-  const allCommands = useMemo(() => {
-    const merged = [...registryCommands, ...historyCommands, ...commands];
-    if (merged.length === 0 && !query) {
-      return legacyFallbackCommands;
+  // Core administrative operator productivity commands
+  const systemCommands = useMemo(() => [
+    {
+      id: 'cmd-create-ticket',
+      title: 'Create Ticket',
+      category: 'Actions' as const,
+      icon: Plus,
+      action: () => navigate('/app/tickets/new')
+    },
+    {
+      id: 'cmd-my-queue',
+      title: 'Go to My Queue',
+      category: 'Actions' as const,
+      icon: Eye,
+      action: () => navigate('/app/my-queue')
+    },
+    {
+      id: 'cmd-open-notifications',
+      title: 'Open Notification Center',
+      category: 'Actions' as const,
+      icon: Bell,
+      action: () => navigate('/app/notifications')
+    },
+    {
+      id: 'cmd-toggle-theme',
+      title: 'Toggle Theme (Light / Dark Mode)',
+      category: 'Actions' as const,
+      icon: LayoutDashboard,
+      action: () => {
+        setTheme(theme === 'dark' ? 'light' : 'dark');
+        toast.success(`Theme switched to ${theme === 'dark' ? 'light' : 'dark'} mode`);
+      }
+    },
+    {
+      id: 'cmd-open-profile',
+      title: 'Open Profile Settings',
+      category: 'Actions' as const,
+      icon: User,
+      action: () => navigate('/app/profile')
     }
-    return merged;
-  }, [registryCommands, historyCommands, commands, legacyFallbackCommands, query]);
+  ], [navigate, theme, setTheme]);
 
-  const filteredCommands = useMemo(() => allCommands, [allCommands]);
+  // Merge search-specific dynamic items if query is typed
+  const searchMatchedItems = useMemo(() => {
+    if (!query.trim()) return [];
+
+    const q = query.toLowerCase();
+    const results: any[] = [];
+
+    // Filter tickets
+    tickets.filter((t: any) =>
+      t.title.toLowerCase().includes(q) ||
+      (t.ticket_number && t.ticket_number.toLowerCase().includes(q)) ||
+      (t.description && t.description.toLowerCase().includes(q))
+    ).slice(0, 5).forEach((t: any) => {
+      results.push({
+        id: `ticket-${t.id}`,
+        title: `${t.ticket_number || 'TKT'}: ${t.title}`,
+        description: `Status: ${t.status} • Priority: ${t.priority}`,
+        category: 'Tickets' as const,
+        icon: FileText,
+        action: () => navigate(`/app/tickets/${t.id}`)
+      });
+    });
+
+    // Filter articles
+    articles.filter((art: any) =>
+      art.title.toLowerCase().includes(q) ||
+      (art.summary && art.summary.toLowerCase().includes(q))
+    ).slice(0, 4).forEach((art: any) => {
+      results.push({
+        id: `article-${art.id}`,
+        title: art.title,
+        description: 'Knowledge Base Article',
+        category: 'Knowledge Base' as const,
+        icon: BookOpen,
+        action: () => navigate(`/app/articles/${art.id}`)
+      });
+    });
+
+    // Filter people (employees)
+    employees.filter((emp: any) => {
+      const first = emp.first_name || emp.firstName || '';
+      const last = emp.last_name || emp.lastName || '';
+      const fullName = `${first} ${last}`.trim() || emp.email || 'Employee';
+      return fullName.toLowerCase().includes(q) || (emp.email && emp.email.toLowerCase().includes(q));
+    }).slice(0, 4).forEach((emp: any) => {
+      const first = emp.first_name || emp.firstName || '';
+      const last = emp.last_name || emp.lastName || '';
+      const fullName = `${first} ${last}`.trim() || emp.email || 'Employee';
+      results.push({
+        id: `person-${emp.id}`,
+        title: fullName,
+        description: `${emp.position || 'Employee'} • ${emp.email || 'No Email'}`,
+        category: 'People' as const,
+        icon: User,
+        action: () => navigate(`/app/employees?search=${first || emp.email || ''}`)
+      });
+    });
+
+    // Filter departments
+    departments.filter((dept: any) =>
+      dept.name.toLowerCase().includes(q)
+    ).slice(0, 3).forEach((dept: any) => {
+      results.push({
+        id: `dept-${dept.id}`,
+        title: `${dept.name} Department`,
+        description: `Code: ${dept.code || 'DEPT'}`,
+        category: 'Departments' as const,
+        icon: Users,
+        action: () => navigate('/app/departments')
+      });
+    });
+
+    // Filter announcements
+    announcements.filter((ann) =>
+      ann.title.toLowerCase().includes(q)
+    ).forEach((ann) => {
+      results.push({
+        id: ann.id,
+        title: ann.title,
+        description: 'Announcement Bulletin',
+        category: 'Announcements' as const,
+        icon: Megaphone,
+        action: () => navigate(ann.href)
+      });
+    });
+
+    return results;
+  }, [query, tickets, articles, employees, departments, announcements, navigate]);
+
+  // Combine static registries, actions list, and searches
+  const filteredCommands = useMemo(() => {
+    if (query.trim()) {
+      // Prioritize actions & matching search results when query exists
+      const matchCommands = systemCommands.filter(c =>
+        c.title.toLowerCase().includes(query.toLowerCase())
+      );
+      const matchNav = registryCommands.filter(c =>
+        c.title.toLowerCase().includes(query.toLowerCase())
+      );
+      return [...matchCommands, ...searchMatchedItems, ...matchNav];
+    }
+    return [...systemCommands, ...registryCommands, ...historyCommands];
+  }, [query, registryCommands, historyCommands, systemCommands, searchMatchedItems]);
 
   useEffect(() => {
     if (isOpen) {
@@ -75,10 +247,10 @@ export function CommandPalette() {
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setSelectedIndex(prev => (prev + 1) % filteredCommands.length);
+        setSelectedIndex(prev => (prev + 1) % Math.max(1, filteredCommands.length));
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        setSelectedIndex(prev => (prev - 1 + filteredCommands.length) % filteredCommands.length);
+        setSelectedIndex(prev => (prev - 1 + filteredCommands.length) % Math.max(1, filteredCommands.length));
       } else if (e.key === 'Enter') {
         e.preventDefault();
         if (filteredCommands[selectedIndex]) {
@@ -128,8 +300,11 @@ export function CommandPalette() {
               <input
                 ref={inputRef}
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search anything... (Pages, Actions, Personnel)"
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setSelectedIndex(0);
+                }}
+                placeholder="Search tickets, articles, personnel, actions... (Ctrl+K)"
                 className="flex-1 bg-transparent border-0 focus:ring-0 text-xl font-bold placeholder:text-slate-500 text-slate-900 dark:text-white"
               />
               <div className="flex items-center gap-2">
@@ -195,8 +370,8 @@ export function CommandPalette() {
                       <Search size={40} />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Intelligence Failure</p>
-                      <p className="text-sm text-slate-500 max-w-xs mx-auto">We couldn't find any commands matching your request. Try refining your query.</p>
+                      <p className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">No Commands Found</p>
+                      <p className="text-sm text-slate-500 max-w-xs mx-auto">We couldn't find any resources or commands matching "{query}". Try checking details.</p>
                     </div>
                   </div>
                 )}
@@ -215,7 +390,7 @@ export function CommandPalette() {
                   Execute
                 </div>
               </div>
-              <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">EMTS Productivity OS v1.0</p>
+              <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">ETMS Productivity OS v2.0</p>
             </div>
           </motion.div>
         </div>
@@ -223,3 +398,4 @@ export function CommandPalette() {
     </AnimatePresence>
   );
 }
+export default CommandPalette;

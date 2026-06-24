@@ -1,12 +1,7 @@
-import { useState, useMemo, useCallback } from 'react';
-import { PageHeader, ActionToolbar, ErrorState } from '@/components/design-system';
+import * as React from 'react';
+import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Checkbox } from '@/components/ui/checkbox';
-import { isEtmsNotificationsEnabled } from '@/config/features';
-import { NotificationFilterBar } from '../components/NotificationFilterBar';
-import { NotificationList } from '../components/NotificationList';
-import { NotificationPreferencesForm } from '../components/NotificationPreferencesForm';
+import { CheckCheck, Settings, BellOff } from 'lucide-react';
 import {
   useMyNotifications,
   useMarkNotificationRead,
@@ -14,209 +9,235 @@ import {
   useNotificationPreferences,
   useUpdateNotificationPreferences,
 } from '../hooks/useNotificationCenter';
-import {
-  archiveNotificationIds,
-  filterArchivedNotifications,
-} from '../utils/notificationArchive.utils';
-import { Archive, CheckCheck, Settings } from 'lucide-react';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
+import { NotificationTabs } from '@/modules/notifications/components/NotificationTabs';
+import { NotificationFilters } from '@/modules/notifications/components/NotificationFilters';
+import { NotificationCard } from '@/modules/notifications/components/NotificationCard';
+import { NotificationActions } from '@/modules/notifications/components/NotificationActions';
+import { NotificationPreferenceDrawer } from '@/modules/notifications/components/NotificationPreferenceDrawer';
+import { NotificationSkeleton } from '@/modules/notifications/components/NotificationSkeleton';
+import { toast } from 'sonner';
+import { ComponentErrorBoundary } from '@/components/common/ComponentErrorBoundary';
 
 export default function NotificationCenterPage() {
-  const [activeTab, setActiveTab] = useState('unread');
-  const [viewTab, setViewTab] = useState('inbox');
-  const [status, setStatus] = useState('all');
-  const [priority, setPriority] = useState('');
-  const [module, setModule] = useState('');
-  const [search, setSearch] = useState('');
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = React.useState('unread');
+  const [search, setSearch] = React.useState('');
+  const [priority, setPriority] = React.useState('');
+  const [module, setModule] = React.useState('');
+  const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
+  const [isPrefOpen, setIsPrefOpen] = React.useState(false);
 
+  // Mount real-time subscription hook
+  useRealtimeNotifications();
+
+  // Define tab parameters mapping to backend properties
   const tabFilters: Record<string, Record<string, string>> = {
     unread: { status: 'unread' },
     mentions: { type: 'mention' },
     approvals: { source_module: 'approval' },
     system: { source_module: 'system' },
-    announcements: { type: 'announcement' },
+    announcements: { source_module: 'announcement' },
   };
 
-  const effectiveStatus = isEtmsNotificationsEnabled
-    ? tabFilters[activeTab]?.status ?? status
-    : status;
-  const effectiveModule = isEtmsNotificationsEnabled
-    ? tabFilters[activeTab]?.source_module ?? module
-    : module;
-
-  const filters = useMemo(() => {
-    const f: Record<string, string> = {};
-    if (effectiveStatus && effectiveStatus !== 'all') f.status = effectiveStatus;
-    if (priority) f.priority = priority;
-    if (effectiveModule) f.source_module = effectiveModule;
-    if (tabFilters[activeTab]?.type) f.type = tabFilters[activeTab].type!;
+  const queryFilters = React.useMemo(() => {
+    const f: Record<string, string> = { ...tabFilters[activeTab] };
     if (search) f.search = search;
+    if (priority) f.priority = priority;
+    if (module) f.source_module = module;
     return f;
-  }, [effectiveStatus, priority, effectiveModule, search, activeTab]);
+  }, [activeTab, search, priority, module]);
 
-  const { data, isLoading, isError, refetch } = useMyNotifications(filters);
+  const { data, isLoading, isError, refetch } = useMyNotifications(queryFilters);
+  const { data: preferences } = useNotificationPreferences();
+  
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
-  const { data: preferences } = useNotificationPreferences();
   const updatePrefs = useUpdateNotificationPreferences();
 
-  const showArchived = viewTab === 'archived';
-  const notifications = useMemo(
-    () => filterArchivedNotifications(data?.notifications ?? [], showArchived),
-    [data?.notifications, showArchived]
-  );
+  const notificationsList = data?.notifications || [];
 
-  const toggleSelect = useCallback((id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+  // Group notifications by relative date headers (Today, Yesterday, Older)
+  const groupedNotifications = React.useMemo(() => {
+    const groups: Record<string, typeof notificationsList> = {
+      Today: [],
+      Yesterday: [],
+      Older: []
+    };
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    notificationsList.forEach((notif) => {
+      const d = new Date(notif.created_at);
+      if (d >= today) {
+        groups.Today.push(notif);
+      } else if (d >= yesterday) {
+        groups.Yesterday.push(notif);
+      } else {
+        groups.Older.push(notif);
+      }
     });
-  }, []);
 
-  const toggleSelectAll = useCallback(() => {
-    if (selectedIds.size === notifications.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(notifications.map((n) => n.id)));
-    }
-  }, [notifications, selectedIds.size]);
+    return Object.entries(groups).filter(([_, items]) => items.length > 0);
+  }, [notificationsList]);
 
-  const handleBulkMarkRead = async () => {
-    const ids = [...selectedIds];
-    await Promise.all(ids.map((id) => markRead.mutateAsync(id)));
-    setSelectedIds(new Set());
+  // Tab count indicators (counts of unread notifications matching each tab category)
+  const tabCounts = React.useMemo(() => {
+    const all = data?.notifications || [];
+    return {
+      unread: all.filter((n) => !n.read).length,
+      mentions: all.filter((n) => n.type === 'mention' && !n.read).length,
+      approvals: all.filter((n) => n.source_module === 'approval' && !n.read).length,
+      system: all.filter((n) => n.source_module === 'system' && !n.read).length,
+      announcements: all.filter((n) => (n.source_module === 'announcement' || n.type === 'announcement') && !n.read).length,
+    };
+  }, [data]);
+
+  const handleSelectToggle = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
   };
 
-  const handleBulkArchive = () => {
-    archiveNotificationIds([...selectedIds]);
-    setSelectedIds(new Set());
-    refetch();
+  const handleBulkMarkRead = async () => {
+    await Promise.all(selectedIds.map((id) => markRead.mutateAsync(id)));
+    setSelectedIds([]);
+    toast.success('Selected notifications marked as read');
+  };
+
+  const handleResetFilters = () => {
+    setSearch('');
+    setPriority('');
+    setModule('');
   };
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6">
+    <div className="p-6 lg:p-8 space-y-6">
       <PageHeader
-        title="Notification Center"
-        description="Enterprise alerts from ticketing, SLA, approvals, communications, knowledge, and analytics."
+        title="Command Notification Center"
+        description="Real-time operational alerts across service desk ticketing, approvals, SLA warnings, and broadcasts."
         breadcrumbs={[{ label: 'Notifications' }]}
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => markAllRead.mutate()}
-            disabled={markAllRead.isPending}
-          >
-            <CheckCheck className="h-4 w-4 mr-1.5" aria-hidden />
-            Mark all read
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => markAllRead.mutate()}
+              disabled={markAllRead.isPending}
+              className="rounded-xl h-9"
+            >
+              <CheckCheck className="h-4 w-4 mr-1.5" aria-hidden />
+              Mark all read
+            </Button>
+            <Button
+              variant="outlinePremium"
+              size="sm"
+              onClick={() => setIsPrefOpen(true)}
+              className="rounded-xl h-9"
+            >
+              <Settings className="h-4 w-4 mr-1.5" aria-hidden />
+              Preferences
+            </Button>
+          </div>
         }
       />
 
-      <Tabs value={viewTab} onValueChange={setViewTab}>
-        <TabsList className="h-auto">
-          <TabsTrigger value="inbox">Inbox</TabsTrigger>
-          <TabsTrigger value="archived">
-            <Archive className="h-3.5 w-3.5 mr-1" aria-hidden />
-            Archived
-          </TabsTrigger>
-          <TabsTrigger value="preferences">
-            <Settings className="h-3.5 w-3.5 mr-1" aria-hidden />
-            Preferences
-          </TabsTrigger>
-        </TabsList>
+      {/* Tabs list navigation */}
+      <ComponentErrorBoundary name="NotificationTabs">
+        <NotificationTabs
+          activeTab={activeTab}
+          onTabChange={(tab) => {
+            setActiveTab(tab);
+            setSelectedIds([]);
+          }}
+          counts={tabCounts}
+        />
+      </ComponentErrorBoundary>
 
-        <TabsContent value="inbox" className="space-y-4 mt-4">
-          {isEtmsNotificationsEnabled && (
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 h-auto gap-1">
-                <TabsTrigger value="unread">Unread</TabsTrigger>
-                <TabsTrigger value="mentions">Mentions</TabsTrigger>
-                <TabsTrigger value="approvals">Approvals</TabsTrigger>
-                <TabsTrigger value="system">System</TabsTrigger>
-                <TabsTrigger value="announcements">Announcements</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          )}
+      {/* Filters options toolbar */}
+      <ComponentErrorBoundary name="NotificationFilters">
+        <NotificationFilters
+          search={search}
+          onSearchChange={setSearch}
+          priority={priority}
+          onPriorityChange={setPriority}
+          module={module}
+          onModuleChange={setModule}
+          onReset={handleResetFilters}
+        />
+      </ComponentErrorBoundary>
 
-          <NotificationFilterBar
-            status={status}
-            priority={priority}
-            module={module}
-            search={search}
-            onStatusChange={setStatus}
-            onPriorityChange={setPriority}
-            onModuleChange={setModule}
-            onSearchChange={setSearch}
-            onMarkAllRead={() => markAllRead.mutate()}
-            isMarkingAll={markAllRead.isPending}
-          />
+      {/* Bulk action selection banner */}
+      <ComponentErrorBoundary name="NotificationActions">
+        <NotificationActions
+          selectedCount={selectedIds.length}
+          onMarkRead={handleBulkMarkRead}
+          onClearSelection={() => setSelectedIds([])}
+        />
+      </ComponentErrorBoundary>
 
-          {selectedIds.size > 0 && (
-            <ActionToolbar align="between" className="rounded-lg border border-border bg-muted/30 p-3">
-              <span className="text-sm text-muted-foreground">{selectedIds.size} selected</span>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={handleBulkMarkRead} disabled={markRead.isPending}>
-                  Mark read
-                </Button>
-                <Button size="sm" variant="outline" onClick={handleBulkArchive}>
-                  <Archive className="h-3.5 w-3.5 mr-1" aria-hidden />
-                  Archive
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
-                  Cancel
-                </Button>
+      {/* Primary alerts viewport */}
+      <ComponentErrorBoundary name="NotificationList">
+        <div className="space-y-6">
+          {isLoading ? (
+            <NotificationSkeleton />
+          ) : isError ? (
+            <div className="text-center py-12 border rounded-xl border-dashed">
+              <p className="text-sm text-rose-500">Failed to load alerts feed. Please retry.</p>
+              <Button onClick={() => refetch()} className="mt-4" variant="outline">Retry</Button>
+            </div>
+          ) : notificationsList.length === 0 ? (
+            <div className="text-center py-16 border rounded-[2rem] border-dashed border-border/60 bg-muted/5 flex flex-col items-center justify-center space-y-4">
+              <div className="h-12 w-12 rounded-2xl bg-muted/65 flex items-center justify-center text-muted-foreground">
+                <BellOff className="h-6 w-6" />
               </div>
-            </ActionToolbar>
-          )}
-
-          {notifications.length > 0 && (
-            <div className="flex items-center gap-2 px-1">
-              <Checkbox
-                checked={selectedIds.size === notifications.length && notifications.length > 0}
-                onCheckedChange={toggleSelectAll}
-                aria-label="Select all notifications"
-              />
-              <span className="text-xs text-muted-foreground">Select all</span>
+              <div className="space-y-1">
+                <p className="font-bold text-sm text-slate-800 dark:text-slate-200">Alerts feed clear</p>
+                <p className="text-xs text-muted-foreground">You do not have any notifications matching this filter.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {groupedNotifications.map(([dateGroup, items]) => (
+                <div key={dateGroup} className="space-y-3">
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 pl-1">
+                    {dateGroup}
+                  </h3>
+                  <div className="space-y-3">
+                    {items.map((notif) => (
+                      <NotificationCard
+                        key={notif.id}
+                        notification={notif}
+                        onMarkRead={(id) => markRead.mutate(id)}
+                        isSelected={selectedIds.includes(notif.id)}
+                        onSelectToggle={handleSelectToggle}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
+        </div>
+      </ComponentErrorBoundary>
 
-          {isError ? (
-            <ErrorState title="Unable to load notifications" variant="compact" onRetry={() => refetch()} />
-          ) : (
-            <section className="rounded-xl border border-border bg-card p-4">
-              <NotificationList
-                notifications={notifications}
-                isLoading={isLoading}
-                onMarkRead={(id) => markRead.mutate(id)}
-                selectedIds={selectedIds}
-                onToggleSelect={toggleSelect}
-                enableSelection
-              />
-            </section>
-          )}
-        </TabsContent>
-
-        <TabsContent value="archived" className="mt-4">
-          <section className="rounded-xl border border-border bg-card p-4">
-            <NotificationList
-              notifications={notifications}
-              isLoading={isLoading}
-              onMarkRead={(id) => markRead.mutate(id)}
-              emptyMessage="No archived notifications."
-            />
-          </section>
-        </TabsContent>
-
-        <TabsContent value="preferences" className="mt-4">
-          <NotificationPreferencesForm
-            preferences={preferences}
-            onSave={(prefs) => updatePrefs.mutate(prefs)}
-            isSaving={updatePrefs.isPending}
-          />
-        </TabsContent>
-      </Tabs>
+      {/* Sliding slide-out Preferences panel drawer */}
+      <ComponentErrorBoundary name="NotificationPreferenceDrawer">
+        <NotificationPreferenceDrawer
+          isOpen={isPrefOpen}
+          onClose={() => setIsPrefOpen(false)}
+          preferences={preferences}
+          onSave={(prefs) => {
+            updatePrefs.mutate(prefs);
+            setIsPrefOpen(false);
+            toast.success('Alert preferences saved successfully');
+          }}
+          isSaving={updatePrefs.isPending}
+        />
+      </ComponentErrorBoundary>
     </div>
   );
 }

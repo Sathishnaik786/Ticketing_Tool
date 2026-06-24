@@ -112,13 +112,18 @@ export const ROUTE_METADATA: Record<string, RouteMeta> = {
 
   // ── Knowledge ────────────────────────────────────────────────────────────
   '/app/knowledge-base': { roles: ROUTE_RBAC.allAuthenticated, featureFlag: 'VITE_ENABLE_KNOWLEDGE_BASE', label: 'Knowledge Base' },
+  '/app/knowledge-base/categories': { roles: ROUTE_RBAC.allAuthenticated, featureFlag: 'VITE_ENABLE_KNOWLEDGE_BASE', label: 'KB Categories' },
+  '/app/knowledge-base/search': { roles: ROUTE_RBAC.allAuthenticated, featureFlag: 'VITE_ENABLE_KNOWLEDGE_BASE', label: 'KB Search' },
   '/app/articles/:id': { roles: ROUTE_RBAC.allAuthenticated, featureFlag: 'VITE_ENABLE_KNOWLEDGE_BASE', label: 'Article' },
   '/app/article-editor': { roles: ROUTE_RBAC.kbEditor, featureFlag: 'VITE_ENABLE_KNOWLEDGE_BASE', label: 'Article Editor' },
   '/app/kb-analytics': { roles: ROUTE_RBAC.kbAnalytics, featureFlag: 'VITE_ENABLE_KNOWLEDGE_BASE', label: 'KB Analytics' },
 
   // ── Communications ───────────────────────────────────────────────────────
   '/app/communications': { roles: ROUTE_RBAC.allAuthenticated, featureFlag: 'VITE_ENABLE_COMMUNICATION_TRACKING', label: 'Communications' },
+  '/app/communications/announcements': { roles: ROUTE_RBAC.allAuthenticated, featureFlag: 'VITE_ENABLE_COMMUNICATION_TRACKING', label: 'Announcements' },
+  '/app/communications/discussions': { roles: ROUTE_RBAC.allAuthenticated, featureFlag: 'VITE_ENABLE_COMMUNICATION_TRACKING', label: 'Discussions' },
   '/app/activity-timeline': { roles: ROUTE_RBAC.allAuthenticated, featureFlag: 'VITE_ENABLE_COMMUNICATION_TRACKING', label: 'Activity Timeline' },
+  '/app/activity-center': { roles: ROUTE_RBAC.allAuthenticated, featureFlag: 'VITE_ENABLE_COMMUNICATION_TRACKING', label: 'Activity Center' },
   '/app/communication-analytics': { roles: ['ADMIN', 'HR', 'MANAGER'], featureFlag: 'VITE_ENABLE_COMMUNICATION_TRACKING', label: 'Communication Analytics' },
 
   // ── Executive Analytics ──────────────────────────────────────────────────

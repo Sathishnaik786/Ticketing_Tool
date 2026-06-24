@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Plus, Menu, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
+import { Plus, Menu, ChevronLeft, ChevronRight, MessageCircle, Command, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/contexts/SidebarContext';
@@ -11,24 +11,26 @@ import { ThemeToggle } from '@/components/auth/ThemeToggle';
 import { DepartmentSelector } from '@/components/layout/DepartmentSelector';
 import { QuickCreateTicketButton } from '@/components/layout/QuickCreateTicketButton';
 import { UnifiedNotificationTrigger } from '@/components/layout/UnifiedNotificationTrigger';
+import { useCommand } from '@/contexts/CommandContext';
+import { useUnreadNotificationCount } from '@/modules/notification-center/hooks/useNotificationCenter';
 import {
-  isEtmsNotificationsEnabled,
-  isNotificationCenterEnabled,
   isEtmsUiV2Enabled,
   isTicketingEnabled,
 } from '@/config/features';
 import { useUnifiedNotificationsUi } from '@/config/notifications.ui';
 import { TicketraBrandMark, TicketraWordmark } from '@/components/common/TicketraBrandMark';
-import { NotificationBell } from '@/components/common/NotificationBell';
-import { UnreadBadge } from '@/modules/notification-center/components/UnreadBadge';
 import { useState } from 'react';
 
 export function Header() {
   const { collapsed, setCollapsed, setMobileOpen } = useSidebar();
   const { user } = useAuth();
+  const { setIsOpen: setCommandOpen } = useCommand();
   const etmsShell = isEtmsUiV2Enabled;
   const unifiedNotifications = useUnifiedNotificationsUi();
   const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // Fetch unread count for real-time header bell indicator
+  const { data: unreadCount = 0 } = useUnreadNotificationCount();
 
   return (
     <>
@@ -38,7 +40,7 @@ export function Header() {
           'h-14 px-3 sm:px-4',
           etmsShell
             ? 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 lg:rounded-xl lg:mx-0 lg:shadow-sm'
-            : 'h-[72px] lg:h-14 lg:p-1.5 lg:px-2 lg:rounded-full lg:liquid-recessed lg:!bg-black/5 dark:lg:!bg-white/5 lg:border-transparent bg-white/70 dark:bg-[#030B17]/55 backdrop-blur-3xl border-b border-slate-200/60 dark:border-white/10'
+            : 'h-[72px] lg:h-14 lg:p-1.5 lg:px-2 lg:rounded-full lg:liquid-recessed lg:!bg-black/5 dark:lg:!bg-white/5 lg:border-transparent bg-white/70 dark:bg-slate-950/55 backdrop-blur-3xl border-b border-slate-200/60 dark:border-white/10'
         )}
       >
         <Button
@@ -73,11 +75,30 @@ export function Header() {
           <TicketraWordmark className="text-lg font-bold" />
         </Link>
 
-        <div className="hidden lg:block flex-1 max-w-xl mx-auto px-4">
+        {/* Global Search and Shortcuts remind badge */}
+        <div className="hidden lg:flex flex-1 max-w-xl mx-auto px-4 items-center gap-2">
           <GlobalSearch />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCommandOpen(true)}
+            className="h-9 w-9 rounded-xl border hover:bg-muted text-muted-foreground"
+            title="Open command palette (Ctrl+K)"
+          >
+            <Command size={16} />
+          </Button>
         </div>
-        <div className="lg:hidden flex-1 max-w-[140px]">
+        
+        <div className="lg:hidden flex-1 max-w-[140px] flex items-center gap-1">
           <GlobalSearch isMobile />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCommandOpen(true)}
+            className="h-8 w-8 rounded-lg hover:bg-muted text-muted-foreground"
+          >
+            <Command size={14} />
+          </Button>
         </div>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
@@ -107,13 +128,27 @@ export function Header() {
             <MessageCircle className="h-5 w-5" aria-hidden />
           </Button>
 
+          {/* Unified Bell and Unread Counter */}
           {unifiedNotifications ? (
             <UnifiedNotificationTrigger />
           ) : (
-            <>
-              <NotificationBell />
-              {isNotificationCenterEnabled && <UnreadBadge />}
-            </>
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-lg relative"
+                asChild
+              >
+                <Link to="/app/notifications" aria-label="Notifications center">
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 h-4 min-w-4 px-1 rounded-full bg-rose-500 text-white text-[8px] font-black flex items-center justify-center border border-white dark:border-slate-900 animate-in zoom-in-50">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Link>
+              </Button>
+            </div>
           )}
 
           {etmsShell && <ThemeToggle className="hidden sm:flex" />}

@@ -14,11 +14,12 @@ import { isEtmsUiV2Enabled } from '@/config/features';
 interface SidebarFooterProps {
   collapsed: boolean;
   user: {
-    email?: string;
+    email?: string | null;
     firstName?: string;
     lastName?: string;
     role?: string;
     profile_image?: string;
+    [key: string]: any;
   } | null;
   onLogout: () => void;
 }

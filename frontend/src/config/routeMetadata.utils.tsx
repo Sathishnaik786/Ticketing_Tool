@@ -5,8 +5,11 @@ import { ROUTE_RBAC } from './route-rbac';
 import { RouteGuard } from '@/components/routing/RouteGuard';
 import type { Role } from '@/types';
 
-/** Match a pathname to route metadata (supports :param segments). */
 export function resolveRouteMetadata(pathname: string): RouteMeta | undefined {
+  if (ROUTE_METADATA[pathname]) {
+    return ROUTE_METADATA[pathname];
+  }
+
   const normalized = pathname.startsWith('/app') ? pathname : `/app${pathname}`;
 
   if (ROUTE_METADATA[normalized]) {
@@ -19,7 +22,7 @@ export function resolveRouteMetadata(pathname: string): RouteMeta | undefined {
     const regex = new RegExp(
       `^${pattern.replace(/:[^/]+/g, '[^/]+')}$`
     );
-    if (regex.test(normalized)) {
+    if (regex.test(pathname) || regex.test(normalized)) {
       return meta;
     }
   }

@@ -6,9 +6,9 @@ import { isTicketingEnabled, isTicketAssignmentsEnabled } from '@/config/feature
 import { useEtmsDashboard } from '../hooks/useEtmsDashboard';
 
 export default function OperatorDashboardPage() {
-  const { data: stats, isLoading, isError } = useEtmsDashboard();
+  const { kpis, activities, loading, error } = useEtmsDashboard();
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="p-4 md:p-6 space-y-6">
         <LoadingState label="Loading operator dashboard" variant="skeleton" rows={3} />
@@ -16,15 +16,15 @@ export default function OperatorDashboardPage() {
     );
   }
 
-  const assignedCount = stats?.openTickets ?? '—';
-  const overdueCount = stats?.overdueTickets ?? '—';
-  const pendingCount = stats?.pendingApprovals ?? '—';
+  const assignedCount = kpis?.openTickets ?? '—';
+  const overdueCount = kpis?.overdueTickets ?? '—';
+  const pendingCount = kpis?.pendingApprovals ?? '—';
 
-  const activityItems = (stats?.recentActivity ?? []).map((item) => ({
+  const activityItems = (activities ?? []).map((item) => ({
     id: item.id,
     title: item.message,
     timestamp: item.timestamp,
-    tone: item.type === 'escalated' ? ('danger' as const) : item.type === 'resolved' ? ('success' as const) : ('default' as const),
+    tone: item.type === 'sla_breach' ? ('danger' as const) : item.type === 'approval_complete' ? ('success' as const) : ('default' as const),
   }));
 
   return (
@@ -36,13 +36,6 @@ export default function OperatorDashboardPage() {
           { label: 'Dashboard', href: '/app/dashboard' },
           { label: 'Operator' },
         ]}
-        badge={
-          stats?.isDemoData ? (
-            <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200">
-              Demo Data
-            </span>
-          ) : undefined
-        }
         actions={
           <div className="flex flex-wrap gap-2">
             {isTicketAssignmentsEnabled && (
@@ -59,7 +52,7 @@ export default function OperatorDashboardPage() {
         }
       />
 
-      {isError && (
+      {error && (
         <ErrorState title="Dashboard unavailable" message="Unable to load operator metrics." variant="compact" />
       )}
 
@@ -129,3 +122,4 @@ export default function OperatorDashboardPage() {
     </div>
   );
 }
+export { OperatorDashboardPage };

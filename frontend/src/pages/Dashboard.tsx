@@ -26,7 +26,7 @@ import { TicketFeedbackDashboardWidgets } from '@/modules/ticket-feedback/compon
 import { CommunicationDashboardWidgets } from '@/modules/communication-tracking/components/dashboard/CommunicationDashboardWidgets';
 import { EnterpriseHeader, EnterpriseStatCard } from '@/components/payroll/EnterpriseComponents';
 import { isEtmsDashboardEnabled } from '@/config/features';
-import { EtmsCommandDashboard } from '@/modules/dashboard/components/EtmsCommandDashboard';
+import { CommandDashboardPage } from '@/modules/dashboard/pages/CommandDashboardPage';
 
 
 
@@ -145,7 +145,7 @@ export default function Dashboard() {
   }
 
   if (isEtmsDashboardEnabled) {
-    return <EtmsCommandDashboard />;
+    return <CommandDashboardPage />;
   }
 
   return (

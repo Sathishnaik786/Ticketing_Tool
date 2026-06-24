@@ -4,13 +4,16 @@ import { cn } from '@/lib/utils';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { QuickActionLauncher } from '@/components/common/QuickActionLauncher';
 import { useShortcuts } from '@/hooks/useShortcuts';
-import { isEtmsUiV2Enabled } from '@/config/features';
+import { isEtmsUiV2Enabled, isTicketingEnabled } from '@/config/features';
 import { Sidebar } from '@/components/layout/sidebar/Sidebar';
 import { Header } from '@/components/layout/Header';
 
 const CommandPalette = lazy(() =>
   import('@/components/common/CommandPalette').then((m) => ({ default: m.CommandPalette }))
 );
+
+import { QuickActionsBar } from './QuickActionsBar';
+import { FloatingCreateTicket } from './FloatingCreateTicket';
 
 interface AppLayoutProps {
   children?: React.ReactNode;
@@ -51,6 +54,12 @@ export function AppLayout({ children }: AppLayoutProps) {
         <CommandPalette />
       </Suspense>
       <QuickActionLauncher />
+      {isTicketingEnabled && (
+        <>
+          <QuickActionsBar />
+          <FloatingCreateTicket />
+        </>
+      )}
 
       <AnimatePresence>
         {mobileOpen && (

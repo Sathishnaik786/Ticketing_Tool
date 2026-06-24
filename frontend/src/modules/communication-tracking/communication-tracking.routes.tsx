@@ -7,7 +7,10 @@ import { isCommunicationTrackingEnabled } from '@/config/features';
 
 const CommunicationsPage = lazy(() => import('./pages/CommunicationsPage'));
 const ActivityTimelinePage = lazy(() => import('./pages/ActivityTimelinePage'));
+const ActivityCenterPage = lazy(() => import('./pages/ActivityCenterPage'));
 const CommunicationAnalyticsPage = lazy(() => import('./pages/CommunicationAnalyticsPage'));
+const AnnouncementsPage = lazy(() => import('./pages/AnnouncementsPage'));
+const DiscussionsPage = lazy(() => import('./pages/DiscussionsPage'));
 
 const SuspenseLoader = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<div className="p-8"><DataTableSkeleton /></div>}>
@@ -25,10 +28,31 @@ export const communicationTrackingRoutes: RouteObject[] = isCommunicationTrackin
         )),
       },
       {
+        path: 'communications/announcements',
+        errorElement: <RouteErrorBoundary />,
+        element: guardFromMetadata('/app/communications/announcements', (
+          <SuspenseLoader><AnnouncementsPage /></SuspenseLoader>
+        )),
+      },
+      {
+        path: 'communications/discussions',
+        errorElement: <RouteErrorBoundary />,
+        element: guardFromMetadata('/app/communications/discussions', (
+          <SuspenseLoader><DiscussionsPage /></SuspenseLoader>
+        )),
+      },
+      {
         path: 'activity-timeline',
         errorElement: <RouteErrorBoundary />,
         element: guardFromMetadata('/app/activity-timeline', (
           <SuspenseLoader><ActivityTimelinePage /></SuspenseLoader>
+        )),
+      },
+      {
+        path: 'activity-center',
+        errorElement: <RouteErrorBoundary />,
+        element: guardFromMetadata('/app/activity-center', (
+          <SuspenseLoader><ActivityCenterPage /></SuspenseLoader>
         )),
       },
       {

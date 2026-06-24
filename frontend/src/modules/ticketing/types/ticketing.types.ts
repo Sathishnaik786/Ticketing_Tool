@@ -58,6 +58,10 @@ export interface Ticket {
   department?: TicketDepartmentRef | null;
   requester?: TicketEmployeeRef | null;
   assignee?: TicketEmployeeRef | null;
+  sla_resolution_breached?: boolean;
+  sla_response_breached?: boolean;
+  sla_resolution_due_at?: string | null;
+  sla_response_due_at?: string | null;
 }
 
 export interface TicketListMeta {

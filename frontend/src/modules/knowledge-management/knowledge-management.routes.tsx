@@ -9,6 +9,8 @@ const KnowledgeBasePage = lazy(() => import('./pages/KnowledgeBasePage'));
 const KnowledgeArticlePage = lazy(() => import('./pages/KnowledgeArticlePage'));
 const ArticleEditorPage = lazy(() => import('./pages/ArticleEditorPage'));
 const KnowledgeAnalyticsPage = lazy(() => import('./pages/KnowledgeAnalyticsPage'));
+const CategoriesPage = lazy(() => import('./pages/CategoriesPage'));
+const KnowledgeSearchPage = lazy(() => import('./pages/KnowledgeSearchPage'));
 
 const SuspenseLoader = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<div className="p-8"><DataTableSkeleton /></div>}>
@@ -23,6 +25,20 @@ export const knowledgeManagementRoutes: RouteObject[] = isKnowledgeBaseEnabled
         errorElement: <RouteErrorBoundary />,
         element: guardFromMetadata('/app/knowledge-base', (
           <SuspenseLoader><KnowledgeBasePage /></SuspenseLoader>
+        )),
+      },
+      {
+        path: 'knowledge-base/categories',
+        errorElement: <RouteErrorBoundary />,
+        element: guardFromMetadata('/app/knowledge-base/categories', (
+          <SuspenseLoader><CategoriesPage /></SuspenseLoader>
+        )),
+      },
+      {
+        path: 'knowledge-base/search',
+        errorElement: <RouteErrorBoundary />,
+        element: guardFromMetadata('/app/knowledge-base/search', (
+          <SuspenseLoader><KnowledgeSearchPage /></SuspenseLoader>
         )),
       },
       {

@@ -61,7 +61,7 @@ export function DataGrid<TData>({
 }: DataGridProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
-  const selectionColumn: ColumnDef<TData, unknown> = {
+  const selectionColumn = React.useMemo((): ColumnDef<TData, unknown> => ({
     id: 'select',
     header: ({ table }) => (
       <Checkbox
@@ -80,9 +80,11 @@ export function DataGrid<TData>({
     ),
     enableSorting: false,
     size: 40,
-  };
+  }), []);
 
-  const tableColumns = enableRowSelection ? [selectionColumn, ...columns] : columns;
+  const tableColumns = React.useMemo(() => {
+    return enableRowSelection ? [selectionColumn, ...columns] : columns;
+  }, [enableRowSelection, selectionColumn, columns]);
 
   const table = useReactTable({
     data,

@@ -31,6 +31,7 @@ import { approvalManagementRoutes } from './modules/approval-management/approval
 import { knowledgeManagementRoutes } from './modules/knowledge-management/knowledge-management.routes';
 import { executiveAnalyticsRoutes } from './modules/executive-analytics/executive-analytics.routes';
 import { notificationCenterRoutes } from './modules/notification-center/notification-center.routes';
+import { esmRoutes } from './modules/esm/esm.routes';
 
 const Login = lazyPage(() => import("./pages/Login"));
 const ForgotPassword = lazyPage(() => import("./pages/ForgotPassword"));
@@ -142,6 +143,7 @@ const router = createBrowserRouter([
       ...knowledgeManagementRoutes,
       ...executiveAnalyticsRoutes,
       ...notificationCenterRoutes,
+      ...esmRoutes,
       { path: "*", element: <L Page={NotFound} /> },
     ],
   },

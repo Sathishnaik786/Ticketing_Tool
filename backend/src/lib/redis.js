@@ -1,150 +1,130 @@
 const Redis = require('ioredis');
-const config = require('@config');
-const logger = require('@lib/logger');
 
-/**
- * NOTE: This module is responsible ONLY for initializing Redis clients.
- * - It supports BOTH local Docker Redis and production (e.g. Upstash) via REDIS_URL.
- * - It does NOT change any higher-level caching or Socket.IO logic.
- *
- * ENV BEHAVIOR:
- * - If REDIS_URL is defined -> use it (production / Upstash-friendly)
- *   - If it starts with rediss:// we enable TLS
- * - Else -> fall back to REDIS_HOST / REDIS_PORT (local Docker / bare Redis)
- */
+const enableRedis = process.env.ENABLE_REDIS === 'true';
+const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
 
-const baseRedisOptions = {
-  // Backoff for reconnects – keeps retrying but caps delay to avoid tight loops
-  retryStrategy: (times) => {
-    const delay = Math.min(times * 50, 2000);
-    return delay;
-  },
-  maxRetriesPerRequest: null, // Keep retrying in background safely, avoiding MaxRetriesPerRequestError
-  enableReadyCheck: true,
-  lazyConnect: true, // PHASE 2: Defer connection to prevent immediate ECONNREFUSED spam
-};
+let redisClient = null;
+let redisPub = null;
+let redisSub = null;
+let isConnected = false;
 
-let redis;
-let redisConfig; // For local mode only, kept for backward compatibility exports
-let redisMode = 'LOCAL'; // LOCAL vs URL vs URL_TLS
-
-if (process.env.REDIS_URL) {
-  // Production / Upstash mode via REDIS_URL
-  const redisUrl = process.env.REDIS_URL;
-  const isTls = redisUrl.startsWith('rediss://');
-
-  const urlOptions = {
-    ...baseRedisOptions,
-    // When using rediss:// we enable TLS. Upstash and similar providers expect this.
-    ...(isTls
-      ? {
-          tls: {
-            // Upstash typically uses valid certs; we keep this strict by default.
-            // If your environment requires relaxed TLS, wire it via env-specific config.
-            rejectUnauthorized: true,
-          },
+if (enableRedis) {
+  try {
+    const opts = {
+      maxRetriesPerRequest: null, // required by BullMQ
+      retryStrategy(times) {
+        if (times > 3) {
+          console.warn(`Redis connection retry limit reached (${times}). Falling back to local in-memory execution.`);
+          isConnected = false;
+          return null; // Stop retrying
         }
-      : {}),
-  };
+        return Math.min(times * 500, 2000);
+      }
+    };
 
-  redis = new Redis(redisUrl, urlOptions);
-  redisMode = isTls ? 'URL_TLS' : 'URL';
+    redisClient = new Redis(redisUrl, opts);
+    redisPub = new Redis(redisUrl, opts);
+    redisSub = new Redis(redisUrl, opts);
 
-  logger.info('Redis client initialized from REDIS_URL', {
-    mode: redisMode,
-  });
+    redisClient.on('connect', () => {
+      isConnected = true;
+      console.log('Redis connected successfully.');
+    });
+
+    redisClient.on('error', (err) => {
+      console.error('Redis error occurred:', err.message);
+      isConnected = false;
+    });
+  } catch (err) {
+    console.error('Failed to initialize Redis client:', err.message);
+    enableRedis = false;
+  }
 } else {
-  // Local Docker / bare Redis (default for development)
-  redisConfig = {
-    host: config.REDIS_HOST || process.env.REDIS_HOST || 'localhost',
-    port: config.REDIS_PORT || process.env.REDIS_PORT || 6379,
-    password: config.REDIS_PASSWORD || process.env.REDIS_PASSWORD || undefined,
-    ...baseRedisOptions,
-  };
-
-  redis = new Redis(redisConfig);
-  redisMode = 'LOCAL';
-
-  logger.info('Redis client initialized in LOCAL mode', {
-    mode: redisMode,
-    host: redisConfig.host,
-    port: redisConfig.port,
-  });
+  console.log('Redis is disabled. Operating in local fallback mode.');
 }
 
-// --- Common event handlers for ALL Redis clients created here ---
+const getClient = () => redisClient;
+const getPub = () => redisPub;
+const getSub = () => redisSub;
+const isRedisConnected = () => isConnected && enableRedis;
 
-const attachEventHandlers = (client, contextLabel) => {
-  // Guard against missing client
-  if (!client) return;
-
-  const label = contextLabel || 'redis';
-  let errorCount = 0;
-
-  client.on('connect', () => {
-    errorCount = 0; // Reset error count on successful connection
-    logger.info(`Redis connected`, { context: label, mode: redisMode });
-  });
-
-  client.on('ready', () => {
-    logger.info(`Redis ready`, { context: label, mode: redisMode });
-  });
-
-  client.on('error', (err) => {
-    errorCount++;
-    // Suppress logs after 3 consecutive errors to avoid spam
-    if (errorCount <= 3) {
-      logger.error('Redis connection error', {
-        context: label,
-        mode: redisMode,
-        message: err?.message,
-      });
+// Helper caching interface
+const get = async (key) => {
+  if (isRedisConnected()) {
+    try {
+      return await redisClient.get(key);
+    } catch (e) {
+      console.error(`Redis GET error for key ${key}:`, e.message);
     }
-  });
-
-  client.on('close', () => {
-    // Only warn if we were previously connected
-    if (errorCount === 0) {
-      logger.warn('Redis connection closed', { context: label, mode: redisMode });
-    }
-  });
-
-  client.on('reconnecting', (delay) => {
-    logger.info('Redis reconnecting', {
-      context: label,
-      mode: redisMode,
-      delay,
-    });
-  });
-};
-
-// Attach handlers to the primary client
-attachEventHandlers(redis, 'primary');
-
-// Graceful shutdown – only for the primary process-level client
-const shutdownHandler = async (signal) => {
-  try {
-    logger.info('Shutting down Redis client', { signal, mode: redisMode });
-    await redis.quit();
-  } catch (err) {
-    logger.error('Error during Redis shutdown', {
-      signal,
-      mode: redisMode,
-      message: err?.message,
-    });
-  } finally {
-    process.exit(0);
   }
+  return null;
 };
 
-process.on('SIGINT', () => shutdownHandler('SIGINT'));
-process.on('SIGTERM', () => shutdownHandler('SIGTERM'));
+const set = async (key, value, ttlSeconds = null) => {
+  if (isRedisConnected()) {
+    try {
+      if (ttlSeconds) {
+        await redisClient.set(key, value, 'EX', ttlSeconds);
+      } else {
+        await redisClient.set(key, value);
+      }
+      return true;
+    } catch (e) {
+      console.error(`Redis SET error for key ${key}:`, e.message);
+    }
+  }
+  return false;
+};
+
+const del = async (key) => {
+  if (isRedisConnected()) {
+    try {
+      await redisClient.del(key);
+      return true;
+    } catch (e) {
+      console.error(`Redis DEL error for key ${key}:`, e.message);
+    }
+  }
+  return false;
+};
+
+const publish = async (channel, message) => {
+  if (isRedisConnected() && redisPub) {
+    try {
+      await redisPub.publish(channel, message);
+      return true;
+    } catch (e) {
+      console.error(`Redis PUBLISH error on channel ${channel}:`, e.message);
+    }
+  }
+  return false;
+};
+
+const subscribe = async (channel, onMessage) => {
+  if (isRedisConnected() && redisSub) {
+    try {
+      await redisSub.subscribe(channel);
+      redisSub.on('message', (chan, msg) => {
+        if (chan === channel) {
+          onMessage(msg);
+        }
+      });
+      return true;
+    } catch (e) {
+      console.error(`Redis SUBSCRIBE error on channel ${channel}:`, e.message);
+    }
+  }
+  return false;
+};
 
 module.exports = {
-  redis,
-  redisConfig,
-  redisMode,
-  baseRedisOptions,
-  attachEventHandlers,
+  getClient,
+  getPub,
+  getSub,
+  isRedisConnected,
+  get,
+  set,
+  del,
+  publish,
+  subscribe
 };
-
