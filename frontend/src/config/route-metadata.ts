@@ -138,6 +138,14 @@ export const ROUTE_METADATA: Record<string, RouteMeta> = {
 
   // ── Feedback ─────────────────────────────────────────────────────────────
   '/app/feedback-analytics': { roles: ['ADMIN', 'HR', 'MANAGER'], featureFlag: 'VITE_ENABLE_TICKET_FEEDBACK', label: 'Feedback Analytics' },
+
+  // ── ESM (Enterprise Service Management) ──────────────────────────────────
+  '/app/esm/catalog': { roles: ROUTE_RBAC.allAuthenticated, featureFlag: 'VITE_ENABLE_ETMS_UI_V2', label: 'Service Catalog' },
+  '/app/esm/catalog/:id': { roles: ROUTE_RBAC.allAuthenticated, featureFlag: 'VITE_ENABLE_ETMS_UI_V2', label: 'Catalog Detail' },
+  '/app/esm/workflows': { roles: ['ADMIN', 'MANAGER'], featureFlag: 'VITE_ENABLE_ETMS_UI_V2', label: 'Workflow Builder' },
+  '/app/esm/approvals': { roles: ROUTE_RBAC.allAuthenticated, featureFlag: 'VITE_ENABLE_ETMS_UI_V2', label: 'ESM Approvals' },
+  '/app/esm/sla': { roles: ['ADMIN', 'MANAGER'], featureFlag: 'VITE_ENABLE_ETMS_UI_V2', label: 'SLA Policy Settings' },
+  '/app/esm/settings': { roles: ['ADMIN', 'MANAGER'], featureFlag: 'VITE_ENABLE_ETMS_UI_V2', label: 'ESM System Settings' },
 };
 
 /** All protected app routes that must have metadata and RouteGuard. */
