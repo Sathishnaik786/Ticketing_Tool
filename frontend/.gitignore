@@ -1,9 +1,81 @@
+<<<<<<< HEAD
+=======
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+
+# Production builds
+dist/
+build/
+dist-ssr/
+public/dist/
+output/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.backup
+.env.example.backup
+
+# Supabase secrets
+SUPABASE_URL
+SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+SUPABASE_KEY
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+# JWT secrets
+JWT_SECRET
+JWT_PRIVATE_KEY
+JWT_PUBLIC_KEY
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+*.lnk
+
+# IDE files
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.vs/
+.atom/
+.sublime-project
+.sublime-workspace
+.vsc-extension/
+.nyc_output
+
+>>>>>>> 618377ac96b018fbdc3e7b8bd8cf48e211f12b05
 # Logs
 logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+<<<<<<< HEAD
 pnpm-debug.log*
 lerna-debug.log*
 
@@ -22,3 +94,163 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+=======
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# Temporary folders
+tmp/
+temp/
+.DS_Store
+*.tmp
+*.temp
+
+# Production
+npm-shrinkwrap.json
+*.min.js
+*.min.css
+
+# Testing
+coverage/
+.nyc_output/
+junit.xml
+
+# Next.js
+.next/
+out/
+
+# Nuxt.js
+.nuxt/
+dist/
+
+# Gatsby
+.cache/
+public/.cache/
+
+# Vite
+.vite/
+
+# React Native
+node_modules
+react-native-template-*
+dist
+
+# Backend specific
+debug.log
+*.seed
+*.pid
+*.pid.lock
+
+# Frontend specific
+.bun/
+.cache/
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Local development
+local/
+local.env
+.env.local
+
+# Process files
+*.pid
+*.seed
+
+# Sensitive files
+secret/
+secrets/
+config/secrets.yml
+config/credentials.yml.enc
+
+# Certificate files
+*.crt
+*.key
+*.pem
+*.p12
+*.pfx
+
+# IDE and Editor specific
+*.iml
+*.ipr
+*.iws
+*.suo
+*.ntvs*
+*.njsproj*
+*.sln
+*.sw?
+
+# Lock files (package-lock.json is committed for reproducible Netlify/Render builds)
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+
+# Browser extensions
+*.crx
+*.xpi
+*.zip
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+*.lnk
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+*.lnk
+
+# Editor temporary files
+*~
+*.swp
+*.swo
+*.swn
+
+# Build outputs
+.svelte-kit/
+.cargo/
+target/
+
+# Configuration
+# config/
+
+# IDE
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
+# End of .gitignore
+>>>>>>> 618377ac96b018fbdc3e7b8bd8cf48e211f12b05

@@ -1,0 +1,120 @@
+/**
+ * EMTS Design Intelligence Tokens - Phase-7 (Final Perfection)
+ * World-Class Enterprise Design Language
+ * Optimized for Emotional UX, Interaction Harmony & Visual Cohesion
+ */
+
+:root {
+  /* -------------------------------------------------------------------------- */
+  /* RADII - Refined Rhythm                                                     */
+  /* -------------------------------------------------------------------------- */
+  --radius-card: 12px;
+  --radius-button: 8px;
+  --radius-modal: 12px;
+  --radius-input: 8px;
+  --radius-badge: 9999px;
+
+  /* -------------------------------------------------------------------------- */
+  /* SHADOWS - Multi-Layered Depth                                              */
+  /* -------------------------------------------------------------------------- */
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.03);
+  --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.04), 0 12px 24px rgba(0, 0, 0, 0.06);
+  --shadow-premium: 0 8px 12px rgba(37, 99, 235, 0.04), 0 24px 48px rgba(37, 99, 235, 0.08);
+  --shadow-hover: 0 12px 24px rgba(37, 99, 235, 0.08), 0 40px 80px rgba(37, 99, 235, 0.15);
+  --shadow-glow: 0 0 32px rgba(37, 99, 235, 0.2);
+
+  /* -------------------------------------------------------------------------- */
+  /* GLASS - Intelligence Depth                                                 */
+  /* -------------------------------------------------------------------------- */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.25);
+  --glass-blur: 16px;
+
+  /* -------------------------------------------------------------------------- */
+  /* MOTION - Interaction Physics                                               */
+  /* -------------------------------------------------------------------------- */
+  --duration-instant: 100ms;
+  --duration-fast: 180ms;
+  --duration-normal: 320ms;
+  --duration-slow: 500ms;
+
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.1);
+  --ease-productive: cubic-bezier(0.2, 0, 0, 1);
+  --ease-expressive: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* -------------------------------------------------------------------------- */
+  /* SPACING - Fluid Harmony                                                    */
+  /* -------------------------------------------------------------------------- */
+  --page-padding: clamp(1rem, 6vw, 4rem);
+  --section-spacing: clamp(2rem, 10vh, 5rem);
+  --card-padding: clamp(1.5rem, 4vw, 3rem);
+  --grid-gap: clamp(1rem, 2.5vw, 2.5rem);
+
+  /* -------------------------------------------------------------------------- */
+  /* TYPOGRAPHY - Executive Standards                                           */
+  /* -------------------------------------------------------------------------- */
+  --tracking-metadata: 0.25em;
+  --tracking-heading: -0.04em;
+  --tracking-tight: -0.02em;
+
+  /* Fluid Scaling System */
+  --font-size-hero: clamp(2.5rem, 8vw, 6.5rem);
+  --font-size-h1: clamp(2rem, 5vw, 4rem);
+  --font-size-h2: clamp(1.5rem, 3vw, 2.5rem);
+  --font-size-h3: clamp(1.25rem, 2vw, 1.75rem);
+  --font-size-body: clamp(0.875rem, 1vw, 1rem);
+  --font-size-kpi: clamp(2rem, 4vw, 3.5rem);
+  --font-size-label: 0.75rem;
+  --font-size-metadata: 0.65rem;
+
+  --line-height-tight: 1.1;
+  --line-height-base: 1.6;
+
+  /* Atmospheric Base */
+  --glow-primary: rgba(20, 184, 166, 0.1);
+  --glow-secondary: rgba(59, 130, 246, 0.05);
+
+  /* -------------------------------------------------------------------------- */
+  /* ACCENT — Orange brand accent (Landing Page / premium ecosystem)           */
+  /* -------------------------------------------------------------------------- */
+  --accent-orange: #ea580c;
+
+  /* -------------------------------------------------------------------------- */
+  /* ETMS SEMANTIC TOKENS (Phase 8.1)                                           */
+  /* -------------------------------------------------------------------------- */
+  --color-primary: #2563EB;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-background: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-border: #E2E8F0;
+  --radius-etms: 12px;
+  --space-grid: 8px;
+
+  /* -------------------------------------------------------------------------- */
+  /* MESH BACKGROUNDS                                                           */
+  /* -------------------------------------------------------------------------- */
+  /* Light-theme mesh for Landing Page */
+  --bg-mesh-light: radial-gradient(at 20% 20%, rgba(234, 88, 12, 0.06) 0px, transparent 50%),
+    radial-gradient(at 80% 10%, rgba(59, 130, 246, 0.05) 0px, transparent 50%);
+}
+
+.dark {
+  --glass-bg: rgba(13, 18, 34, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --shadow-premium: 0 12px 24px rgba(0, 0, 0, 0.4), 0 32px 64px rgba(0, 0, 0, 0.4);
+  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-medium: 0 12px 24px rgba(0, 0, 0, 0.4);
+  --color-background: #0F172A;
+  --color-surface: #1E293B;
+  --color-border: #334155;
+
+  /* Cinematic Atmosphere */
+  --glow-primary: rgba(20, 184, 166, 0.15);
+  /* Teal accent from GreenEnviro philosophy */
+  --glow-secondary: rgba(59, 130, 246, 0.1);
+  --bg-mesh-1: radial-gradient(at 0% 0%, rgba(13, 148, 136, 0.15) 0px, transparent 50%);
+  --bg-mesh-2: radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.1) 0px, transparent 50%);
+  --bg-mesh-3: radial-gradient(at 50% 100%, rgba(15, 23, 42, 1) 0px, transparent 80%);
+}
