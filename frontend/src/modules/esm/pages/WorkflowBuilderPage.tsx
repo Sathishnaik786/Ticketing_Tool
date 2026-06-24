@@ -187,7 +187,14 @@ export default function WorkflowBuilderPage() {
         }
       }
     } catch (err: any) {
-      toast.error('Failed to save workflow steps: ' + err.message);
+      if (err.message && (err.message.toLowerCase().includes('loop') || err.message.toLowerCase().includes('circular') || err.message.toLowerCase().includes('dag'))) {
+        toast.error('Workflow Validation Error: ' + err.message, {
+          icon: <AlertCircle className="text-red-500 h-5 w-5" />,
+          duration: 6000
+        });
+      } else {
+        toast.error('Failed to save workflow steps: ' + err.message);
+      }
     } finally {
       setSaving(false);
     }
@@ -332,6 +339,12 @@ export default function WorkflowBuilderPage() {
               </div>
 
               {/* Steps Sequential List */}
+              {steps.some((step, index) => steps.findIndex(s => s.name.trim() === step.name.trim() && s.name.trim() !== '') !== index) && (
+                <div className="p-4 bg-red-500/10 border border-red-500/30 text-red-500 rounded-2xl flex items-center gap-3 text-xs font-semibold">
+                  <AlertCircle className="h-5 w-5 shrink-0" />
+                  <span>Validation Warning: Multiple steps share identical names. Sibling steps must have unique names to prevent routing cycles during execution transitions.</span>
+                </div>
+              )}
               <div className="space-y-4 pt-4 border-t">
                 {steps.map((step, index) => (
                   <div

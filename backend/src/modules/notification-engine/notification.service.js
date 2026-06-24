@@ -71,6 +71,12 @@ class NotificationService {
           subject,
           body,
           recipient: userData.email
+        }, {
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 5000
+          }
         });
 
       } catch (err) {
@@ -91,7 +97,7 @@ class NotificationService {
     });
   }
 
-  async processDelivery(tenantId, logId, channel, recipient, subject, body) {
+  async processDelivery(tenantId, logId, channel, recipient, subject, body, attempts = 1) {
     logger.info(`NotificationBroker: dispatching alert ${logId} via ${channel} to ${recipient}`);
 
     try {
@@ -105,10 +111,10 @@ class NotificationService {
       }
 
       // Mark status as SENT
-      await repository.updateDeliveryLog(tenantId, logId, 'SENT');
+      await repository.updateDeliveryLog(tenantId, logId, 'SENT', null, attempts);
     } catch (err) {
       logger.error(`NotificationBroker: failed sending channel ${channel} to ${recipient}:`, err.message);
-      await repository.updateDeliveryLog(tenantId, logId, 'FAILED', err.message);
+      await repository.updateDeliveryLog(tenantId, logId, 'FAILED', err.message, attempts, err.stack);
       throw err; // Trigger BullMQ retry
     }
   }

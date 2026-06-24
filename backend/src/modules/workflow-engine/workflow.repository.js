@@ -87,26 +87,14 @@ const createWorkflowDraft = async (tenantId, workflowId, steps) => {
 };
 
 const publishVersion = async (tenantId, workflowId, versionId) => {
-  // Archive old published versions
-  const { error: archiveErr } = await supabaseAdmin
-    .from('workflow_versions')
-    .update({ status: 'ARCHIVED' })
-    .eq('tenant_id', tenantId)
-    .eq('workflow_id', workflowId)
-    .eq('status', 'PUBLISHED');
+  const { data, error } = await supabaseAdmin
+    .rpc('publish_workflow_version', {
+      p_tenant_id: tenantId,
+      p_workflow_id: workflowId,
+      p_version_id: versionId
+    });
 
-  if (archiveErr) throw new Error(archiveErr.message);
-
-  // Set selected version to PUBLISHED
-  const { data, error: pubErr } = await supabaseAdmin
-    .from('workflow_versions')
-    .update({ status: 'PUBLISHED', published_at: new Date().toISOString() })
-    .eq('tenant_id', tenantId)
-    .eq('id', versionId)
-    .select()
-    .single();
-
-  if (pubErr) throw new Error(pubErr.message);
+  if (error) throw new Error(error.message);
   return data;
 };
 

@@ -48,6 +48,22 @@ CREATE TABLE IF NOT EXISTS notification_delivery_logs (
 );
 
 -- Ensure columns exist for notification_templates if table was pre-created
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notification_templates' AND column_name = 'code') THEN
+        ALTER TABLE notification_templates ALTER COLUMN code DROP NOT NULL;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notification_templates' AND column_name = 'type') THEN
+        ALTER TABLE notification_templates ALTER COLUMN type DROP NOT NULL;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notification_templates' AND column_name = 'subject') THEN
+        ALTER TABLE notification_templates ALTER COLUMN subject DROP NOT NULL;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notification_templates' AND column_name = 'message_template') THEN
+        ALTER TABLE notification_templates ALTER COLUMN message_template DROP NOT NULL;
+    END IF;
+END $$;
+
 ALTER TABLE notification_templates ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES companies(id) ON DELETE CASCADE;
 ALTER TABLE notification_templates ADD COLUMN IF NOT EXISTS key VARCHAR(100);
 ALTER TABLE notification_templates ADD COLUMN IF NOT EXISTS description TEXT;

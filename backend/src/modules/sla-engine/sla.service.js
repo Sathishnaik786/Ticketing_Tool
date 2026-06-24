@@ -3,6 +3,7 @@ const eventStore = require('../event-store/eventStore.service');
 const logger = require('../../lib/auditLogger');
 const { getQueue } = require('../../lib/queue');
 const { supabaseAdmin } = require('../../lib/supabase');
+const { isRedisConnected, getClient } = require('../../lib/redis');
 
 class SlaService {
   async createSlaPolicy(tenantId, payload) {
@@ -46,6 +47,8 @@ class SlaService {
       event_type: 'sla.policy.created',
       payload: { policy_id: policy.id, name }
     });
+
+    await this.invalidatePoliciesCache(tenantId);
 
     return { ...policy, rules: createdRules };
   }
@@ -102,6 +105,8 @@ class SlaService {
       payload: { policy_id: id, name }
     });
 
+    await this.invalidatePoliciesCache(tenantId);
+
     return { ...policy, rules: createdRules };
   }
 
@@ -115,6 +120,8 @@ class SlaService {
       event_type: 'sla.policy.deleted',
       payload: { policy_id: id }
     });
+
+    await this.invalidatePoliciesCache(tenantId);
 
     return true;
   }
@@ -144,14 +151,11 @@ class SlaService {
 
     const catalogItemId = serviceRequest?.item_id || null;
 
-    // Fetch active policies
-    const { data: policies, error: policiesError } = await supabaseAdmin
-      .from('sla_policies')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .eq('is_active', true);
+    // Fetch active policies from cache
+    const allPolicies = await this.getCachedPolicies(tenantId);
+    const policies = allPolicies.filter(p => p.is_active);
 
-    if (policiesError || !policies || policies.length === 0) {
+    if (!policies || policies.length === 0) {
       logger.info(`SlaEngine: No active SLA policies configured for tenant ${tenantId}.`);
       return null;
     }
@@ -263,17 +267,31 @@ class SlaService {
 
     const now = new Date();
 
+    // 1. Batch-fetch ticket details to solve the N+1 queries issue
+    const ticketIds = [...new Set(pendingBreaches.map(b => b.ticket_id))];
+    const { data: tickets, error: ticketsError } = await supabaseAdmin
+      .from('tickets')
+      .select('*')
+      .in('id', ticketIds);
+
+    if (ticketsError) {
+      logger.error(`SlaEngine: Failed to batch-fetch tickets: ${ticketsError.message}`);
+      return;
+    }
+
+    const ticketMap = {};
+    if (tickets) {
+      tickets.forEach(t => {
+        ticketMap[t.id] = t;
+      });
+    }
+
     for (const breach of pendingBreaches) {
       const targetTime = new Date(breach.target_time);
 
       if (now > targetTime) {
         // Breach happened! Verify if ticket is already responded/resolved
-        const { data: ticket } = await supabaseAdmin
-          .from('tickets')
-          .select('*')
-          .eq('id', breach.ticket_id)
-          .maybeSingle();
-
+        const ticket = ticketMap[breach.ticket_id];
         if (!ticket) continue;
 
         let alreadyCompleted = false;
@@ -315,8 +333,8 @@ class SlaService {
           }
         });
 
-        // Fetch policy rules and execute actions
-        const policy = await repository.getPolicyWithRules(tenantId, breach.policy_id);
+        // Fetch policy rules and execute actions from cache to solve N+1 rules lookup
+        const policy = await this.getCachedPolicyWithRules(tenantId, breach.policy_id);
         if (policy && policy.rules) {
           // Find rules triggered by BREACHED event
           const rules = policy.rules.filter(r => r.trigger_event === 'BREACHED');
@@ -324,6 +342,58 @@ class SlaService {
             await this.executeEscalationAction(tenantId, ticket, rule);
           }
         }
+      }
+    }
+  }
+
+  async getCachedPolicies(tenantId) {
+    const cacheKey = `sla:policies:${tenantId}`;
+    if (isRedisConnected()) {
+      try {
+        const client = getClient();
+        const cached = await client.get(cacheKey);
+        if (cached) {
+          logger.info(`SlaEngine: Policies cache hit for tenant ${tenantId}`);
+          return JSON.parse(cached);
+        }
+      } catch (err) {
+        logger.error('SlaEngine: Failed to read from Redis cache:', err.message);
+      }
+    }
+
+    logger.info(`SlaEngine: Policies cache miss for tenant ${tenantId}. Fetching from DB.`);
+    const policies = await repository.getPolicies(tenantId);
+
+    if (isRedisConnected() && policies) {
+      try {
+        const client = getClient();
+        await client.set(cacheKey, JSON.stringify(policies), 'EX', 300); // 5 min expiry
+      } catch (err) {
+        logger.error('SlaEngine: Failed to write to Redis cache:', err.message);
+      }
+    }
+
+    return policies || [];
+  }
+
+  async getCachedPolicyWithRules(tenantId, policyId) {
+    const policies = await this.getCachedPolicies(tenantId);
+    const policy = policies.find(p => p.id === policyId);
+    if (!policy) return null;
+    return {
+      ...policy,
+      rules: policy.rules || policy.sla_escalation_rules || []
+    };
+  }
+
+  async invalidatePoliciesCache(tenantId) {
+    if (isRedisConnected()) {
+      try {
+        const client = getClient();
+        await client.del(`sla:policies:${tenantId}`);
+        logger.info(`SlaEngine: Invalidated policies cache for tenant ${tenantId}`);
+      } catch (err) {
+        logger.error('SlaEngine: Failed to invalidate cache:', err.message);
       }
     }
   }

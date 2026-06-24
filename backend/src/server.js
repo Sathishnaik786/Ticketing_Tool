@@ -103,6 +103,7 @@ try {
   require('./modules/approval-engine/approval.worker');
   require('./services/audit/audit.worker');
   require('./modules/sla-engine/sla.worker');
+  require('./modules/event-store/event.worker');
   console.log('✅ All background workers booted successfully.');
 } catch (err) {
   console.error('Error booting background workers:', err);
@@ -122,6 +123,11 @@ server.listen(PORT, () => {
 
     // Auto Create Bucket Safely on Backend Startup
     try {
+        const { runDbInit } = require('./lib/db-init');
+        runDbInit().catch(err => {
+            console.error('[DB_INIT_ERROR] Failed to run database initialization:', err);
+        });
+
         const { PayslipStorageService } = require('./modules/payroll-bulk-processing/services/payslip-storage.service');
         PayslipStorageService.ensureBucketExists().catch(err => {
             console.error('[STORAGE_INIT_ERROR] Failed to run startup storage initialization:', err);

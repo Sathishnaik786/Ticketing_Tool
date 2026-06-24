@@ -63,7 +63,8 @@ const initAllQueues = () => {
     'approval-queue',
     'notify-queue',
     'sla-queue',
-    'audit-queue'
+    'audit-queue',
+    'event-queue'
   ];
 
   systemQueues.forEach(initializeQueue);

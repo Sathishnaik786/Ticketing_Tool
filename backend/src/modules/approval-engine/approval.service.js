@@ -4,6 +4,22 @@ const logger = require('../../lib/auditLogger');
 const { getQueue } = require('../../lib/queue');
 const { supabaseAdmin } = require('../../lib/supabase');
 
+let AppError;
+try {
+  AppError = require('../../utils/app-error');
+} catch (e) {
+  AppError = class extends Error {
+    static badRequest(msg) { return new AppError(msg, 400); }
+    static forbidden(msg) { return new AppError(msg, 403); }
+    static notFound(msg) { return new AppError(msg, 404); }
+    static internal(msg) { return new AppError(msg, 500); }
+    constructor(msg, status) {
+      super(msg);
+      this.status = status;
+    }
+  };
+}
+
 class ApprovalService {
   async evaluateAndCreateAssignments(tenantId, ticketId, stepName, assignedRole, assignedUserId) {
     logger.info(`Creating approval assignment for step: ${stepName} on ticket: ${ticketId}`);
@@ -70,18 +86,77 @@ class ApprovalService {
     const tenantId = await resolveTenantId(user);
     const { assignment_id, action, comments } = payload; // action: APPROVED or REJECTED
 
-    const assignment = await repository.getPendingAssignment(tenantId, assignment_id);
-    if (!assignment) {
-      throw new Error('Approval assignment not found or already processed.');
+    const normalizeRole = (role) => String(role || '').toUpperCase().trim();
+
+    // 1. Fetch assignment without tenant filter first to detect cross-tenant access attempts
+    const { data: assignment, error: fetchErr } = await supabaseAdmin
+      .from('approval_assignments')
+      .select('*')
+      .eq('id', assignment_id)
+      .maybeSingle();
+
+    if (fetchErr || !assignment) {
+      throw AppError.notFound('Approval assignment not found.');
     }
 
-    // Security Gate: Prevent approval forgery (Rule 7)
+    // 2. Validate tenant isolation boundary
+    if (assignment.tenant_id !== tenantId) {
+      logger.error(`Security Incident: Cross-tenant approval action detected! User ${user.email} (tenant ${tenantId}) attempted to approve assignment ${assignment_id} (tenant ${assignment.tenant_id})`);
+      throw AppError.forbidden('Security Access Denied: Cross-tenant approval is prohibited.');
+    }
+
+    // 3. Reject non-pending assignments
+    if (assignment.status !== 'PENDING') {
+      throw AppError.badRequest('Approval assignment has already been processed or is not pending.');
+    }
+
+    // 4. Reject expired assignments
+    if (assignment.escalates_at && new Date() > new Date(assignment.escalates_at)) {
+      throw AppError.forbidden('Approval assignment has expired.');
+    }
+
+    // 5. Security Gate: Prevent approval forgery (Rule 7)
     // Asserts caller belongs to assigned_user_id or holds the target role
     const isOwner = assignment.assigned_user_id === user.id;
-    const hasRole = assignment.assigned_role && user.role === assignment.assigned_role;
+    const callerRole = normalizeRole(user.role);
+    const targetRole = assignment.assigned_role ? normalizeRole(assignment.assigned_role) : null;
     
-    if (!isOwner && !hasRole && user.role !== 'ADMIN') {
-      throw new Error('Security Gate: Unauthorized attempt to approve this step.');
+    if (!isOwner && callerRole !== 'ADMIN') {
+      if (targetRole === 'MANAGER') {
+        if (callerRole !== 'MANAGER') {
+          throw AppError.forbidden('Security Gate: Only Managers can approve this step.');
+        }
+
+        // Fetch caller's department_id
+        const { data: callerEmp, error: callerEmpErr } = await supabaseAdmin
+          .from('employees')
+          .select('department_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (callerEmpErr || !callerEmp) {
+          throw AppError.forbidden('Security Gate: Authenticated employee profile not found.');
+        }
+
+        // Fetch ticket's department_id
+        const { data: ticket, error: ticketErr } = await supabaseAdmin
+          .from('tickets')
+          .select('department_id')
+          .eq('id', assignment.ticket_id)
+          .maybeSingle();
+
+        if (ticketErr || !ticket) {
+          throw AppError.notFound('Ticket not found.');
+        }
+
+        if (callerEmp.department_id !== ticket.department_id) {
+          throw AppError.forbidden('Security Gate: Managers can only approve tickets within their own department.');
+        }
+      } else if (targetRole && callerRole !== targetRole) {
+        throw AppError.forbidden(`Security Gate: Unauthorized attempt to approve this step. Required role: ${targetRole}`);
+      } else if (!targetRole) {
+        throw AppError.forbidden('Security Gate: Unauthorized attempt to approve this step.');
+      }
     }
 
     // Update assignment status

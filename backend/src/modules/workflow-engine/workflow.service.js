@@ -71,6 +71,19 @@ class WorkflowService {
         ticket_id: ticketId,
         state_status: 'SUSPENDED'
       });
+
+      // Record Event in Event Store
+      await eventStore.recordEvent({
+        tenant_id: tenantId,
+        aggregate_type: 'TICKET_WORKFLOW',
+        aggregate_id: ticketId,
+        event_type: 'workflow.loop_detected',
+        payload: {
+          ticket_id: ticketId,
+          depth,
+          status: 'SUSPENDED'
+        }
+      });
       return;
     }
 
@@ -125,6 +138,54 @@ class WorkflowService {
       stepId: nextStep.id,
       depth: depth + 1
     });
+  }
+
+  async rollbackToStep(tenantId, ticketId, targetStepId, actorId = null) {
+    logger.info(`Rolling back workflow to step: ${targetStepId} on ticket: ${ticketId}`, { ticketId, targetStepId });
+
+    const runState = await repository.getTicketWorkflowState(tenantId, ticketId);
+    if (!runState) {
+      throw new Error(`No workflow execution found for ticket ${ticketId}`);
+    }
+
+    const steps = await repository.getVersionSteps(tenantId, runState.version_id);
+    const targetStep = steps.find(s => s.id === targetStepId);
+    if (!targetStep) {
+      throw new Error(`Target step ${targetStepId} does not belong to the current workflow version.`);
+    }
+
+    const updatedState = await repository.setTicketWorkflowState({
+      tenant_id: tenantId,
+      ticket_id: ticketId,
+      version_id: runState.version_id,
+      current_step_id: targetStepId,
+      state_status: 'IN_PROGRESS'
+    });
+
+    await eventStore.recordEvent({
+      tenant_id: tenantId,
+      aggregate_type: 'TICKET_WORKFLOW',
+      aggregate_id: ticketId,
+      event_type: 'workflow.rollback',
+      payload: {
+        version_id: runState.version_id,
+        previous_step_id: runState.current_step_id,
+        target_step_id: targetStepId,
+        status: 'IN_PROGRESS'
+      },
+      actor_id: actorId
+    });
+
+    const queue = getQueue('workflow-queue');
+    await queue.add('processStep', {
+      tenantId,
+      ticketId,
+      versionId: runState.version_id,
+      stepId: targetStepId,
+      depth: 1
+    });
+
+    return updatedState;
   }
 
   async executeStepDetails(tenantId, ticketId, versionId, stepId, depth) {

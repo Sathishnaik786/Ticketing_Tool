@@ -64,6 +64,25 @@ class TicketService {
       description: 'Ticket created',
     });
 
+    const eventStore = require('../../event-store/eventStore.service');
+    const { resolveTenantId } = require('@lib/tenantResolver');
+    const tenantId = await resolveTenantId(user);
+
+    await eventStore.recordEvent({
+      tenant_id: tenantId,
+      aggregate_type: 'TICKET',
+      aggregate_id: data.id,
+      event_type: 'ticket.created',
+      payload: {
+        ticket_id: data.id,
+        status: data.status,
+        priority: data.priority,
+        category_id: data.category_id,
+        title: data.title
+      },
+      actor_id: user.id
+    });
+
     const { logTicketingEvent } = require('../lib/ticketing-logger');
     logTicketingEvent('ticket_created', {
       ticketId: data.id,
@@ -87,6 +106,19 @@ class TicketService {
         ticketId: data.id,
         ticketNumber: data.ticket_number,
         title: data.title,
+      });
+
+      await eventStore.recordEvent({
+        tenant_id: tenantId,
+        aggregate_type: 'TICKET',
+        aggregate_id: data.id,
+        event_type: 'ticket.assigned',
+        payload: {
+          ticket_id: data.id,
+          assignee_id: data.assignee_id,
+          assignee_user_id: assigneeUserId
+        },
+        actor_id: user.id
       });
     }
 
@@ -137,6 +169,38 @@ class TicketService {
 
     if (error) {
       throw AppError.internal('Unable to update ticket');
+    }
+
+    const eventStore = require('../../event-store/eventStore.service');
+    const { resolveTenantId } = require('@lib/tenantResolver');
+    const tenantId = await resolveTenantId(user);
+
+    await eventStore.recordEvent({
+      tenant_id: tenantId,
+      aggregate_type: 'TICKET',
+      aggregate_id: ticketId,
+      event_type: 'ticket.updated',
+      payload: {
+        ticket_id: ticketId,
+        updates
+      },
+      actor_id: user.id
+    });
+
+    if (updates.assignee_id && updates.assignee_id !== ticket.assignee_id) {
+      const assigneeUserId = await this.ticketAccess.getEmployeeUserId(this.db, updates.assignee_id);
+      await eventStore.recordEvent({
+        tenant_id: tenantId,
+        aggregate_type: 'TICKET',
+        aggregate_id: ticketId,
+        event_type: 'ticket.assigned',
+        payload: {
+          ticket_id: ticketId,
+          assignee_id: updates.assignee_id,
+          assignee_user_id: assigneeUserId
+        },
+        actor_id: user.id
+      });
     }
 
     if (priorityActivity) {
@@ -257,6 +321,38 @@ class TicketService {
 
     if (error) {
       throw AppError.internal('Unable to change ticket status');
+    }
+
+    const eventStore = require('../../event-store/eventStore.service');
+    const { resolveTenantId } = require('@lib/tenantResolver');
+    const tenantId = await resolveTenantId(user);
+
+    await eventStore.recordEvent({
+      tenant_id: tenantId,
+      aggregate_type: 'TICKET',
+      aggregate_id: ticketId,
+      event_type: 'ticket.updated',
+      payload: {
+        ticket_id: ticketId,
+        old_status: ticket.status,
+        new_status: nextStatus
+      },
+      actor_id: user.id
+    });
+
+    if (nextStatus === 'CLOSED') {
+      await eventStore.recordEvent({
+        tenant_id: tenantId,
+        aggregate_type: 'TICKET',
+        aggregate_id: ticketId,
+        event_type: 'ticket.closed',
+        payload: {
+          ticket_id: ticketId,
+          resolved_at: updates.resolved_at || null,
+          closed_at: updates.closed_at
+        },
+        actor_id: user.id
+      });
     }
 
     const activityType = nextStatus === 'RESOLVED'

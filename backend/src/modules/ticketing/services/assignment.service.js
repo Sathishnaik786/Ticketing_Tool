@@ -73,6 +73,24 @@ class AssignmentService {
     });
 
     const assigneeUserId = await this.ticketAccess.getEmployeeUserId(this.db, input.assignee_id);
+    
+    const eventStore = require('../../event-store/eventStore.service');
+    const { resolveTenantId } = require('@lib/tenantResolver');
+    const tenantId = await resolveTenantId(user);
+    await eventStore.recordEvent({
+      tenant_id: tenantId,
+      aggregate_type: 'TICKET',
+      aggregate_id: ticketId,
+      event_type: 'ticket.assigned',
+      payload: {
+        ticket_id: ticketId,
+        assignee_id: input.assignee_id,
+        assignee_user_id: assigneeUserId,
+        assignment_id: assignment.id
+      },
+      actor_id: user.id
+    });
+
     await this.notificationService.notifyTicketAssigned({
       recipientUserId: assigneeUserId,
       ticketId,
@@ -137,6 +155,25 @@ class AssignmentService {
     });
 
     const assigneeUserId = await this.ticketAccess.getEmployeeUserId(this.db, input.assignee_id);
+    
+    const eventStore = require('../../event-store/eventStore.service');
+    const { resolveTenantId } = require('@lib/tenantResolver');
+    const tenantId = await resolveTenantId(user);
+    await eventStore.recordEvent({
+      tenant_id: tenantId,
+      aggregate_type: 'TICKET',
+      aggregate_id: ticketId,
+      event_type: 'ticket.assigned',
+      payload: {
+        ticket_id: ticketId,
+        assignee_id: input.assignee_id,
+        assignee_user_id: assigneeUserId,
+        previous_assignee_id: previousAssigneeId,
+        assignment_id: assignment.id
+      },
+      actor_id: user.id
+    });
+
     await this.notificationService.notifyTicketReassigned({
       recipientUserId: assigneeUserId,
       ticketId,

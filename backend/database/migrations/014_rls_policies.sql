@@ -1,6 +1,20 @@
 -- Migration: 014_rls_policies
 -- Up
 
+-- Ensure role column exists on employees table and backfill it
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'EMPLOYEE';
+
+DO $$
+BEGIN
+    UPDATE employees e
+    SET role = u.role
+    FROM users u
+    WHERE e.user_id = u.id AND (e.role IS NULL OR e.role = 'EMPLOYEE');
+EXCEPTION
+    WHEN OTHERS THEN
+        NULL; -- Ignore if users or auth tables are not ready in specific testing contexts
+END $$;
+
 -- Helper function to extract tenant_id from JWT claims
 CREATE OR REPLACE FUNCTION get_auth_tenant_id()
 RETURNS UUID AS $$

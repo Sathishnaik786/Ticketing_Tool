@@ -63,12 +63,13 @@ const createDeliveryLog = async (logData) => {
   return data;
 };
 
-const updateDeliveryLog = async (tenantId, logId, status, errorMessage = null, attempts = 1) => {
+const updateDeliveryLog = async (tenantId, logId, status, errorMessage = null, attempts = 1, errorStack = null) => {
   const { data, error } = await supabaseAdmin
     .from('notification_delivery_logs')
     .update({
       status,
       error_message: errorMessage,
+      error_stack: errorStack,
       attempts,
       sent_at: status === 'SENT' ? new Date().toISOString() : null
     })

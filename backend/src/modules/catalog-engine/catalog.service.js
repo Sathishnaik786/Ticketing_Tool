@@ -1,6 +1,7 @@
 const repository = require('./catalog.repository');
 const TicketService = require('../ticketing/services/ticket.service');
 const eventStore = require('../event-store/eventStore.service');
+const Ajv = require('ajv');
 
 // Existing app errors helper check
 let AppError;
@@ -12,6 +13,7 @@ try {
     static badRequest(msg) { return new AppError(msg, 400); }
     static notFound(msg) { return new AppError(msg, 404); }
     static internal(msg) { return new AppError(msg, 500); }
+    static forbidden(msg) { return new AppError(msg, 403); }
     constructor(msg, status) {
       super(msg);
       this.status = status;
@@ -39,6 +41,7 @@ class CatalogService {
     }
     return details;
   }
+
   async submitRequest(user, payload) {
     const { resolveTenantId } = require('../../lib/tenantResolver');
     const tenantId = await resolveTenantId(user);
@@ -47,16 +50,103 @@ class CatalogService {
     // Fetch the item schema
     const item = await this.getItemDetails(tenantId, item_id);
 
-    // Validate fields response mapping
+    // Validate fields response mapping using AJV dynamic compiler
     const responsesMap = {};
     responses.forEach(r => {
-      responsesMap[r.field_id] = r.value;
+      const field = item.fields.find(f => f.id === r.field_id);
+      if (field) {
+        let val = r.value;
+        if (field.field_type === 'number' && val !== '') {
+          const num = Number(val);
+          if (!isNaN(num)) {
+            val = num;
+          }
+        } else if (field.field_type === 'checkbox') {
+          if (val === 'true' || val === true) val = true;
+          else if (val === 'false' || val === false) val = false;
+        }
+        responsesMap[field.name] = val;
+      }
     });
 
+    // Build JSON Schema dynamically
+    const properties = {};
+    const required = [];
+
     item.fields.forEach(field => {
-      const val = responsesMap[field.id];
-      if (field.is_required && (val === undefined || val === null || val === '')) {
-        throw AppError.badRequest(`Field "${field.label}" is required.`);
+      const fieldSchema = {};
+      
+      switch (field.field_type) {
+        case 'number':
+          fieldSchema.type = 'number';
+          break;
+        case 'checkbox':
+          fieldSchema.type = 'boolean';
+          break;
+        case 'select':
+          fieldSchema.type = 'string';
+          if (Array.isArray(field.options) && field.options.length > 0) {
+            fieldSchema.enum = field.options;
+          }
+          break;
+        case 'file':
+          fieldSchema.type = 'string';
+          break;
+        case 'text':
+        case 'textarea':
+        default:
+          fieldSchema.type = 'string';
+          break;
+      }
+
+      properties[field.name] = fieldSchema;
+
+      if (field.is_required) {
+        required.push(field.name);
+      }
+    });
+
+    const schema = {
+      type: 'object',
+      properties,
+      required,
+      additionalProperties: true
+    };
+
+    const ajv = new Ajv({ allErrors: true, coerceTypes: true });
+    const validate = ajv.compile(schema);
+    const valid = validate(responsesMap);
+
+    if (!valid) {
+      const errorsStr = validate.errors.map(err => {
+        const fieldName = err.instancePath ? err.instancePath.substring(1) : err.params.missingProperty;
+        return `Field "${fieldName}" ${err.message}`;
+      }).join(', ');
+      throw AppError.badRequest(`Validation Error: ${errorsStr}`);
+    }
+
+    // Additional custom validations (e.g. file size and extension checks)
+    item.fields.forEach(field => {
+      if (field.field_type === 'file') {
+        const fileVal = responsesMap[field.name];
+        if (fileVal) {
+          try {
+            const fileData = typeof fileVal === 'string' ? JSON.parse(fileVal) : fileVal;
+            if (fileData && typeof fileData === 'object') {
+              const maxSizeBytes = 10 * 1024 * 1024; // 10MB limit
+              if (fileData.size && fileData.size > maxSizeBytes) {
+                throw AppError.badRequest(`File "${fileData.name || field.label}" exceeds maximum allowed size of 10MB.`);
+              }
+              const forbiddenExtensions = ['.exe', '.bat', '.sh', '.cmd', '.com', '.msi'];
+              const fileName = (fileData.name || '').toLowerCase();
+              if (forbiddenExtensions.some(ext => fileName.endsWith(ext))) {
+                throw AppError.badRequest(`File type for "${fileData.name}" is forbidden.`);
+              }
+            }
+          } catch (e) {
+            // Ignore JSON parsing errors if file format is raw URI
+          }
+        }
       }
     });
 

@@ -179,6 +179,7 @@ app.use((req, res, next) => {
 
 // Health check routes
 app.use('/health', publicLimiter, require('./routes/health.routes'));
+app.use('/api/health', publicLimiter, require('./routes/health.routes'));
 
 // Redis test endpoint (SUPER_ADMIN only)
 app.get('/redis-test', adminLimiter, authMiddleware, requireRole('SUPER_ADMIN'), async (req, res) => {
