@@ -22,10 +22,15 @@ export default defineConfig(({ mode }) => ({
             if (id.includes('react-router') || id.includes('react-dom') || id.includes('/react/')) return 'vendor-react';
             if (id.includes('lucide-react')) return 'vendor-icons';
           }
-          if (id.includes('/modules/payroll/')) return 'module-payroll';
-          if (id.includes('/modules/executive-analytics/')) return 'module-analytics';
-          if (id.includes('/modules/knowledge-management/')) return 'module-knowledge';
-          if (id.includes('/modules/notification-center/')) return 'module-notifications';
+          // Only chunk lazy-loaded UI under each module. Route files, hooks, and services
+          // stay in the main bundle — they are imported statically from App.tsx or shared
+          // shell code and must not create circular chunk init (TDZ) with the entry bundle.
+          const isLazyModuleUi =
+            id.includes('/pages/') || id.includes('/components/');
+          if (id.includes('/modules/payroll/') && isLazyModuleUi) return 'module-payroll';
+          if (id.includes('/modules/executive-analytics/') && isLazyModuleUi) return 'module-analytics';
+          if (id.includes('/modules/knowledge-management/') && isLazyModuleUi) return 'module-knowledge';
+          if (id.includes('/modules/notification-center/') && isLazyModuleUi) return 'module-notifications';
         },
       },
     },
