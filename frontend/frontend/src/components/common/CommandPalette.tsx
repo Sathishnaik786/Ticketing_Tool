@@ -390,7 +390,7 @@ export function CommandPalette() {
                   Execute
                 </div>
               </div>
-              <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">ETMS Productivity OS v2.0</p>
+              <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Ticketra Productivity OS v2.0</p>
             </div>
           </motion.div>
         </div>

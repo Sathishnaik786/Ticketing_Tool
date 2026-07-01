@@ -3,6 +3,7 @@ import {
   ETMS_GROUP_ITEM_IDS,
   ETMS_NAV_GROUPS,
   LEGACY_GROUP_ORDER,
+  LEGACY_NAV_GROUP_LABEL,
   NAV_ITEMS,
   resolveNavItems,
   type NavGroup,
@@ -148,7 +149,7 @@ export function getDefaultExpandedSections(etmsNavigation: boolean): Record<stri
     defaults[group.label] = group.defaultExpanded !== false;
   }
   if (etmsNavigation) {
-    defaults['Legacy EMS'] = false;
+    defaults[LEGACY_NAV_GROUP_LABEL] = false;
   }
   return defaults;
 }
@@ -171,6 +172,10 @@ export function loadSidebarExpandedSections(etmsNavigation: boolean): Record<str
       const legacy = localStorage.getItem(legacyKey);
       if (legacy) {
         const parsed = JSON.parse(legacy) as Record<string, boolean>;
+        if ('Legacy EMS' in parsed) {
+          parsed[LEGACY_NAV_GROUP_LABEL] = parsed['Legacy EMS'];
+          delete parsed['Legacy EMS'];
+        }
         const migrated = { ...defaults, ...parsed };
         localStorage.setItem(SIDEBAR_SECTIONS_KEY, JSON.stringify(migrated));
         return migrated;
@@ -339,7 +344,7 @@ export function buildCommandRegistry(etmsNavigation = isEtmsNavigationEnabled): 
   const navItems = buildSearchRegistry(etmsNavigation).map((item) => ({
     id: `cmd-${item.id}`,
     title: item.title,
-    category: item.isLegacy ? 'Legacy EMS' : 'Navigation',
+    category: item.isLegacy ? LEGACY_NAV_GROUP_LABEL : 'Navigation',
     href: item.href,
     priority: item.priority,
     isLegacy: item.isLegacy,
@@ -417,7 +422,7 @@ export function buildBreadcrumbs(pathname: string, search: string, groups: NavGr
     for (const item of group.items) {
       if (isNavItemActive(item, pathname, search)) {
         if (group.isLegacy) {
-          crumbs.push({ label: 'Legacy EMS' });
+          crumbs.push({ label: LEGACY_NAV_GROUP_LABEL });
         }
         crumbs.push({ label: group.label });
         crumbs.push({ label: item.title, href: item.href });

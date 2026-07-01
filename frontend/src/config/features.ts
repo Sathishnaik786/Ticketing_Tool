@@ -30,7 +30,7 @@ export const isNotificationCenterEnabled =
 export const isEtmsUiV2Enabled =
   import.meta.env.VITE_ENABLE_ETMS_UI_V2 === 'true';
 
-/** ETMS-primary sidebar + Legacy EMS collapsed group. */
+/** ETMS-primary sidebar + legacy HR group collapsed by default. */
 export const isEtmsNavigationEnabled =
   import.meta.env.VITE_ENABLE_ETMS_NAVIGATION === 'true';
 

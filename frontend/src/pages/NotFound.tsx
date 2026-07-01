@@ -37,7 +37,7 @@ const NotFound = () => {
             <Globe size={14} />
             Node Disconnected
           </div>
-          <h1 className="text-7xl md:text-9xl font-display font-black tracking-tighter text-white uppercase leading-[0.85]">Lost in <br /><span className="text-teal-500 text-gradient-teal">EMTS.</span></h1>
+          <h1 className="text-7xl md:text-9xl font-display font-black tracking-tighter text-white uppercase leading-[0.85]">Lost in <br /><span className="text-teal-500 text-gradient-teal">Ticketra.</span></h1>
           <p className="text-slate-500 text-2xl max-w-lg mx-auto font-bold leading-relaxed uppercase tracking-tight">
             The localized fragment you are searching for does not exist within the current organizational network.
           </p>
@@ -62,7 +62,7 @@ const NotFound = () => {
             Route Trace Failed: <span className="text-white ml-2">{location.pathname}</span>
           </div>
           <div className="h-px w-24 bg-white/5" />
-          <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">EMTS © 2026</p>
+          <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Ticketra © 2026</p>
         </div>
       </motion.div>
     </div>

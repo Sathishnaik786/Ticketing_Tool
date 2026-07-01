@@ -8,14 +8,35 @@ interface HistoryItem {
 }
 
 const MAX_HISTORY = 10;
-const STORAGE_KEY = 'yvi_nav_history';
+const STORAGE_KEY = 'ticketra_nav_history';
+const LEGACY_STORAGE_KEYS = ['yvi_nav_history'] as const;
+
+function readNavHistory(): HistoryItem[] {
+  try {
+    const current = localStorage.getItem(STORAGE_KEY);
+    if (current) return JSON.parse(current);
+  } catch {
+    // ignore corrupt storage
+  }
+
+  for (const legacyKey of LEGACY_STORAGE_KEYS) {
+    try {
+      const legacy = localStorage.getItem(legacyKey);
+      if (legacy) {
+        localStorage.setItem(STORAGE_KEY, legacy);
+        return JSON.parse(legacy);
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return [];
+}
 
 export function useNavigationHistory() {
   const location = useLocation();
-  const [history, setHistory] = useState<HistoryItem[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [history, setHistory] = useState<HistoryItem[]>(readNavHistory);
 
   const addToHistory = useCallback((path: string, title: string) => {
     setHistory(prev => {

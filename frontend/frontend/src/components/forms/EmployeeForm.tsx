@@ -241,7 +241,7 @@ export function EmployeeForm({ employee, onSubmit, onCancel }: EmployeeFormProps
                 <FormItem>
                   <FormLabel className="text-[11px] font-black uppercase tracking-wider text-muted-foreground/80">Email Address</FormLabel>
                   <FormControl>
-                    <Input {...field} type="email" disabled={isFieldDisabled('email')} placeholder="alx.pierce@yvi.enterprise" className="h-11" />
+                    <Input {...field} type="email" disabled={isFieldDisabled('email')} placeholder="alx.pierce@company.com" className="h-11" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

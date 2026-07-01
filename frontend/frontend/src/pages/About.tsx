@@ -142,7 +142,7 @@ export default function AboutPage() {
           <div className="text-center">
             <GlassCard className="p-16 border-2 border-orange-500/20">
               <h3 className="text-4xl font-display font-semibold text-slate-900 dark:text-white mb-6">Join the future of work</h3>
-              <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-2xl mx-auto">Connect with our team to learn how EMTS transforms enterprise operations.</p>
+              <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-2xl mx-auto">Connect with our team to learn how Ticketra transforms enterprise operations.</p>
               <Link to="/contact-sales" className="inline-block">
                 <PremiumButton className="px-12 py-4 text-lg">Contact Sales</PremiumButton>
               </Link>

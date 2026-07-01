@@ -43,6 +43,9 @@ import { payrollNavItems } from './payroll.navigation';
 
 export type { NavItem, NavGroup } from './types';
 
+/** User-visible label for the collapsed legacy workforce/payroll nav group. */
+export const LEGACY_NAV_GROUP_LABEL = 'HR & Payroll';
+
 export const NAV_ITEMS: NavItem[] = [
   ...etmsNavItems,
   ...analyticsNavItems,
@@ -65,7 +68,7 @@ export const ETMS_NAV_GROUPS: Omit<NavGroup, 'items'>[] = [
   { id: 'notifications', label: 'Notifications', icon: Bell, defaultExpanded: false, featureFlag: 'VITE_ENABLE_NOTIFICATION_CENTER' },
   { id: 'administration', label: 'Administration', icon: Settings, defaultExpanded: false, roles: ['ADMIN', 'HR'] },
   { id: 'feedback', label: 'Feedback', icon: Star, defaultExpanded: false, featureFlag: 'VITE_ENABLE_TICKET_FEEDBACK' },
-  { id: 'legacy-ems', label: 'Legacy EMS', icon: Archive, defaultExpanded: false, isLegacy: true },
+  { id: 'legacy-ems', label: LEGACY_NAV_GROUP_LABEL, icon: Archive, defaultExpanded: false, isLegacy: true },
 ];
 
 /** Maps ETMS group id → nav item ids. */

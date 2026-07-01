@@ -66,7 +66,7 @@ const PayrollIdentityPreparation = () => {
   });
 
   const handleBackfill = () => {
-    if (window.confirm('This will generate sequential employee codes (EMTS001, EMTS002...) for all employees who do not have one. This is a one-time setup action. Proceed?')) {
+    if (window.confirm('This will generate sequential employee codes (TK001, TK002...) for all employees who do not have one. This is a one-time setup action. Proceed?')) {
         backfillMutation.mutate();
     }
   };

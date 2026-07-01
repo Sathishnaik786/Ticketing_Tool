@@ -107,9 +107,9 @@ export function SidebarFooter({ collapsed, user, onLogout }: SidebarFooterProps)
 
       {!collapsed && (
         <div className="mt-3 px-1 flex items-center justify-between text-[10px] font-medium text-slate-400 uppercase tracking-wider">
-          <span>v2.6.0-ETMS</span>
+          <span>v2.6.0</span>
           <Dot className="text-blue-500" aria-hidden />
-          <span>{etmsShell ? 'Ticketra' : 'EMTS'}</span>
+          <span>Ticketra</span>
         </div>
       )}
     </div>

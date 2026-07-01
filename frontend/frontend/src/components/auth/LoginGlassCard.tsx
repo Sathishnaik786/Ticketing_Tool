@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { EmtsBrandMark } from '@/components/common/EmtsBrandMark';
+import { TicketraBrandMark } from '@/components/common/TicketraBrandMark';
 
 interface LoginGlassCardProps {
   children: React.ReactNode;
@@ -43,8 +43,7 @@ export default function LoginGlassCard({ children }: LoginGlassCardProps) {
  
       {/* Form Header utilizing sentence-case Space Grotesk */}
       <motion.div variants={textVariants} className="flex flex-col items-center text-center space-y-4 mb-6 w-full select-none">
-         {/* EMTS Logo */}
-         <EmtsBrandMark size="xl" className="h-10 lg:h-12" />
+         <TicketraBrandMark size="xl" className="h-10 lg:h-12" />
          
          <div className="space-y-1">
            <h2 className="text-xl sm:text-2xl font-display font-semibold tracking-tight text-slate-800 dark:text-white leading-tight">

@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 export const TESTIMONIALS = [
   {
-    quote: "With EMTS, our workforce, payroll, and ticketing operations run from one secure platform. It is the standard for enterprise operations management.",
+    quote: "With Ticketra, our workforce, payroll, and ticketing operations run from one secure platform. It is the standard for enterprise operations management.",
     author: "Sarah Jenkins",
     role: "Chief People Officer",
     company: "Vanguard Enterprises"

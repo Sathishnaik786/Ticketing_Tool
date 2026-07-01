@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { EmtsBrandMark } from '@/components/common/EmtsBrandMark';
+import { TicketraBrandMark } from '@/components/common/TicketraBrandMark';
 import BackgroundVisual from './BackgroundVisual';
 import ThemeToggle from './ThemeToggle';
 import TestimonialCard from './TestimonialCard';
@@ -40,7 +40,7 @@ export default function GlassLoginLayout({ children }: GlassLoginLayoutProps) {
 
           {/* ── Absolute branding watermark — top-left of image frame ── */}
           <div className="absolute top-6 left-6 z-10 flex items-center gap-2">
-            <EmtsBrandMark size="md" inverted />
+            <TicketraBrandMark size="md" inverted />
           </div>
 
           {/* ── Glassmorphic Testimonial Card — anchored at bottom of frame ── */}
@@ -73,7 +73,7 @@ export default function GlassLoginLayout({ children }: GlassLoginLayoutProps) {
         {/* Copyright footer */}
         <div className="w-full text-center pt-8 border-t border-slate-200/50 dark:border-white/5 max-w-[440px] mx-auto relative z-10 transition-colors duration-500">
           <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500 leading-normal select-none">
-            © 2026 Enterprise Management & Ticketing System (EMTS). All rights reserved.
+            © 2026 Ticketra. All rights reserved.
           </span>
         </div>
 

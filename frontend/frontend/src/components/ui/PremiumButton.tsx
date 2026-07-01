@@ -23,13 +23,12 @@ export default function PremiumButton({
       className={cn(
         // Base layout and shape
         'h-12 px-8 rounded-2xl',
-        // Orange gradient background
-        'bg-gradient-to-r from-orange-600 to-orange-500',
-        'hover:from-orange-500 hover:to-orange-400',
+        'bg-gradient-to-r from-blue-600 to-blue-500',
+        'hover:from-blue-500 hover:to-blue-400',
         // Text
         'text-white font-display font-semibold tracking-wide text-sm',
         // Shadow and hover lift
-        'shadow-[0_8px_20px_rgba(249,115,22,0.12)] hover:shadow-[0_12px_28px_rgba(249,115,22,0.22)]',
+        'shadow-[0_8px_20px_rgba(37,99,235,0.12)] hover:shadow-[0_12px_28px_rgba(37,99,235,0.22)]',
         'hover:-translate-y-[0.5px]',
         // Transitions
         'transition-all duration-300',
@@ -38,7 +37,7 @@ export default function PremiumButton({
         // Group for shimmer trigger
         'group',
         // Focus ring
-        'focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none',
+        'focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:outline-none',
         // Disabled state
         'disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0',
         className

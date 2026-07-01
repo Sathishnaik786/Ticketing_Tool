@@ -4,7 +4,7 @@ import {
 } from './icons';
 
 export const legacyNavItems: NavItem[] = [
-// ── Legacy EMS (top-level links in ETMS mode) ─────────────────────────────
+// ── Legacy workforce modules (top-level links in ETMS mode) ───────────────
   {
     id: 'legacy-payroll',
     title: 'Payroll',

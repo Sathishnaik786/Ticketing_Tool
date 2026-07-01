@@ -1,5 +1,5 @@
 /**
- * EMTS Design Intelligence Tokens - Phase-7 (Final Perfection)
+ * Ticketra design intelligence tokens - Phase-7 (Final Perfection)
  * World-Class Enterprise Design Language
  * Optimized for Emotional UX, Interaction Harmony & Visual Cohesion
  */
@@ -75,9 +75,9 @@
   --glow-secondary: rgba(59, 130, 246, 0.05);
 
   /* -------------------------------------------------------------------------- */
-  /* ACCENT — Orange brand accent (Landing Page / premium ecosystem)           */
+  /* ACCENT — Ticketra brand blue (Landing Page)                              */
   /* -------------------------------------------------------------------------- */
-  --accent-orange: #ea580c;
+  --accent-primary: #2563EB;
 
   /* -------------------------------------------------------------------------- */
   /* ETMS SEMANTIC TOKENS (Phase 8.1)                                           */
@@ -96,8 +96,8 @@
   /* MESH BACKGROUNDS                                                           */
   /* -------------------------------------------------------------------------- */
   /* Light-theme mesh for Landing Page */
-  --bg-mesh-light: radial-gradient(at 20% 20%, rgba(234, 88, 12, 0.06) 0px, transparent 50%),
-    radial-gradient(at 80% 10%, rgba(59, 130, 246, 0.05) 0px, transparent 50%);
+  --bg-mesh-light: radial-gradient(at 20% 20%, rgba(37, 99, 235, 0.06) 0px, transparent 50%),
+    radial-gradient(at 80% 10%, rgba(99, 102, 241, 0.05) 0px, transparent 50%);
 }
 
 .dark {

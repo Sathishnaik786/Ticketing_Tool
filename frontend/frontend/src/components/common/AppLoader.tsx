@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { EmtsBrandMark } from '@/components/common/EmtsBrandMark';
+import { TicketraBrandMark } from '@/components/common/TicketraBrandMark';
 
 interface AppLoaderProps {
   isLoading: boolean;
@@ -30,7 +30,7 @@ export function AppLoader({ isLoading }: AppLoaderProps) {
             ease: "easeInOut",
           }}
         >
-          <EmtsBrandMark size="lg" />
+          <TicketraBrandMark size="lg" />
         </motion.div>
         <motion.div
           className="flex gap-1"
@@ -81,7 +81,7 @@ export function AppLoader({ isLoading }: AppLoaderProps) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
-          Loading EMTS...
+          Loading Ticketra...
         </motion.p>
       </div>
     </motion.div>

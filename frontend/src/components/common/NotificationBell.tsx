@@ -252,7 +252,7 @@ export function NotificationBell({ className = '' }: NotificationBellProps) {
 
             {/* Footer */}
             <div className="p-4 bg-slate-50 dark:bg-slate-950/50 border-t border-white/5 text-center">
-              <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">EMTS Intelligence Feed • Verified Secure</p>
+              <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Ticketra Intelligence Feed • Verified Secure</p>
             </div>
           </motion.div>
         )}

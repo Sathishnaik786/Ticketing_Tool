@@ -153,7 +153,7 @@ describe('Landing Page — Property 8: Focus ring on all interactive elements', 
           (el) => {
             const className = el.className;
             expect(className).toContain('focus-visible:ring-2');
-            expect(className).toContain('focus-visible:ring-orange-500/50');
+            expect(className).toContain('focus-visible:ring-blue-500/50');
           }
         )
       );

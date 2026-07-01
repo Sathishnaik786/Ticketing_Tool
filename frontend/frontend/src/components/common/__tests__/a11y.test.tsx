@@ -84,7 +84,7 @@ describe('ARIA role compliance', () => {
   });
 
   it('images have alt text', () => {
-    render(<img src="/logo.png" alt="Ticketra logo" />);
+    render(<img src="/logo.svg" alt="Ticketra logo" />);
     const img = screen.getByRole('img', { name: 'Ticketra logo' });
     expect(img).toBeInTheDocument();
   });

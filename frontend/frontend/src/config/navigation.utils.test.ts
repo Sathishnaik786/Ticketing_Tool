@@ -8,7 +8,7 @@ import {
   loadSidebarExpandedSections,
   SIDEBAR_SECTIONS_KEY,
 } from '@/config/navigation.utils';
-import { NAV_ITEMS } from '@/config/navigation';
+import { NAV_ITEMS, LEGACY_NAV_GROUP_LABEL } from '@/config/navigation';
 
 describe('navigation.utils', () => {
   const adminUser = { role: 'ADMIN' };
@@ -20,16 +20,16 @@ describe('navigation.utils', () => {
     vi.stubEnv('VITE_ENABLE_ETMS_NAVIGATION', 'true');
   });
 
-  it('buildEtmsNavGroups puts Dashboard first and Legacy EMS last', () => {
+  it('buildEtmsNavGroups puts Dashboard first and legacy HR group last', () => {
     const groups = buildEtmsNavGroups();
     expect(groups[0]?.id).toBe('dashboard');
     expect(groups[groups.length - 1]?.id).toBe('legacy-ems');
     expect(groups[groups.length - 1]?.isLegacy).toBe(true);
   });
 
-  it('Legacy EMS is collapsed by default in ETMS mode', () => {
+  it('legacy HR group is collapsed by default in ETMS mode', () => {
     const defaults = getDefaultExpandedSections(true);
-    expect(defaults['Legacy EMS']).toBe(false);
+    expect(defaults[LEGACY_NAV_GROUP_LABEL]).toBe(false);
   });
 
   it('filterNavGroups hides admin-only items from employees', () => {
@@ -54,7 +54,7 @@ describe('navigation.utils', () => {
   it('migrates legacy sidebar localStorage key', () => {
     localStorage.setItem('yvi_sidebar_sections', JSON.stringify({ 'Legacy EMS': true }));
     const sections = loadSidebarExpandedSections(true);
-    expect(sections['Legacy EMS']).toBe(true);
+    expect(sections[LEGACY_NAV_GROUP_LABEL]).toBe(true);
     expect(localStorage.getItem(SIDEBAR_SECTIONS_KEY)).toBeTruthy();
   });
 

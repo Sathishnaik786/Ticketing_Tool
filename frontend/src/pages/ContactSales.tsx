@@ -89,8 +89,8 @@ export default function ContactSalesPage() {
               <div className="pt-6 border-t border-slate-200/50 dark:border-white/5">
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Contact directly:</p>
                 <div className="space-y-2">
-                  <a href="mailto:sales@yvi-people.com" className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-orange-500">
-                    <Mail size={14} /> sales@yvi-people.com
+                  <a href="mailto:sales@ticketra.com" className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-orange-500">
+                    <Mail size={14} /> sales@ticketra.com
                   </a>
                   <a href="tel:+1-000-000-0000" className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-orange-500">
                     <Phone size={14} /> +1 (000) 000-0000

@@ -9,7 +9,7 @@ import BackgroundVisual from '@/components/auth/BackgroundVisual';
 import LoginInput from '@/components/auth/LoginInput';
 import ThemeToggle from '@/components/auth/ThemeToggle';
 import TrustBadge from '@/components/auth/TrustBadge';
-import { EmtsBrandMark } from '@/components/common/EmtsBrandMark';
+import { TicketraBrandMark } from '@/components/common/TicketraBrandMark';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -85,7 +85,7 @@ export default function ResetPassword() {
         {/* 🏢 Brand Header */}
         <div className="flex justify-center mb-2">
           <Link to="/" className="group select-none pointer-events-none">
-            <EmtsBrandMark size="xl" className="h-10 sm:h-11" />
+            <TicketraBrandMark size="xl" className="h-10 sm:h-11" />
           </Link>
         </div>
 
@@ -212,7 +212,7 @@ export default function ResetPassword() {
       {/* Global copyright footer */}
       <div className="w-full text-center pt-8 border-t border-slate-200/50 dark:border-white/5 max-w-[440px] mx-auto relative z-10 transition-colors duration-500">
         <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500 leading-normal select-none">
-          © 2026 Enterprise Management & Ticketing System (EMTS). All rights reserved.
+          © 2026 Ticketra. All rights reserved.
         </span>
       </div>
     </div>

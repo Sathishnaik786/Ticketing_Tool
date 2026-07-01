@@ -30,7 +30,7 @@ export default function PayslipTemplateGovernance() {
   const [templates, setTemplates] = useState<any[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<any>({
     template_name: 'Standard Corporate Blueprint',
-    organization_name: 'EMTS',
+    organization_name: 'Ticketra',
     logo_url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
     company_address: '123 Enterprise Corporate Boulevard, Tech Park, Suite 400',
     footer_text: 'This is a computer-generated document and does not require a physical signature.',
@@ -174,7 +174,7 @@ export default function PayslipTemplateGovernance() {
                   value={selectedTemplate.organization_name || ''} 
                   onChange={(e) => setSelectedTemplate({...selectedTemplate, organization_name: e.target.value})}
                   className="bg-slate-950 border-white/10 rounded-xl text-xs py-5 text-white"
-                  placeholder="e.g. EMTS"
+                  placeholder="e.g. Ticketra"
                 />
               </div>
             </div>
@@ -436,7 +436,7 @@ export default function PayslipTemplateGovernance() {
                     </h5>
                     <div className="text-[7px] space-y-0.5 leading-tight">
                       <p className="flex justify-between"><span className="font-bold text-slate-500">Name:</span> <span className="font-semibold">Hari Charan</span></p>
-                      <p className="flex justify-between"><span className="font-bold text-slate-500">Code:</span> <span className="font-semibold">EMTS0021</span></p>
+                      <p className="flex justify-between"><span className="font-bold text-slate-500">Code:</span> <span className="font-semibold">TK0021</span></p>
                       <p className="flex justify-between"><span className="font-bold text-slate-500">Designation:</span> <span className="font-semibold">Lead Developer</span></p>
                     </div>
                   </div>

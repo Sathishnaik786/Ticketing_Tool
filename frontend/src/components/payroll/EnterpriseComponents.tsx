@@ -158,7 +158,7 @@ export const EnterpriseEmptyState = ({
 );
 
 export const EnterpriseErrorState = ({
-  title = "EMTS Connectivity Failure",
+  title = "Ticketra Connectivity Failure",
   description = "A critical synchronization error occurred in the operational layer. Verify your authentication credentials and network integrity.",
   onRetry
 }: {

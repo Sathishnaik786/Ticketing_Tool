@@ -170,7 +170,7 @@ const menuData: Record<string, any> = {
       chart: [20, 40, 60, 50, 70, 90, 80, 100, 95, 110, 105, 120]
     }
   },
-  'EMTS Platform': {
+  'Ticketra Platform': {
     left: [
       { title: 'Core Intelligence', desc: 'Central AI processing unit.', icon: Cpu },
       { title: 'Governance Hub', desc: 'Policy and compliance control center.', icon: ShieldCheck },
@@ -191,7 +191,7 @@ const menuData: Record<string, any> = {
   },
   'AI Systems': {
     left: [
-      { title: 'EMTS Core AI', desc: 'Central intelligence engine.', icon: Cpu },
+      { title: 'Ticketra Core AI', desc: 'Central intelligence engine.', icon: Cpu },
       { title: 'Natural Language', desc: 'Semantic data interaction.', icon: MessageSquare },
       { title: 'Pattern Recognition', desc: 'Identify hidden variances.', icon: Zap },
       { title: 'Autonomous Agents', desc: 'Self-executing workflows.', icon: Sparkles },
@@ -264,7 +264,7 @@ export const MegaMenu = ({ isOpen, onClose, activeCategory: initialCategory }: M
     'Projects': Briefcase,
     'Operations': Settings,
     'Analytics': TrendingUp,
-    'EMTS Platform': Cpu,
+    'Ticketra Platform': Cpu,
     'AI Systems': Cpu
   };
 

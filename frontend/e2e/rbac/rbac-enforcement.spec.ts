@@ -17,7 +17,7 @@ test.describe('RBAC enforcement', () => {
   });
 });
 
-test.describe('Legacy EMS mode', () => {
+test.describe('Legacy HR mode', () => {
   test.use({ extraHTTPHeaders: {} });
 
   test('app shell renders with default flags', async ({ page }) => {

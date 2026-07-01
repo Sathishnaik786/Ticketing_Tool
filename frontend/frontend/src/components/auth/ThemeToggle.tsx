@@ -16,7 +16,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
         'p-2 rounded-xl border text-slate-600 dark:text-slate-300',
         'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700',
         'hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors',
-        'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
+        'focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:outline-none',
         className
       )}
       aria-label="Toggle theme"
