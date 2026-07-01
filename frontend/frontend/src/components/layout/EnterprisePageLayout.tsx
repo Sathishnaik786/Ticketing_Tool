@@ -8,7 +8,8 @@ import PremiumButton from '@/components/ui/PremiumButton';
 import SectionHeading from '@/components/landing/SectionHeading';
 import { AnimatedContainer } from '@/components/landing/AnimatedContainer';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Linkedin, Twitter, Github } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import { TicketraLandingFooter } from '@/components/landing/TicketraLandingFooter';
 
 interface EnterprisePageLayoutProps {
   children: React.ReactNode;
@@ -17,40 +18,6 @@ interface EnterprisePageLayoutProps {
   subtitle?: string;
   accentWord?: string;
 }
-
-const getRouteForMenuItem = (title: string, category: string): string => {
-  const normalizedTitle = title.toLowerCase().trim();
-  
-  if (normalizedTitle.includes('core intelligence') || normalizedTitle.includes('intelligence core')) return '/intelligence';
-  if (normalizedTitle.includes('governance hub')) return '/governance';
-  if (normalizedTitle.includes('audit console')) return '/governance';
-  if (normalizedTitle.includes('system status')) return '/operations';
-  
-  if (normalizedTitle.includes('compliance engine') || normalizedTitle.includes('compliance matrix')) return '/governance';
-  if (normalizedTitle.includes('risk assessment')) return '/governance';
-  if (normalizedTitle.includes('regional tax') || normalizedTitle.includes('tax governance')) return '/payroll';
-  if (normalizedTitle.includes('rbac registry') || normalizedTitle.includes('access control') || normalizedTitle.includes('security layer') || normalizedTitle.includes('sso integration')) return '/security-standards';
-  
-  if (normalizedTitle.includes('about us')) return '/about';
-  if (normalizedTitle.includes('enterprise sla')) return '/enterprise-sla';
-  if (normalizedTitle.includes('security standards')) return '/security-standards';
-  if (normalizedTitle.includes('contact sales')) return '/contact-sales';
-  
-  if (normalizedTitle.includes('attritions ai') || normalizedTitle.includes('predictive churn')) return '/intelligence';
-  if (normalizedTitle.includes('payroll forecasts') || normalizedTitle.includes('cost forecasting')) return '/payroll';
-  if (normalizedTitle.includes('growth analytics')) return '/intelligence';
-  if (normalizedTitle.includes('performance core') || normalizedTitle.includes('performance hub')) return '/workforce';
-
-  const cat = category.toLowerCase().trim();
-  if (cat === 'workforce') return '/workforce';
-  if (cat === 'payroll') return '/payroll';
-  if (cat === 'intelligence' || cat === 'analytics' || cat === 'ai systems') return '/intelligence';
-  if (cat === 'governance') return '/governance';
-  if (cat === 'projects') return '/projects';
-  if (cat === 'operations') return '/operations';
-  
-  return '/';
-};
 
 export function EnterprisePageLayout({ children, title, label, subtitle, accentWord }: EnterprisePageLayoutProps) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -316,91 +283,7 @@ export function EnterprisePageLayout({ children, title, label, subtitle, accentW
           </div>
         </section>
 
-        {/* Footer */}
-        <footer className="py-16 px-6 sm:px-10 bg-white/30 dark:bg-black border-t border-slate-200/50 dark:border-white/5 font-sans relative z-10">
-          <div className="max-w-[1500px] mx-auto space-y-16">
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-12 md:gap-20">
-              <div className="md:col-span-2 space-y-6">
-                <Link to="/" className="flex items-center gap-3 focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-lg max-w-max">
-                  <TicketraBrandMark size="md" />
-                  <TicketraWordmark className="text-2xl font-semibold" />
-                </Link>
-                <p className="font-sans font-normal text-sm text-slate-500 leading-relaxed max-w-sm">
-                  Ticketra — orchestrating workforce, payroll, attendance, and service operations with operational precision.
-                </p>
-                {/* Premium Trust Certification Chips */}
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {['SOC2 Type II', 'ISO 27001', 'AES-256', 'HIPAA'].map((t) => (
-                    <span key={t} className="text-[9px] font-sans font-semibold px-2.5 py-1 rounded-lg bg-slate-100/80 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {[
-                {
-                  title: 'Ticketra Platform',
-                  links: ['Core Intelligence', 'Governance Hub', 'Audit Console', 'System Status']
-                },
-                {
-                  title: 'Governance',
-                  links: ['Compliance Engine', 'Risk Assessment', 'Regional Tax', 'RBAC Registry']
-                },
-                {
-                  title: 'Company',
-                  links: ['About Us', 'Enterprise SLA', 'Security Standards', 'Contact Sales']
-                },
-                {
-                  title: 'Intelligence',
-                  links: ['Attritions AI', 'Payroll Forecasts', 'Growth Analytics', 'Performance Core']
-                }
-              ].map((cat) => (
-                <div key={cat.title}>
-                  <h4 className="font-sans font-semibold text-xs tracking-wide text-slate-400 dark:text-slate-500 mb-6">{cat.title}</h4>
-                  <ul className="space-y-4 font-sans font-normal text-sm">
-                    {cat.links.map((link) => (
-                      <li key={link}>
-                        <Link
-                          to={getRouteForMenuItem(link, cat.title)}
-                          className="text-slate-500 dark:text-slate-400 hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5"
-                        >
-                          {link}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-
-            {/* Bottom Row */}
-            <div className="pt-8 border-t border-slate-200/50 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="flex gap-6 font-sans font-normal text-sm text-slate-400">
-                <Link to="/enterprise-sla" className="hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5">Privacy policy</Link>
-                <Link to="/enterprise-sla" className="hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5">Terms of service</Link>
-                <Link to="/security-standards" className="hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5">Security</Link>
-              </div>
-
-              <div className="flex items-center gap-4">
-                {[
-                  { icon: Linkedin, label: 'LinkedIn', href: 'https://linkedin.com' },
-                  { icon: Twitter, label: 'Twitter/X', href: 'https://twitter.com' },
-                  { icon: Github, label: 'GitHub', href: 'https://github.com' }
-                ].map((soc) => (
-                  <a
-                    key={soc.label}
-                    href={soc.href}
-                    aria-label={soc.label}
-                    className="text-slate-400 hover:text-orange-500 hover:-translate-y-1 hover:scale-110 active:scale-95 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 shadow-sm border border-transparent hover:border-slate-200 dark:hover:border-white/5"
-                  >
-                    <soc.icon size={18} />
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-        </footer>
+        <TicketraLandingFooter />
       </main>
     </div>
   );

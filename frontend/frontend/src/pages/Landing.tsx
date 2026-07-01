@@ -17,14 +17,12 @@ import {
   Target,
   ClipboardList,
   Layers,
-  Linkedin,
-  Twitter,
-  Github,
   Clock,
   Bell,
   CheckSquare,
   Users,
 } from 'lucide-react';
+import { TicketraLandingFooter } from '@/components/landing/TicketraLandingFooter';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -42,33 +40,6 @@ const NAV_LINKS: NavEntry[] = [
   { label: 'Security', path: '/security-standards' },
   { label: 'About', path: '/about' },
   { label: 'Contact', path: '/contact-sales' },
-];
-
-const FOOTER_COLUMNS = [
-  {
-    title: 'Product',
-    links: [
-      { label: 'Service Desk', path: '/#features' },
-      { label: 'SLA Management', path: '/enterprise-sla' },
-      { label: 'Knowledge Base', path: '/#solutions' },
-      { label: 'Approvals', path: '/contact-sales' },
-    ],
-  },
-  {
-    title: 'Resources',
-    links: [
-      { label: 'Security Standards', path: '/security-standards' },
-      { label: 'Enterprise SLA', path: '/enterprise-sla' },
-      { label: 'Documentation', path: '/security-standards' },
-    ],
-  },
-  {
-    title: 'Company',
-    links: [
-      { label: 'About Us', path: '/about' },
-      { label: 'Contact Sales', path: '/contact-sales' },
-    ],
-  },
 ];
 
 const Counter = ({ value, duration = 2 }: { value: number; duration?: number }) => {
@@ -634,7 +605,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="py-[var(--section-spacing)] px-[var(--page-padding)] bg-white/50 dark:bg-black border-y border-slate-200/50 dark:border-white/5">
+        <section id="faq" className="py-[var(--section-spacing)] px-[var(--page-padding)] bg-white/50 dark:bg-black border-y border-slate-200/50 dark:border-white/5">
           <div className="max-w-4xl mx-auto space-y-24">
             <SectionHeading label="Support" title="Frequently asked questions" align="center" />
             <GlassCard className="p-8 md:p-12 border border-slate-200/50 dark:border-white/5">
@@ -690,64 +661,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <footer className="py-16 px-[var(--page-padding)] bg-white/30 dark:bg-black border-t border-slate-200/50 dark:border-white/5 font-sans relative z-10">
-          <div className="max-w-[1500px] mx-auto space-y-16">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-16">
-              <div className="md:col-span-2 space-y-6">
-                <Link to="/" className="flex items-center gap-3 focus-visible:ring-2 focus-visible:ring-blue-500/50 rounded-lg max-w-max">
-                  <TicketraBrandMark size="md" />
-                  <TicketraWordmark className="text-2xl font-semibold" />
-                </Link>
-                <p className="font-sans font-normal text-sm text-slate-500 leading-relaxed max-w-sm">
-                  Ticketra helps organizations manage tickets, SLAs, approvals, and knowledge in one unified platform.
-                </p>
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {['SOC2 Type II', 'ISO 27001', 'AES-256'].map((t) => (
-                    <span key={t} className="text-[9px] font-sans font-semibold px-2.5 py-1 rounded-lg bg-slate-100/80 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              {FOOTER_COLUMNS.map((cat) => (
-                <div key={cat.title}>
-                  <h4 className="font-sans font-semibold text-xs tracking-wide text-slate-400 dark:text-slate-500 mb-6">{cat.title}</h4>
-                  <ul className="space-y-4 font-sans font-normal text-sm">
-                    {cat.links.map((link) => (
-                      <li key={link.label}>
-                        <Link
-                          to={link.path}
-                          className="text-slate-500 dark:text-slate-400 hover:text-blue-600 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:outline-none rounded px-1 py-0.5"
-                        >
-                          {link.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-            <div className="pt-8 border-t border-slate-200/50 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
-              <p className="text-sm text-slate-400">© 2026 Ticketra. All rights reserved.</p>
-              <div className="flex items-center gap-4">
-                {[
-                  { icon: Linkedin, label: 'LinkedIn', href: 'https://linkedin.com' },
-                  { icon: Twitter, label: 'Twitter/X', href: 'https://twitter.com' },
-                  { icon: Github, label: 'GitHub', href: 'https://github.com' },
-                ].map((soc) => (
-                  <a
-                    key={soc.label}
-                    href={soc.href}
-                    aria-label={soc.label}
-                    className="text-slate-400 hover:text-blue-600 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:outline-none p-2.5 rounded-xl bg-slate-50 dark:bg-white/5"
-                  >
-                    <soc.icon size={18} />
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-        </footer>
+        <TicketraLandingFooter />
       </main>
     </div>
   );
